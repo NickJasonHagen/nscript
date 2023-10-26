@@ -1,6 +1,6 @@
 
-extern crate nscript_lib;
-use nscript_lib::*;
+extern crate nscript;
+use nscript::*;
 
 
 fn yourfunctionmapping(vmap: &mut Varmap)-> String{

@@ -62,24 +62,24 @@ pub const NSCRIPT_VERSION: &'static str = "v2.006";
 // Created by Nick Hagen.
 // 2022-23";
 #[cfg(windows)]
-const LINE_ENDING: &'static str = "\n";
+const NC_LINE_ENDING: &'static str = "\n";
 #[cfg(not(windows))]
-pub const LINE_ENDING: &'static str = "\n";
-pub const CODE_LINE_ENDING: &'static str = "\n";
+pub const NC_LINE_ENDING: &'static str = "\n";
+pub const CODE_NC_LINE_ENDING: &'static str = "\n";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]
 pub const MACRO_OS: &'static str = "Unix";
-pub const SERVER_ADDRESS: &str = "0.0.0.0";
-pub const SERVER_PORT: u16 = 8088;
+pub const NC_SERVER_ADDRESS: &str = "0.0.0.0";
+pub const NC_SERVER_PORT: u16 = 8088;
 #[cfg(not(windows))]
-pub const SERVER_ROOT: &str = "./public/";
+pub const NC_SERVER_ROOT: &str = "./public/";
 #[cfg(windows)]
-const SERVER_ROOT: &str = ".\\public\\";
+const NC_SERVER_ROOT: &str = ".\\public\\";
 #[cfg(not(windows))]
-pub const SCRIPT_DIR : &str = "./";
+pub const NC_SCRIPT_DIR : &str = "./";
 #[cfg(windows)]
-const SCRIPT_DIR: &str = ".\\";
+const NC_SCRIPT_DIR: &str = ".\\";
 
 //use std::path::{PathBuf, Path};
 

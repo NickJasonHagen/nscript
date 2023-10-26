@@ -1,7 +1,7 @@
 
 use crate::*;
 
-pub const PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
+pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const NC_ARRAY_DELIM : &str = "]].n.c.arr.[[";
 pub const NC_ASYNC_LOOPS_KEY : &str = "coroutine"; // async loops scopes keyword
 
@@ -484,7 +484,7 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
     let code = Nstring::replace(&code, &argnewfix, &argnewbroken);
     vmap.codelvlup();
 
-    let fixedcode = code.to_owned();// + LINE_ENDING;
+    let fixedcode = code.to_owned();// + NC_LINE_ENDING;
     let fixedcode = nscript_stripcomments(&fixedcode);
     let fixedcode = trim_lines(&fixedcode);
     let fixedcode = nscript_stringextract(&fixedcode);
@@ -1258,7 +1258,7 @@ pub fn nscript_packscope(code: &str,scopeid: &str) -> String {
 
     let newid = "%".to_owned() + scopeid + "%";
         let mut ifcodenew = Nstring::replace(&nscript_formatsheet(&code), " ", "%id%sp%");
-        ifcodenew = Nstring::replace(&ifcodenew, LINE_ENDING, "%id%lf%");
+        ifcodenew = Nstring::replace(&ifcodenew, NC_LINE_ENDING, "%id%lf%");
         ifcodenew = Nstring::replace(&ifcodenew, "(", "%id%bo%");
         ifcodenew = Nstring::replace(&ifcodenew, ")", "%id%bc%");
         ifcodenew = Nstring::replace(&ifcodenew, "{", "%id%cbo%");
@@ -1276,7 +1276,7 @@ pub fn nscript_unpackscope(code: &str,scopeid: &str,vmap: &mut Varmap) -> String
     let newid = "%".to_owned() + scopeid + "%";
     let mut ifcodenew = Nstring::replace(&code,&newid,  "%id%");
     ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_LINE_ENDING);
+    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
     ifcodenew = Nstring::replace(&ifcodenew,  "%id%bo%","(");
     ifcodenew = Nstring::replace(&ifcodenew,  "%id%bc%",")");
     ifcodenew = Nstring::replace(&ifcodenew, "%id%c%",",");
@@ -1299,7 +1299,7 @@ pub fn nscript_unpackscopereturnclean(code: &str,scopeid: &str,vmap: &mut Varmap
     let pref = "scope(".to_owned() + &scopeid + ",";
     ifcodenew = Nstring::replace(&ifcodenew,&pref,  "");
     ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_LINE_ENDING);
+    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
     ifcodenew = Nstring::replace(&ifcodenew,  "%id%bo%","(");
     ifcodenew = Nstring::replace(&ifcodenew,  "%id%bc%",")");
     ifcodenew = Nstring::replace(&ifcodenew, "%id%c%",",");
@@ -1312,10 +1312,10 @@ pub fn nscript_formatsheet(code: &str) -> String{
     // used in : For / While / func
     // ------------------------------------------------------------------------------
     // let mut newcode = String::new();
-    // let lines = code.split(LINE_ENDING);
+    // let lines = code.split(NC_LINE_ENDING);
     // for line in lines {
     //     let fxline = split(&line,"//")[0];
-    //     newcode = "".to_owned() + &newcode + &fxline + LINE_ENDING;
+    //     newcode = "".to_owned() + &newcode + &fxline + NC_LINE_ENDING;
     // }
     nscript_scopeextract(&nscript_formatargumentspaces(&nscript_stringextract(&trim_lines(&kill_bill(&nscript_stripcomments(&code))))))
 }
@@ -1761,17 +1761,17 @@ pub fn nscript_getmacro(mac: &str,vmap: &mut Varmap) -> String {
     //----------------------------------------------------
     let time = chrono::Utc::now();
     match mac {
-        "@webpublic" => SCRIPT_DIR.to_owned() +"domains/" +&split(&vmap.getvar("___domainname"),":")[0]+"/public/",
-        "@webprivate" => SCRIPT_DIR.to_owned() +"domains/" + &split(&vmap.getvar("___domainname"),":")[0]+"/private/",
-        "@webroot" => SCRIPT_DIR.to_owned() +"domains/" + &split(&vmap.getvar("___domainname"),":")[0]+"/",
+        "@webpublic" => NC_SCRIPT_DIR.to_owned() +"domains/" +&split(&vmap.getvar("___domainname"),":")[0]+"/public/",
+        "@webprivate" => NC_SCRIPT_DIR.to_owned() +"domains/" + &split(&vmap.getvar("___domainname"),":")[0]+"/private/",
+        "@webroot" => NC_SCRIPT_DIR.to_owned() +"domains/" + &split(&vmap.getvar("___domainname"),":")[0]+"/",
         "@year" => time.year().to_string(),
         "@month" => time.month().to_string(),
         "@day" => time.day().to_string(),
         "@hour" => time.hour().to_string(),
         "@min" => time.minute().to_string(),
         "@OS" => MACRO_OS.to_string(),
-        "@scriptdir" => SCRIPT_DIR.to_string(),
-        "@programdir" => PROGRAM_DIR.to_string(),
+        "@scriptdir" => NC_SCRIPT_DIR.to_string(),
+        "@programdir" => NC_PROGRAM_DIR.to_string(),
         "@sec" => time.second().to_string(),
         "@msec" => time.timestamp_millis().to_string(),
         "@socketip" => nscript_checkvar("___socketip",vmap),

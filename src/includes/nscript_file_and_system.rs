@@ -95,6 +95,9 @@ pub fn create_directory(dir_path: &str) -> String {
 
 // Move a file from the source path to the destination path
 pub fn filemove(source: &str, destination: &str) -> String {
+    if source == "" || destination == ""{
+        return "Aruments cannot be empty!!".to_string()
+    }
     match fs::rename(source, destination) {
         Ok(_) => format!("File moved successfully"),
         Err(err) => format!("Error moving file: {}", err),

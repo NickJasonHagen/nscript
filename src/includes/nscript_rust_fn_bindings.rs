@@ -1,48 +1,5 @@
 
 use crate::*;
-//
-// trait nscript_override{
-//     fn nscript_custom_functions(
-//         func: &str,
-//         param1: &str,
-//         param2: &str,
-//         param3: &str,
-//         param4: &str,
-//         param5: &str,
-//         param6: &str,
-//         param7: &str,
-//         param8: &str,
-//         param9: &str,
-//         vmap: &mut Varmap,
-//     ) -> String {
-//         "".to_string() // Default implementation returns an empty string
-//     }
-// }
-// #[derive(Debug)]
-// struct Nscriptfunctions {
-// }
-//
-// impl nscript_override for Nscriptfunctions{
-//     fn nscript_custom_functions(
-//         func: &str,
-//         param1: &str,
-//         param2: &str,
-//         param3: &str,
-//         param4: &str,
-//         param5: &str,
-//         param6: &str,
-//         param7: &str,
-//         param8: &str,
-//         param9: &str,
-//         vmap: &mut Varmap,
-//     ) -> String {
-//         "".to_string() // Default implementation returns an empty string
-//     }
-// }
-
-
-
-
 
     pub fn nscript_callfn(
         func: &str,

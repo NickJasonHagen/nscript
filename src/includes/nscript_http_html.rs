@@ -254,10 +254,10 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
 
     nscript_setparams_handleconnections(&newparams,vmap);
 
-    let mut file_path = Nstring::replace(&format!("{}{}", SERVER_ROOT, &pathparts[0]),"/..","");
-        let checkthis = SCRIPT_DIR.to_owned() + "domains/" + &domainname + "/http.nc";
+    let mut file_path = Nstring::replace(&format!("{}{}", NC_SERVER_ROOT, &pathparts[0]),"/..","");
+        let checkthis = NC_SCRIPT_DIR.to_owned() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis){
-            file_path = SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/"+ &pathparts[0];
+            file_path = NC_SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/"+ &pathparts[0];
 
     }
     if request_parts[0] == "POST" {

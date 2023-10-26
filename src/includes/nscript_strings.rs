@@ -170,10 +170,10 @@ impl Njh {
         }
         let mut outputdata = String::new();
         for lines in vec {
-            outputdata = outputdata + lines + &LINE_ENDING;
+            outputdata = outputdata + lines + &NC_LINE_ENDING;
         }
         if isfound == false{
-            outputdata = outputdata  + header + &LINE_ENDING + newln+ &LINE_ENDING;
+            outputdata = outputdata  + header + &NC_LINE_ENDING + newln+ &NC_LINE_ENDING;
         }
         return outputdata;
     }

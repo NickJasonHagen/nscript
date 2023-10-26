@@ -1,0 +1,29 @@
+[package]
+name = "nscript-lib"
+version = "0.1.0"
+edition = "2021"
+authors = ["NickJasonHagen"]
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/NickJasonHagen/nscript-lib"
+repository = "https://github.com/NickJasonHagen/nscript-lib"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.23"
+colored = "2.0.0"
+num = "0.4.0"
+hex = "0.4"
+reqwest = { version = "0.11", features = ["blocking"] }
+openssl-sys = "0.9"
+encoding_rs = "0.8"
+psutil = "3.2.2"
+rand = "0.8.4"
+libc = "0.2"
+zip = "0.5.11"
+flate2 = "1.0.26"
+sysinfo = "0.14.0"
+
+base64 = "0.21.2"
+url = "2.2.2"
+winapi = "0.3.9"

@@ -1,11 +1,11 @@
 [package]
-name = "nscript-lib"
+name = "nscript"
 version = "0.1.0"
 edition = "2021"
 authors = ["NickJasonHagen"]
 license = "MIT OR Apache-2.0"
-homepage = "https://github.com/NickJasonHagen/nscript-lib"
-repository = "https://github.com/NickJasonHagen/nscript-lib"
+homepage = "https://github.com/NickJasonHagen/nscript"
+repository = "https://github.com/NickJasonHagen/nscript"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

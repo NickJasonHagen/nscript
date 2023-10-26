@@ -20,6 +20,7 @@ pub struct Varmap{
     pub parsinglevel: usize,
     pub debugmode: usize,
     pub strictness: usize,
+    pub activeloops: bool,
     pub fnextentions: NscriptCustomFunctions,
     pub funcname: String,
     pub param1: String,
@@ -43,6 +44,7 @@ impl Varmap {
             parsinglevel: 1,
             debugmode: 0,
             strictness: 0,
+            activeloops: false,
             fnextentions: emptyfnbuffer,
             funcname: "".to_owned(),
             param1: "".to_owned(),
@@ -2325,6 +2327,7 @@ pub fn nscript_loops(vmap: &mut Varmap){
     let activeloops = vmap.inobj("nscript_loops");
 
     if activeloops != "" {
+        vmap.activeloops = true;
 //println!("running loop:[{}]",&activeloops);
 
         let subloops = split(&activeloops, "|");
@@ -2337,6 +2340,9 @@ pub fn nscript_loops(vmap: &mut Varmap){
             vmap.setvar("self".to_owned(), &x);
 
         }
+    }
+    else{
+        vmap.activeloops = false;
     }
 }
 

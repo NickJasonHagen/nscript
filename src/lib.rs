@@ -20,9 +20,9 @@ use std::env;
 //time
 use chrono::{Datelike, Timelike};
 
-// use std::{
-//     net::{TcpListener },
-// };
+use std::{
+     net::{TcpListener },
+ };
 
 use hex::FromHex;
 //use regex::Regex;
@@ -56,7 +56,7 @@ mod ioctlsocket {
 
 //#[cfg(not(windows))]
 //use std::os::unix::io::AsRawFd;
-const NSCRIPT_VERSION: &'static str = "v2.006";
+pub const NSCRIPT_VERSION: &'static str = "v2.006";
 // const NSCRIPT_INFO: &'static str = "
 // Nscript core in Rust-language.
 // Created by Nick Hagen.
@@ -64,20 +64,20 @@ const NSCRIPT_VERSION: &'static str = "v2.006";
 #[cfg(windows)]
 const LINE_ENDING: &'static str = "\n";
 #[cfg(not(windows))]
-const LINE_ENDING: &'static str = "\n";
-const CODE_LINE_ENDING: &'static str = "\n";
+pub const LINE_ENDING: &'static str = "\n";
+pub const CODE_LINE_ENDING: &'static str = "\n";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]
-const MACRO_OS: &'static str = "Unix";
-const SERVER_ADDRESS: &str = "0.0.0.0";
-const SERVER_PORT: u16 = 8088;
+pub const MACRO_OS: &'static str = "Unix";
+pub const SERVER_ADDRESS: &str = "0.0.0.0";
+pub const SERVER_PORT: u16 = 8088;
 #[cfg(not(windows))]
-const SERVER_ROOT: &str = "./public/";
+pub const SERVER_ROOT: &str = "./public/";
 #[cfg(windows)]
 const SERVER_ROOT: &str = ".\\public\\";
 #[cfg(not(windows))]
-const SCRIPT_DIR : &str = "./";
+pub const SCRIPT_DIR : &str = "./";
 #[cfg(windows)]
 const SCRIPT_DIR: &str = ".\\";
 

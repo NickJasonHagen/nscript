@@ -1893,7 +1893,7 @@ pub fn parse_and_check_statement(words: &[&str], vmap: &mut Varmap) -> bool {
         } else if operator == "or" || operator == "||" {
             result = result || nscript_checkstatement(a, b, c, vmap);
         } else {
-            return false; // Unknown operator or invalid syntax
+            //return false; // Unknown operator or invalid syntax
         }
         index += 4;
     }

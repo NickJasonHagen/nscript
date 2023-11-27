@@ -1880,9 +1880,9 @@ pub fn parse_and_check_statement(words: &[&str], vmap: &mut Varmap) -> bool {
     let conditions = &words[3..words.len() - 1];
     let mut index = 0;
     let mut result = nscript_checkstatement(words[1], words[2], words[3], vmap);
-    if result{
-        return result;
-    }
+    // if result{
+    //     return result;
+    // }
     while index + 4 < conditions.len() {
         let operator = conditions[index];
         let a = conditions[index + 1];

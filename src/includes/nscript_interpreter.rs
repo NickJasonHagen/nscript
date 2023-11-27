@@ -1878,21 +1878,25 @@ pub fn parse_and_check_statement(words: &[&str], vmap: &mut Varmap) -> bool {
     }
 
     let conditions = &words[3..words.len() - 1];
-    let mut index = 0;
+    let mut index = 1;
     let mut result = nscript_checkstatement(words[1], words[2], words[3], vmap);
     // if result{
     //     return result;
     // }
-    while index + 4 < conditions.len() {
+    while index + 4 < conditions.len()+1 {
         let operator = conditions[index];
         let a = conditions[index + 1];
         let b = conditions[index + 2];
         let c = conditions[index + 3];
         if operator == "and" || operator == "&&" {
+
             result = result && nscript_checkstatement(a, b, c, vmap);
         } else if operator == "or" || operator == "||" {
+
             result = result || nscript_checkstatement(a, b, c, vmap);
         } else {
+            cwrite("error operator on if statement","r");
+
             //return false; // Unknown operator or invalid syntax
         }
         index += 4;

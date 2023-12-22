@@ -3,7 +3,7 @@
 use crate::*;
 use reqwest;
 use reqwest::blocking::get;
-
+use std::time::Duration;
 
 
 pub fn curl(url: &str) -> String {
@@ -303,14 +303,23 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                                     }
                 //println!("bytesize:{}",&bsize);
                 if bsize > 454.0 {
+                    // this will make sure this loop will break if something weird happends it
+                    // hangs here so this timer (should) solve the issue
+                    let mut  dctimer = Ntimer::init();
                     loop{
+                        if Ntimer::diff(dctimer) >= 20{
+                            // dc timer for inactivity should break the loop.
+                            break;
+                        }
+
                         match stream.read(&mut buffer) {
                             Ok(bytes_read) => {
 
                                 //println!("\nbytesRead!{}\n",bytes_read);
                                 postdata = postdata + &String::from_utf8_lossy(&buffer[..]);
                                 if bytes_read == 0 || bytes_read < 1024 {break;}
-
+                                // reset the timer.
+                                dctimer = Ntimer::init();
                                 // procceed the connection.
 
                             }
@@ -517,6 +526,14 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
         nscript_loops(vmap);
         match listener.accept() {
             Ok((stream, _)) => {
+                // set ensurances to break the connection if some hangs.
+                let result = stream.set_read_timeout(Some(Duration::new(0, 10000000)));
+                let err = result.unwrap_err();
+                assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                let result = stream.set_write_timeout(Some(Duration::new(0, 10000000)));
+                let err = result.unwrap_err();
+                assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+
                 let remote_ip = stream.peer_addr().unwrap().ip();
                 vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
                 let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";

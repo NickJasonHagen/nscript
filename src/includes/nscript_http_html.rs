@@ -450,7 +450,7 @@ match stream.write(response.as_bytes()) {
 
 
 }
-pub fn ncwebserver() -> std::io::Result<()>  {
+pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
 
        //let args: Vec<String> = env::args().collect();
 
@@ -465,7 +465,7 @@ pub fn ncwebserver() -> std::io::Result<()>  {
     //     println!("No command-line arguments provided.");
     // }
 
-    let mut vmap = Varmap::new(); // global
+    //let mut vmap = Varmap::new(); // global
 
     println!("Starting Nscript WebServer {}",NSCRIPT_VERSION);
     println!("____________________________________");
@@ -473,10 +473,10 @@ pub fn ncwebserver() -> std::io::Result<()>  {
     // run Nscript:server.nc ,define pre logic here, this runs before the stream starts.
     vmap.setvar("self".to_owned(),"server");//<- set self in nscript during scope
     let serverscriptfilename = NC_SCRIPT_DIR.to_owned() +"system/webserver.nc";
-    nscript_execute_script(&serverscriptfilename,"","","","","","","","","",&mut vmap);
+    nscript_execute_script(&serverscriptfilename,"","","","","","","","","",vmap);
     // retrieve the prop's set for class server in nscript:server.nc
-    let server_addres_nc = nscript_checkvar("server.ip", &mut vmap);
-    let server_port_nc = nscript_checkvar("server.port", &mut vmap);
+    let server_addres_nc = nscript_checkvar("server.ip",vmap);
+    let server_port_nc = nscript_checkvar("server.port",vmap);
 
     let  listener: TcpListener;
     if server_port_nc != "" && server_addres_nc != ""{
@@ -507,21 +507,21 @@ pub fn ncwebserver() -> std::io::Result<()>  {
         if domainscript != ""{
             vmap.setvar("___domainname".to_owned(),&domainscript);
             let domainscript = NC_SCRIPT_DIR.to_owned() + "domains/"+domainscript.trim() + "/http.nc";
-            nscript_execute_script(&domainscript,"","","","","","","","","",&mut vmap);
+            nscript_execute_script(&domainscript,"","","","","","","","","", vmap);
             println!("Loading domain script:[{}]",&domainscript);
         }
     }
 
 
     loop {
-        nscript_loops(&mut vmap);
+        nscript_loops(vmap);
         match listener.accept() {
             Ok((stream, _)) => {
                 let remote_ip = stream.peer_addr().unwrap().ip();
                 vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
                 let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
-                nscript_checkvar(&onconfunc,&mut vmap);
-                handle_connection(stream,&mut vmap);
+                nscript_checkvar(&onconfunc,vmap);
+                handle_connection(stream,vmap);
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connections yet,

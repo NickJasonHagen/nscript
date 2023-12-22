@@ -37,7 +37,7 @@ use crate::*;
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
             "ncwebserver" => {
-            ncwebserver();
+            ncwebserver(vmap);
             return "".to_owned()
         }
             "rawget" => {

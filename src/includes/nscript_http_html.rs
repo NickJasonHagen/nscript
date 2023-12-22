@@ -450,6 +450,88 @@ match stream.write(response.as_bytes()) {
 
 
 }
+pub fn ncwebserver() -> std::io::Result<()>  {
+
+       //let args: Vec<String> = env::args().collect();
+
+    // The first argument (index 0) is the name of the binary itself.
+    // The actual command-line arguments start from index 1.
+    // if args.len() > 1 {
+    //     println!("Command-line arguments:");
+    //     for (index, arg) in args.iter().enumerate().skip(1) {
+    //         println!("{}: {}", index, arg);
+    //     }
+    // } else {
+    //     println!("No command-line arguments provided.");
+    // }
+
+    let mut vmap = Varmap::new(); // global
+
+    println!("Starting Nscript WebServer {}",NSCRIPT_VERSION);
+    println!("____________________________________");
+
+    // run Nscript:server.nc ,define pre logic here, this runs before the stream starts.
+    vmap.setvar("self".to_owned(),"server");//<- set self in nscript during scope
+    let serverscriptfilename = NC_SCRIPT_DIR.to_owned() +"system/init.nc";
+    nscript_execute_script(&serverscriptfilename,"","","","","","","","","",&mut vmap);
+    // retrieve the prop's set for class server in nscript:server.nc
+    let server_addres_nc = nscript_checkvar("server.ip", &mut vmap);
+    let server_port_nc = nscript_checkvar("server.port", &mut vmap);
+
+    let  listener: TcpListener;
+    if server_port_nc != "" && server_addres_nc != ""{
+        // when the server.nc is run class server.ip and server.port be checked!
+        listener = TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)).unwrap();
+        println!("Server started at http://{}:{}", &server_addres_nc, &server_port_nc);
+    }
+    else{
+        // if missing serverclass or something, use the constants
+        listener = TcpListener::bind(format!("{}:{}", NC_SERVER_ADDRESS, NC_SERVER_PORT)).unwrap();
+        println!("Server started at http://{}:{}", NC_SERVER_ADDRESS, NC_SERVER_PORT);
+    }
+    // sets the
+    // acceptsocketlisterns to continue and not hold on the script
+    #[cfg(windows)]
+    listener.set_nonblocking(true).expect("Cannot set non-blocking");
+    #[cfg(not(windows))]
+    listener.set_nonblocking(true)?;
+
+
+    // this checks your /domains/ folder for subfolders
+    // you can name a folder to your dns-domain
+    // all http to this domain be rerouted to this folders
+    let domaindir = NC_SCRIPT_DIR.to_owned() +"domains/";
+    let domdir = Nfile::dirtolist(&domaindir,false);
+    let domaindirarr = split(&domdir,NC_ARRAY_DELIM);
+    for domainscript in domaindirarr {
+        if domainscript != ""{
+            vmap.setvar("___domainname".to_owned(),&domainscript);
+            let domainscript = NC_SCRIPT_DIR.to_owned() + "domains/"+domainscript.trim() + "/http.nc";
+            nscript_execute_script(&domainscript,"","","","","","","","","",&mut vmap);
+            println!("Loading domain script:[{}]",&domainscript);
+        }
+    }
+
+
+    loop {
+        nscript_loops(&mut vmap);
+        match listener.accept() {
+            Ok((stream, _)) => {
+                let remote_ip = stream.peer_addr().unwrap().ip();
+                vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
+                let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
+                nscript_checkvar(&onconfunc,&mut vmap);
+                handle_connection(stream,&mut vmap);
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                // No incoming connections yet,
+            }
+            Err(e) => {
+                eprintln!("Error accepting connection: {}", e);
+            }
+        }
+    }
+}
 
 // fn handlepost(){// <------------------------------------ Need to be worked in handle connection
 // still.

@@ -36,6 +36,10 @@ use crate::*;
             // "scope" => {
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
+            "ncwebserver" => {
+            ncwebserver();
+            return "".to_owned()
+        }
             "rawget" => {
                 match raw_http_get(param1,param2) {
                     Ok(response) => return response ,

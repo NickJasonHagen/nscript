@@ -527,10 +527,10 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
         match listener.accept() {
             Ok((stream, _)) => {
                 // set ensurances to break the connection if some hangs.
-                let result = stream.set_read_timeout(Some(Duration::new(0, 10000)));
+                let result = stream.set_read_timeout(Some(Duration::new(0, 20000000)));
                 // let err = result.unwrap_err();
                 // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                let result = stream.set_write_timeout(Some(Duration::new(0, 10000)));
+                let result = stream.set_write_timeout(Some(Duration::new(0, 20000000)));
                 // let err = result.unwrap_err();
                 // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
 

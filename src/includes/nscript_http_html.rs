@@ -472,7 +472,7 @@ pub fn ncwebserver() -> std::io::Result<()>  {
 
     // run Nscript:server.nc ,define pre logic here, this runs before the stream starts.
     vmap.setvar("self".to_owned(),"server");//<- set self in nscript during scope
-    let serverscriptfilename = NC_SCRIPT_DIR.to_owned() +"system/init.nc";
+    let serverscriptfilename = NC_SCRIPT_DIR.to_owned() +"system/webserver.nc";
     nscript_execute_script(&serverscriptfilename,"","","","","","","","","",&mut vmap);
     // retrieve the prop's set for class server in nscript:server.nc
     let server_addres_nc = nscript_checkvar("server.ip", &mut vmap);

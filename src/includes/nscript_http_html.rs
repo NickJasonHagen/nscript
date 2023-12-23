@@ -306,6 +306,14 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
                     let mut  dctimer = Ntimer::init();
+               // set ensurances to break the connection if some hangs.
+                stream.set_read_timeout(Some(Duration::new(0, 120000000)));
+                // let err = result.unwrap_err();
+                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                stream.set_write_timeout(Some(Duration::new(0, 120000000)));
+                // let err = result.unwrap_err();
+                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+
                     loop{
                         if Ntimer::diff(dctimer) >= 20{
                             // dc timer for inactivity should break the loop.
@@ -526,13 +534,6 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
         nscript_loops(vmap);
         match listener.accept() {
             Ok((stream, _)) => {
-                // set ensurances to break the connection if some hangs.
-                let result = stream.set_read_timeout(Some(Duration::new(0, 20000000)));
-                // let err = result.unwrap_err();
-                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                let result = stream.set_write_timeout(Some(Duration::new(0, 20000000)));
-                // let err = result.unwrap_err();
-                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
 
                 let remote_ip = stream.peer_addr().unwrap().ip();
                 vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());

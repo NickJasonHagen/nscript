@@ -313,7 +313,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     stream.set_write_timeout(Some(Duration::new(0, 120000000)));
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-postdata = String::new();
+
                     loop{
                         if Ntimer::diff(dctimer) >= 20{
                             // dc timer for inactivity should break the loop.

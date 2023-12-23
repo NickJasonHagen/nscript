@@ -306,14 +306,14 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
                     let mut  dctimer = Ntimer::init();
-               // set ensurances to break the connection if some hangs.
-                stream.set_read_timeout(Some(Duration::new(0, 120000000)));
-                // let err = result.unwrap_err();
-                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                stream.set_write_timeout(Some(Duration::new(0, 120000000)));
-                // let err = result.unwrap_err();
-                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-
+                    // set ensurances to break the connection if some hangs.
+                    stream.set_read_timeout(Some(Duration::new(0, 120000000)));
+                    // let err = result.unwrap_err();
+                    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                    stream.set_write_timeout(Some(Duration::new(0, 120000000)));
+                    // let err = result.unwrap_err();
+                    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+postdata = String::new();
                     loop{
                         if Ntimer::diff(dctimer) >= 20{
                             // dc timer for inactivity should break the loop.
@@ -325,7 +325,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
 
                                 //println!("\nbytesRead!{}\n",bytes_read);
                                 postdata = postdata + &String::from_utf8_lossy(&buffer[..]);
-                                if bytes_read == 0 || bytes_read < 1024 {break;}
+                                if bytes_read == 0  {break;}
                                 // reset the timer.
                                 dctimer = Ntimer::init();
                                 // procceed the connection.
@@ -339,6 +339,11 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                         }
                     }
                 }
+        let strippostdata = split(&postdata,"\r\n\r\n");
+        if strippostdata.len() > 1 {
+            postdata = "".to_owned() +strippostdata[1] ;// used for post buffer data
+            //println!("strippedpostdata:{}",&postdata);
+        }
                 vmap.setvar("POSTDATA".to_owned() ,&postdata);
                 // let url_args = split(&postdata, "&");
                 // let mut newparams: Vec<String> = Vec::new();
@@ -375,7 +380,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     }
     if request_parts[0] == "GET" {
         if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {
-        if ["nc"].contains(&extension.as_str()) {
+            if ["nc"].contains(&extension.as_str()) {
             let _ = match File::open(&file_path) {
                 Ok(_) => {},
                 Err(_) => {

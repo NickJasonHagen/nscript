@@ -284,7 +284,7 @@ use crate::*;
             }
             "splitselect" => {
 
-                return splitselect(&param1,&param2,parse_string_to_usize(&param2))
+                return splitselect(&param1,&param2,parse_string_to_usize(&param3))
             }
             "file_read_utf8" =>{
                 return read_file_utf8(&param1).to_owned();

@@ -339,19 +339,19 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                         }
                     }
                 }
-
-                let url_args = split(&postdata, "&");
-                let mut newparams: Vec<String> = Vec::new();
-
-                for i in 1..10 {
-                    if url_args.len()  > i - 1 {
-                        newparams.push(decode_html_url(&url_args[i-1].to_owned()));
-                    }
-                    else {
-                        newparams.push(String::from(""));
-                    }
-                }
-                nscript_setparams_handleconnections(&newparams,vmap);
+                vmap.setvar("POSTDATA".to_owned() ,&postdata);
+                // let url_args = split(&postdata, "&");
+                // let mut newparams: Vec<String> = Vec::new();
+                //
+                // for i in 1..10 {
+                //     if url_args.len()  > i - 1 {
+                //         newparams.push(decode_html_url(&url_args[i-1].to_owned()));
+                //     }
+                //     else {
+                //         newparams.push(String::from(""));
+                //     }
+                // }
+                // nscript_setparams_handleconnections(&newparams,vmap);
                 let scriptcode = read_file_utf8(&file_path);
                 let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode));
                 let response = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);

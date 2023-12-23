@@ -324,8 +324,9 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                             Ok(bytes_read) => {
 
                                 //println!("\nbytesRead!{}\n",bytes_read);
-                                postdata = postdata + &String::from_utf8_lossy(&buffer[..]);
                                 if bytes_read == 0  {break;}
+                                postdata = postdata + &String::from_utf8_lossy(&buffer[..]);
+
                                 // reset the timer.
                                 dctimer = Ntimer::init();
                                 // procceed the connection.

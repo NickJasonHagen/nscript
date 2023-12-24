@@ -95,7 +95,9 @@ pub fn decode_html_url(url: &str) -> String {
             // Check if it's a valid percent-encoded sequence
             if let (Some(h1), Some(h2)) = (iter.next(), iter.next()) {
                 if let Ok(byte) = u8::from_str_radix(&format!("{}{}", h1, h2), 16) {
-                    decoded.push(byte as char);
+                    if &h1.to_string() != "0" && &h2.to_string() != "0" {
+                        decoded.push(byte as char);
+                    }
                     continue;
                 }
             }

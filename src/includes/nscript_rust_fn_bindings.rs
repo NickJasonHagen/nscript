@@ -71,6 +71,9 @@ use crate::*;
             // "encrypt" => {
             //     return decrypt_string(&param1,&param2);
             // }
+            "trim" => {
+                return param1.trim().to_string();
+            }
             "minutes_in_ms" => {
                 return Ntimer::minutes_in_ms(&param1);
             }

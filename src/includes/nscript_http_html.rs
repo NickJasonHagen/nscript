@@ -309,15 +309,15 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     // hangs here so this timer (should) solve the issue
                     let mut  dctimer = Ntimer::init();
                     // set ensurances to break the connection if some hangs.
-                    stream.set_read_timeout(Some(Duration::new(0, 120000000)));
+                    stream.set_read_timeout(Some(Duration::new(0, 420000000)));
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                    stream.set_write_timeout(Some(Duration::new(0, 120000000)));
+                    stream.set_write_timeout(Some(Duration::new(0, 420000000)));
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
 
                     loop{
-                        if Ntimer::diff(dctimer) >= 20{
+                        if Ntimer::diff(dctimer) >= 420{
                             // dc timer for inactivity should break the loop.
                             break;
                         }
@@ -348,11 +348,11 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 }
         let strippostdata = split(&postdata,"\r\n\r\n");
         if strippostdata.len() > 1 {
-            vmap.setvar("RAWPOSTDATA".to_owned(),&postdata);
+
             postdata = "".to_owned() + &Nstring::replace(&strippostdata[1],"\0","") ;// used for post buffer data
             //println!("strippedpostdata:{}",&postdata);
         }
-                vmap.setvar("POSTDATA".to_owned() ,&postdata);
+                vmap.setvar("POSTDATA".to_owned() ,&Nstring::replace(&postdata,"\0",""));
                 // let url_args = split(&postdata, "&");
                 // let mut newparams: Vec<String> = Vec::new();
                 //

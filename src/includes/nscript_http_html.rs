@@ -348,7 +348,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 }
         let strippostdata = split(&postdata,"\r\n\r\n");
         if strippostdata.len() > 1 {
-            postdata = "".to_owned() +strippostdata[1] ;// used for post buffer data
+            postdata = "".to_owned() + &Nstring::replace(&strippostdata[1],"\0","") ;// used for post buffer data
             //println!("strippedpostdata:{}",&postdata);
         }
                 vmap.setvar("POSTDATA".to_owned() ,&postdata);

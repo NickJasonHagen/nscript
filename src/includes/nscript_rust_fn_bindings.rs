@@ -37,13 +37,16 @@ use crate::*;
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
             "ncwebserver" => {
-            ncwebserver(vmap);
-            return "".to_owned()
+            match ncwebserver(vmap){
+                    Ok(_) => return String::new() ,
+                    Err(_) => return String::new(),
+            }
+
         }
             "rawget" => {
                 match raw_http_get(param1,param2) {
                     Ok(response) => return response ,
-                    Err(err) => return String::new(),
+                    Err(_) => return String::new(),
                 }
             }
             "restrictionmode" => {

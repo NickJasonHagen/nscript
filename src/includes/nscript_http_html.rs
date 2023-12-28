@@ -309,10 +309,20 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     // hangs here so this timer (should) solve the issue
                     let mut  dctimer = Ntimer::init();
                     // set ensurances to break the connection if some hangs.
-                    stream.set_read_timeout(Some(Duration::new(0, 420000000)));
+
+                    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
+
+                        Ok(_) => {},
+                        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+                    }
+
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                    stream.set_write_timeout(Some(Duration::new(0, 420000000)));
+                    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
+
+                        Ok(_) => {},
+                        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+                    }
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
 

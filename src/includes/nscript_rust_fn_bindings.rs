@@ -37,13 +37,16 @@ use crate::*;
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
         "download" =>{
-            let  parsed_number: Result<u16, _> = param3.parse::<u16>();
-            let mut isport: u16 = 80;
-            match parsed_number {
-                Ok(num) => isport = num,
-                Err(_) =>  println!("Parsed number error for port in fn download"),
+           let mut port: u16 = 80;
+            if let Ok(port) = param3.to_owned().parse::<u16>() {
+                println!("Parsed port number: {}", port);
+                // Use the port number (port) here in your code
+            } else {
+                port = 80;
+                println!("Failed to parse port number");
+                // Handle the case when parsing fails
             }
-            match get_http_file_content(param1, isport,param2,param4) {
+            match get_http_file_content(param1, port,param2,param4) {
                 Ok(data) => println!("File content: {:?}", String::from_utf8_lossy(&data)),
                 Err(err) => eprintln!("Error: {}", err),
             }

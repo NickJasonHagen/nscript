@@ -65,15 +65,24 @@ Connection: keep-alive
     let mut receivedstring = String::new();
     let mut timerdc = Ntimer::init();
     loop {
-        stream.read(&mut buffer)?;
-        receivedbytes += bytes_read;
-        receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-        timerdc = Ntimer::init();
+        match stream.read(&mut buffer){
+            Ok(e) => {
+                let bytes_read = e;
+                receivedbytes += bytes_read;
+                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                timerdc = Ntimer::init();
+
+            },
+            Err(_) => {
+                println!("rawget Streamread error");
+                break;
+            },
+        };
 
 
         if Ntimer::diff(timerdc) >= 1999 {
             println!("rawget timedout 2seconds., exit loop proceed code.");
-            break;
+            return Ok("timedout".to_string());
         }
         if bytes_read == 0 {
             // this is a socket close / end of packet / error.
@@ -129,10 +138,19 @@ Connection: keep-alive
     let mut receivedstring = String::new();
     let mut timerdc = Ntimer::init();
     loop {
-        stream.read(&mut buffer)?;
-        receivedbytes += bytes_read;
-        receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-        timerdc = Ntimer::init();
+        match stream.read(&mut buffer){
+            Ok(e) => {
+                let bytes_read = e;
+                receivedbytes += bytes_read;
+                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                timerdc = Ntimer::init();
+
+            },
+            Err(_) => {
+                println!("rawget Streamread error");
+                break;
+            },
+        };
 
 
         if Ntimer::diff(timerdc) >= 1999 {

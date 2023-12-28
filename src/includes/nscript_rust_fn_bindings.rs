@@ -37,7 +37,7 @@ use crate::*;
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
         "download" =>{
-            let  parsed_number: Result<u16, _> = param3.parse();
+            let  parsed_number: Result<u16, _> = param3.parse::<u16>();
             let mut isport: u16 = 80;
             match parsed_number {
                 Ok(num) => isport = num,

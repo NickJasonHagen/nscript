@@ -65,18 +65,12 @@ Connection: keep-alive
     let mut receivedstring = String::new();
     let mut timerdc = Ntimer::init();
     loop {
-        match stream.read(&mut buffer){
-            Ok(bytes_read) => {
-                receivedbytes += bytes_read;
-                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                timerdc = Ntimer::init();
+        stream.read(&mut buffer)?;
+        receivedbytes += bytes_read;
+        receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+        timerdc = Ntimer::init();
 
-            },
-            Err(e) =>{
-                println!("rawget error, OS:{}",e);
-                break;
-            },
-        };
+
         if Ntimer::diff(timerdc) >= 1999 {
             println!("rawget timedout 2seconds., exit loop proceed code.");
             break;
@@ -135,18 +129,12 @@ Connection: keep-alive
     let mut receivedstring = String::new();
     let mut timerdc = Ntimer::init();
     loop {
-        match stream.read(&mut buffer){
-            Ok(bytes_read) => {
-                receivedbytes += bytes_read;
-                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                timerdc = Ntimer::init();
+        stream.read(&mut buffer)?;
+        receivedbytes += bytes_read;
+        receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+        timerdc = Ntimer::init();
 
-            },
-            Err(e) =>{
-                println!("rawget error, OS:{}",e);
-                break;
-            },
-        };
+
         if Ntimer::diff(timerdc) >= 1999 {
             println!("rawget timedout 2seconds., exit loop proceed code.");
             break;
@@ -155,7 +143,6 @@ Connection: keep-alive
             // this is a socket close / end of packet / error.
             break;
         }
-    }
 
     Nfile::write(saveas,&receivedstring);
     Ok("FiledownloadComplete".to_string())

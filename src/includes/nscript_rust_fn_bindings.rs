@@ -52,6 +52,28 @@ use crate::*;
             }
             return "".to_string();
         }
+        "httpget" => {
+           let mut port: u16 = 80;
+            if let Ok(port) = param2.to_owned().parse::<u16>() {
+                println!("Parsed port number: {}", port);
+                // Use the port number (port) here in your code
+            } else {
+                port = 80;
+                println!("Failed to parse port number");
+                // Handle the case when parsing fails
+            }
+
+            match get_http_content(param1, port,param3) {
+                Ok(data) => {
+                    if let Ok(string) = String::from_utf8(data) {
+                        return string;
+                    } else {
+                        return "httpget: Failed to convert to string".to_string();
+                    }
+                },
+                Err(_) => return "error".to_string(),
+            }
+        }
             "ncwebserver" => {
             match ncwebserver(vmap){
                     Ok(_) => return String::new() ,

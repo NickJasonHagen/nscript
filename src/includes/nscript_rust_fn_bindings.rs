@@ -38,7 +38,7 @@ use crate::*;
             // }
         "download" =>{
            let mut port: u16 = 80;
-            if let Ok(port) = param3.to_owned().parse::<u16>() {
+            if let Ok(port) = param2.to_owned().parse::<u16>() {
                 println!("Parsed port number: {}", port);
                 // Use the port number (port) here in your code
             } else {
@@ -46,7 +46,7 @@ use crate::*;
                 println!("Failed to parse port number");
                 // Handle the case when parsing fails
             }
-            match get_http_file_content(param1, port,param2,param4) {
+            match get_http_file_content(param1, port,param3,param4) {
                 Ok(data) => println!("File content: {:?}", String::from_utf8_lossy(&data)),
                 Err(err) => eprintln!("Error: {}", err),
             }

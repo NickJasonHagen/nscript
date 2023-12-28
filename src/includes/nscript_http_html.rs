@@ -176,15 +176,15 @@ Connection: keep-alive
             },
         };
 
-
-        if Ntimer::diff(timerdc) >= 1999 {
-            println!("rawget timedout 2seconds., exit loop proceed code.");
-            break;
-        }
         if bytes_read == 0 {
             // this is a socket close / end of packet / error.
             break;
         }
+        if Ntimer::diff(timerdc) >= 1999 {
+            println!("rawget timedout 2seconds., exit loop proceed code.");
+            break;
+        }
+
     }
     Nfile::write(saveas,&receivedstring);
     Ok("FiledownloadComplete".to_string())
@@ -686,7 +686,29 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
         }
     }
 }
+pub fn get_http_file_content(host: &str, port: u16, path: &str, pathoutput: &str) -> Result<Vec<u8>, std::io::Error> {
+    let mut stream = TcpStream::connect((host, port))?;
+    let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n", path, host);
 
+    stream.write_all(request.as_bytes())?;
+
+    let mut response = Vec::new();
+    stream.read_to_end(&mut response)?;
+
+    // Find the position of the double CRLF (indicating the end of headers)
+    if let Some(index) = response.windows(4).position(|window| window == b"\r\n\r\n") {
+        // Skip the headers and extract the content
+        let content = response.split_off(index + 4);
+            let mut file = File::create(pathoutput)?;
+
+    // Write the binary data to the file
+    file.write_all(&content)?;
+        return Ok(content);
+    }
+
+    // If double CRLF not found, return the full response (including headers)
+    Ok(response)
+}
 // fn handlepost(){// <------------------------------------ Need to be worked in handle connection
 // still.
 //

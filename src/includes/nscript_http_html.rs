@@ -36,7 +36,19 @@ pub fn raw_http_get(url: &str,fname: &str) -> Result<String, Box<dyn std::error:
     // Connect to the server
 
     let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
+    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
 
+        Ok(_) => {},
+        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+    }
+
+    // let err = result.unwrap_err();
+    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
+
+        Ok(_) => {},
+        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+    }
     // create the GET header
     let msg = "GET /".to_owned() + &fname + " HTTP/1.1
 Host:" + &format!("{}:{}", &host, &port) +"
@@ -109,7 +121,19 @@ pub fn raw_http_get_file(url: &str,fname: &str,saveas: &str) -> Result<String, B
 
     // Connect to the server
     let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
+    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
 
+        Ok(_) => {},
+        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+    }
+
+    // let err = result.unwrap_err();
+    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
+
+        Ok(_) => {},
+        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+    }
     // create the GET header
     let msg = "GET /".to_owned() + &fname + " HTTP/1.1
 Host:" + &format!("{}:{}", &host, &port) +"

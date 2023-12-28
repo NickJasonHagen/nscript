@@ -143,7 +143,7 @@ Connection: keep-alive
             // this is a socket close / end of packet / error.
             break;
         }
-
+    }
     Nfile::write(saveas,&receivedstring);
     Ok("FiledownloadComplete".to_string())
 }

@@ -62,10 +62,24 @@ Connection: keep-alive
     let mut receivedbytes = 0; // used as counter++
     // this string be filled with the data read as bytes.
     let mut receivedstring = String::new();
+    let mut timerdc = Ntimer::init();
     loop {
-        let bytes_read = stream.read(&mut buffer)?;
-        receivedbytes += bytes_read;
-        receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+        match stream.read(&mut buffer){
+            Ok(bytes_read) => {
+                receivedbytes += bytes_read;
+                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                timerdc = Ntimer::init();
+
+            },
+            Err(e) =>{
+                println!("rawget error, OS:{}",e);
+                break;
+            },
+        };
+        if Ntimer::diff(timerdc) >= 1999 {
+            println!("rawget timedout 2seconds., exit loop proceed code.");
+            break;
+        }
         if bytes_read == 0 {
             // this is a socket close / end of packet / error.
             break;
@@ -75,7 +89,76 @@ Connection: keep-alive
     //Nfile::write("./testget.txt",&receivedstring);
     Ok(receivedstring.to_string())
 }
+pub fn raw_http_get_file(url: &str,fname: &str,saveas: &str) -> Result<String, Box<dyn std::error::Error>> {
 
+    //format for TCP socket
+    let spliturl =  split(&url,":");
+    let host = &spliturl[0];
+    let mut port = "80";
+    if spliturl.len() > 1 {
+        port = spliturl[1];
+    }
+    let addr = format!("{}:{}", &host, &port)
+        .to_socket_addrs()?
+        .next()
+        .ok_or("Unable to resolve the hostname")?;
+
+    // Connect to the server
+    let mut stream = TcpStream::connect(addr)?;
+
+    // create the GET header
+    let msg = "GET /".to_owned() + &fname + " HTTP/1.1
+Host:" + &format!("{}:{}", &host, &port) +"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Connection: keep-alive
+";
+    // send the Get request to the server, the socket will send meta back
+    // close and the next stream be the dataloop.
+    let byte_slice: &[u8] = msg.as_bytes();
+    stream.write_all(&byte_slice)?;
+
+    // Receive response from the server
+    let mut buffer = [0; 1024];
+    let bytes_read = stream.read(&mut buffer)?;
+    let rawres = String::from_utf8_lossy(&buffer[0..buffer.len()]);
+    // get the size of what we going to receive.
+    let bytesize = Nstring::stringbetween(&rawres,"Content-Length: ","\n");
+    let buffer_size: usize = bytesize.parse().unwrap_or(1024);
+    // create a new bytebuffer with the size of the contents
+    let mut buffer = vec![0; buffer_size];
+    let mut receivedbytes = 0; // used as counter++
+    // this string be filled with the data read as bytes.
+    let mut receivedstring = String::new();
+    let mut timerdc = Ntimer::init();
+    loop {
+        match stream.read(&mut buffer){
+            Ok(bytes_read) => {
+                receivedbytes += bytes_read;
+                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                timerdc = Ntimer::init();
+
+            },
+            Err(e) =>{
+                println!("rawget error, OS:{}",e);
+                break;
+            },
+        };
+        if Ntimer::diff(timerdc) >= 1999 {
+            println!("rawget timedout 2seconds., exit loop proceed code.");
+            break;
+        }
+        if bytes_read == 0 {
+            // this is a socket close / end of packet / error.
+            break;
+        }
+    }
+
+    Nfile::write(saveas,&receivedstring);
+    Ok("FiledownloadComplete".to_string())
+}
 
 pub fn decode_html_url(url: &str) -> String {
     let entities = [

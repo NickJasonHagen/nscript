@@ -49,6 +49,12 @@ use crate::*;
                     Err(_) => return String::new(),
                 }
             }
+            "rawgetfile" => {
+                match raw_http_get_file(param1,param2,param3) {
+                    Ok(response) => return response ,
+                    Err(_) => return "rawgetfile fileerror".to_string(),
+                }
+            }
             "restrictionmode" => {
                 nscript_setrestrictionmode(&param1,vmap);
                 return "".to_owned() + &param1;

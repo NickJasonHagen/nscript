@@ -34,7 +34,8 @@ pub fn raw_http_get(url: &str,fname: &str) -> Result<String, Box<dyn std::error:
         .ok_or("Unable to resolve the hostname")?;
 
     // Connect to the server
-    let mut stream = TcpStream::connect(addr)?;
+
+    let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
 
     // create the GET header
     let msg = "GET /".to_owned() + &fname + " HTTP/1.1
@@ -104,7 +105,7 @@ pub fn raw_http_get_file(url: &str,fname: &str,saveas: &str) -> Result<String, B
         .ok_or("Unable to resolve the hostname")?;
 
     // Connect to the server
-    let mut stream = TcpStream::connect(addr)?;
+    let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
 
     // create the GET header
     let msg = "GET /".to_owned() + &fname + " HTTP/1.1

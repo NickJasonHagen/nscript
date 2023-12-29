@@ -1331,11 +1331,15 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     // -----------------------------------------------------------------
     let (args, id) = nscript_getarguments(&func, vmap); // get all argument params
     let func = func.trim();
-    for r in 1..id {
+    for r in 1..9 {
         //let paramx = &r + 1
 
         let pname = "".to_owned() + &vmap.codelevel.to_string() + "__internalparam" + &r.to_string();
-        vmap.setvar(pname, &args[r]); // set all param arguments
+        if r >= id{
+            vmap.setvar(pname, &args[r]); // set all param arguments
+        }else{
+            vmap.setvar(pname, "");
+        }
     }
     let mut fname = String::from(&args[0]);
 

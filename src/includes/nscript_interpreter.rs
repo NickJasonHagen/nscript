@@ -1030,7 +1030,7 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
                                 let param = " ".to_owned() + " internalparam" + &i.to_string() + "";
                                 let torep = " ".to_owned() + &thisargument + "";
                                 block = Nstring::replace(&block,&torep, &param);
-                                let param = "".to_owned() + " internalparam" + &i.to_string() + ".";
+                                let param = "".to_owned() + "internalparam" + &i.to_string() + ".";
                                 let torep = "".to_owned() + &thisargument + ".";
                                 block = Nstring::replace(&block,&torep, &param);
 
@@ -1054,7 +1054,7 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
                                 let param = " ".to_owned() + " internalparam1";
                                 let torep = " ".to_owned() + &splitarguments[0] ;
                                 block = Nstring::replace(&block,&torep, &param);
-                                let param = "".to_owned() + " internalparam1.";
+                                let param = "".to_owned() + "internalparam1.";
                                 let torep = "".to_owned() + &splitarguments[0] ;
                                 block = Nstring::replace(&block,&torep, &param);
                         }
@@ -2426,8 +2426,6 @@ pub fn nscript_replaceparams(code: &str,thisargument: &str) -> String{
     let param = " ".to_owned() + " internalparam" + "";
     let torep = " ".to_owned() + &thisargument + "";
     block = Nstring::replace(&block,&torep, &param);
-    let param = "*".to_owned() + "internalparam" + "";
-    let torep = "*".to_owned() + &thisargument + "";
     block = Nstring::replace(&block,&torep, &param);
         for i in 1..=9 {// param.prop will work. v2.010
             let param = "".to_owned() + "internalparam" + &i.to_string() + ".";
@@ -2435,6 +2433,9 @@ pub fn nscript_replaceparams(code: &str,thisargument: &str) -> String{
             block = Nstring::replace(&block,&torep, &param);
 
     }
+    let param = "*".to_owned() + "internalparam" + "";
+    let torep = "*".to_owned() + &thisargument + "";
+    block = Nstring::replace(&block,&torep, &param);
     block
 }
 

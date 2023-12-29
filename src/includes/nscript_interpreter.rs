@@ -2424,6 +2424,12 @@ pub fn nscript_replaceparams(code: &str,thisargument: &str) -> String{
     let param = "*".to_owned() + "internalparam" + "";
     let torep = "*".to_owned() + &thisargument + "";
     block = Nstring::replace(&block,&torep, &param);
+        for i in 1..=9 {// param.prop will work. v2.010
+            let param = "".to_owned() + "internalparam" + &i.to_string() + ".";
+            let torep = "".to_owned() + &thisargument + &i.to_string() +  ".";
+            block = Nstring::replace(&block,&torep, &param);
+
+    }
     block
 }
 

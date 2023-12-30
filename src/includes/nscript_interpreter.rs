@@ -1027,6 +1027,9 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
                                 let torep = ",".to_owned() + &thisargument + "";
                                 block = Nstring::replace(&block,&torep, &param);
                                 //
+                                let param = " ".to_owned() + " internalparam" + &i.to_string() + " ";
+                                let torep = " ".to_owned() + &thisargument + " ";
+                                block = Nstring::replace(&block,&torep, &param);
                                 let param = " ".to_owned() + " internalparam" + &i.to_string() + "";
                                 let torep = " ".to_owned() + &thisargument + "";
                                 block = Nstring::replace(&block,&torep, &param);
@@ -1054,6 +1057,10 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
                                 let param = " ".to_owned() + " internalparam1";
                                 let torep = " ".to_owned() + &splitarguments[0] ;
                                 block = Nstring::replace(&block,&torep, &param);
+                                let param = " ".to_owned() + " internalparam1 ";
+                                let torep = " ".to_owned() + &splitarguments[0] + " ";
+                                block = Nstring::replace(&block,&torep, &param);
+
                                 let param = "".to_owned() + "internalparam1.";
                                 let torep = "".to_owned() + &splitarguments[0] ;
                                 block = Nstring::replace(&block,&torep, &param);

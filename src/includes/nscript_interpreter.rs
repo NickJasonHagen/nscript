@@ -1343,7 +1343,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
 
         let pname = "".to_owned() + &vmap.codelevel.to_string() + "__internalparam" + &r.to_string();
         if r < id && r > 0{
-            vmap.setvar(pname.clone(), &args[r-1]); // set all param arguments
+            vmap.setvar(pname.clone(), &args[r]); // set all param arguments
         }
         if r > 0 && r >= id {
             vmap.setvar(pname, "");

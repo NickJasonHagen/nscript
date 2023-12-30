@@ -288,7 +288,9 @@ let id = args.len();
         for r in 0..id {
             //let paramx = &r + 1;
             let paramid = r + 1;
-            let pname = "".to_owned() + &codelevelabove.to_string() + "__internalparam" + &paramid.to_string();
+            //let pname = "".to_owned() + &codelevelabove.to_string() + "__internalparam" + &paramid.to_string();
+            let pname = "param".to_owned() + &paramid.to_string();
+
             vmap.setvar(pname, &args[r]); // set all param arguments
         }
     }

@@ -449,7 +449,7 @@ pub fn nscript_execute_script(
     else{
         code = read_file_utf8(&file);
     }
-    vmap.setcode(&thisparsingsheet,&code);
+    vmap.setcode(&thisparsingsheet,&nscript_stringextract(&code));
     //extract the functions and classes from the sheet.
     nscript_class_scopeextract(vmap);
     code = vmap.getcode(&thisparsingsheet);

@@ -421,6 +421,11 @@ use crate::*;
             "html_encode" => {
                 return html_encode(&param1);
             }
+        "keytest" => {
+
+            keytest("w");
+           return  "".to_owned();
+        }
             "stringbetween" => return Nstring::stringbetween(param1, param2, param3),
             "combine" | "cat"=> {
                 let nothing = param1.to_owned()

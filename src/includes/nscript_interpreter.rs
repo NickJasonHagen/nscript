@@ -450,6 +450,7 @@ pub fn nscript_execute_script(
         code = read_file_utf8(&file);
     }
     vmap.setcode(&thisparsingsheet,&nscript_stringextract(&code));
+    //vmap.setcode(&thisparsingsheet,&code);
     //extract the functions and classes from the sheet.
     nscript_class_scopeextract(vmap);
     code = vmap.getcode(&thisparsingsheet);
@@ -493,7 +494,7 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
 
     //let fixedcode = nscript_compilesheet(&code);
     //println!("code:{}",&fixedcode);
-    let mut toreturn = String::new();
+    let mut toreturn: String;
     let lines = fixedcode.split("\n");
     for line in lines {
         if line != "" {
@@ -521,7 +522,7 @@ pub fn nscript_parseformattedsheet(coderaw: &str, vmap: &mut Varmap) -> String {
     // it is faster for execution then parse_sheet() but it requires nscript_compilesheet()
     // to have preparred the block for proper execution
     // ------------------------------------------------------------------------
-let mut toreturn = String::new();
+let mut toreturn: String;
     let lines = coderaw.split("\n");
     for line in lines {
         if line != "" {
@@ -544,7 +545,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
     //  the first match will see how many words the line has.
     //  well its a very complex nested structed of match checks!
     //  --------------------------------------------------------------------------------
-    let mut parseline_toreturn = String::new(); // result of the line change if required
+    //let mut parseline_toreturn = String::new(); // result of the line change if required
     let words = line_to_words(&line);
     //words = split(&line," ");
     // println!("line lenght in words:{}",&words.len());
@@ -622,7 +623,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                 "loop" => {
                     let scopeargs = Nstring::stringbetween(&words[1], "(", ")");
                     let splitscopearg = split(&scopeargs,",");
-                    let loopblock = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0],vmap));
+                    let loopblock = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0]));
                     loop {
 
                         let ret = nscript_parseformattedsheet(&loopblock, vmap);
@@ -665,7 +666,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     let splitscopearg = split(&scopeargs,",");
                     let loopref = nscript_checkvar(&words[1],vmap);
 
-                    let loopscope = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0],vmap));
+                    let loopscope = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0]));
                     vmap.setvar("nscript_loops".to_owned() + "." + &loopref.trim(), &loopscope);
                     return "".to_owned();
 
@@ -918,7 +919,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap){
     //  triggered.
     // -----------------------------------------------------------------------
     //let mut parsingtext = text.to_string();
-    let mut toreturn = String::new();
+    //let mut toreturn: String;
     let parsecode = vmap.getprop("__interpreter","parsingsheet");
     let parsesubcode = vmap.getprop("__interpreter","parsingsubsheet");
     let code = vmap.getcode(&parsecode);
@@ -983,8 +984,8 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
 
 
     let code = vmap.getcode(&internalcoderef);
-    let mut toreturn = String::new();
-    let classnamefixed = String::new();
+    //let mut toreturn = String::new();
+    //let classnamefixed = String::new();
 
     let classes = split(&code,"func ");
     // if classes.len() < 2 {
@@ -1000,7 +1001,7 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
 
                 let firstline = split(&eachclass,"{")[0];
                 let classname = split(&firstline, "(")[0];
-                let classnamefixed = &classname.to_owned().clone();
+                //let classnamefixed = &classname.to_owned().clone();
                 let mut block = extract_scope(&eachclass);
                 let cleanblock = block.clone();
                 let argumentsraw = split(&firstline, "(");
@@ -1303,7 +1304,7 @@ pub fn nscript_unpackscope(code: &str,scopeid: &str,vmap: &mut Varmap) -> String
     }
 }
 
-pub fn nscript_unpackscopereturnclean(code: &str,scopeid: &str,vmap: &mut Varmap) -> String {
+pub fn nscript_unpackscopereturnclean(code: &str,scopeid: &str) -> String {
     // this unpacks a scope and returns the scope's code instead.
     // --------------------------------------------------------
     let newid = "%".to_owned() + &scopeid + "%";
@@ -1359,7 +1360,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     let mut iscodebblock: String; //= vmap.getcode(&fname); // load code
 
     // set self and classfunction registers
-    let mut isclass = String::new();
+    let mut isclass: String;
     let mut usedself = "__functioninternal";// set to make sure the while extract will parse this
     // block only
     if Nstring::instring(&func, ".") == true {
@@ -1417,9 +1418,9 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
 
 
 pub fn nscript_formatargumentspaces(code: &str) -> String{
-    let mut line = String::new(); // buffer used for changes
-    let mut fixed = String::new();// used to return
-    let mut linebuf = String::new();
+    let mut line: String; // buffer used for changes
+    let mut fixed = String::new() ;// used to return
+    let mut linebuf: String;
     let fixemptyargscode = Nstring::replace(&code,"()","(\"\")");
     for each in split(&fixemptyargscode,"\n"){ // loop lines
         line = each.to_string(); // set default
@@ -1810,7 +1811,7 @@ pub fn nscript_match(entree: &str,scope:&str,vmap: &mut Varmap) -> String {
     let scopeargs = Nstring::stringbetween(&scope, "(", ")");
     let splitscopearg = split(&scopeargs,",");
     let evalentree = nscript_checkvar(entree, vmap);
-    let switchscope = nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0],vmap);
+    let switchscope = nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0]);
     let splitcase = split(&switchscope,"\n");
     for thiscase in splitcase {
         // splitline[0] are checks /[1] return/(scope)
@@ -1930,7 +1931,7 @@ pub fn nscript_foreach(code: &str,invar: &str,inarray: &str,vmap: &mut Varmap) {
     let evalarray = nscript_checkvar(&inarray,vmap);
     let array = split(&evalarray,&NC_ARRAY_DELIM);
     let scopeid = &Nstring::stringbetween(&code, "scope(", ",");
-    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(&code, scopeid, vmap)));
+    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(&code, scopeid)));
     for isin in array {
         vmap.setvar(invar.to_owned(),&isin);
         nscript_parseformattedsheet(&cleancode, vmap);
@@ -1943,7 +1944,7 @@ pub fn nscript_forto(code: &str,invar: &str,inarray: &str, vmap: &mut Varmap) {
     let evalarray = nscript_checkvar(&inarray,vmap);
     let scopeid = &Nstring::stringbetween(&code, "scope(", ",");
 
-    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(&code, scopeid, vmap)));
+    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(&code, scopeid)));
     for isin in 1..nscript_i32(&evalarray)+1{
         vmap.setvar(invar.to_owned(),&isin.to_string());
         nscript_parseformattedsheet(&cleancode, vmap);

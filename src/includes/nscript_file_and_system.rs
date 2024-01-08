@@ -2,6 +2,44 @@ use crate::*;
 use sysinfo::{System, SystemExt};
 use psutil::process::Process;
 use std::process;
+use std::io::{self, Write};
+use crossterm::{
+    execute,
+    event::{self, KeyCode, KeyEvent, KeyModifiers},
+    terminal, ExecutableCommand,
+};
+pub fn keytest(thiskey: &str) {
+    // Hide the cursor and enable raw mode for handling input
+    let _ = terminal::enable_raw_mode();
+
+    loop {
+        if event::poll(std::time::Duration::from_millis(100)).unwrap() {
+            if let event::Event::Key(KeyEvent { code, modifiers, .. }) = event::read().unwrap() {
+                // Detect specific key presses
+                let thiskey = "w";
+                match code {
+                    // KeyCode::Char(thiskey) if modifiers == KeyModifiers::CONTROL => {
+                    //     print!("keyend:{}",thiskey);
+                    //     break; // Exit when Ctrl + q is pressed
+                    // }
+                    KeyCode::Char(thiskey) => {
+                        print!("keyend:{}",thiskey);
+                        break; // Exit when Ctrl + q is pressed
+                    }
+                    _ => {
+                        // Handle other key presses here
+                        let mystr = format!("Pressed: {:?}", code);
+                        //let mystr = code.to_string();
+                        println!("format{}",mystr);
+                    }
+                }
+            }
+        }
+    }
+
+    // Disable raw mode and show the cursor when done
+    let _ = terminal::disable_raw_mode();
+}
 pub struct Nfile {
     // nscript filesystem
 }

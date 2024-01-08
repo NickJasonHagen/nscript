@@ -56,7 +56,7 @@ mod ioctlsocket {
 
 //#[cfg(not(windows))]
 //use std::os::unix::io::AsRawFd;
-pub const NSCRIPT_VERSION: &'static str = "v2.010";
+pub const NSCRIPT_VERSION: &'static str = "v2.011";
 // const NSCRIPT_INFO: &'static str = "
 // Nscript core in Rust-language.
 // Created by Nick Hagen.

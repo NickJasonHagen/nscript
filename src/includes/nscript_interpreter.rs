@@ -1247,11 +1247,11 @@ pub fn nscript_stringextract(text: &str) -> String {
     // ------------------------------------------------------------------------
     let mut parsingtext = Nstring::replace(&text.to_string(),"\\\"","#!@NSCRIPTQUOTE#@!");
     parsingtext = Nstring::replace(&parsingtext,"\"\"","@emptystring");
-
+    //parsingtext = Nstring::replace(&parsingtext,"\",","\" ,");// fixes the parsing issue on arrays
     loop {
         let splitstr = Nstring::stringbetween(&parsingtext,"\"","\"");
-        if splitstr != "" {
-            let packed = "^".to_owned() + &string_to_hex(&Nstring::replace(&splitstr,"#!@NSCRIPTQUOTE#@!","\""))  ;
+        if splitstr != ""  {
+            let packed = "^".to_owned() + &string_to_hex(&Nstring::replace(&splitstr,"#!@NSCRIPTQUOTE#@!","\" "))  ;
             let toreplace = "\"".to_owned() + &splitstr+ "\"";
             parsingtext = Nstring::replace(&parsingtext, &toreplace, &packed);
         }

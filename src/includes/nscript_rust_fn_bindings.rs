@@ -36,6 +36,15 @@ use crate::*;
             // "scope" => {
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
+        "terminalenableraw" => {
+            Nterminal::enableraw();
+            return String::new();
+        }
+        "terminaldisableraw" => {
+            Nterminal::disableraw();
+            return String::new();
+        }
+
         "download" =>{
            let mut port: u16 = 80;
             if let Ok(port) = param2.to_owned().parse::<u16>() {
@@ -318,6 +327,11 @@ use crate::*;
             "cwrite" | "print" => {
                 cwrite(param1, param2);
                 return param1.to_owned();
+            }
+            "cwriteraw" | "printraw" => {
+                cwriteraw(param1, param2);
+            io::stdout().flush().unwrap();
+            return param1.to_owned();
             }
             "timerinit" => {
                 return Ntimer::init().to_string();

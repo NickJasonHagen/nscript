@@ -229,9 +229,65 @@ pub fn cwrite(m: &str, color: &str) {
 
         _ => {
             println!("{}", m);
+
         }
     };
 }
+pub fn cwriteraw(m: &str, color: &str) {
+    // this is more a linux then a windows feature.
+    // as for windows powershell is just lame. itl work but dont expect all colors to show!
+    // --------------------------------------------
+    match color {
+        "bright blue" | "bb" => {
+            print!("{}", m.bright_blue());
+        }
+        "bright green" | "bg"=> {
+            print!("{}", m.bright_green());
+        }
+        "bright cyan" | "bc" => {
+            print!("{}", m.bright_cyan());
+        }
+        "bright red" | "br" => {
+            print!("{}", m.bright_red());
+        }
+        "bright magenta" | "bm" => {
+            print!("{}", m.bright_magenta());
+        }
+        "bright yellow" | "by" => {
+            print!("{}", m.bright_yellow());
+        }
+        "bright purple" | "bp" => {
+            print!("{}", m.bright_purple());
+        }
+        "purple" | "p" => {
+            print!("{}", m.purple());
+        }
+        "cyan" | "c" =>{
+            print!("{}", m.cyan());
+        }
+        "yellow" | "y" => {
+            print!("{}", m.yellow());
+        }
+        "red" | "r" => {
+            print!("{}", m.red());
+        }
+        "green" | "g" => {
+            print!("{}", m.green());
+        }
+        "blue" | "b" =>{
+            print!("{}", m.blue());
+        }
+        "magenta" | "m" =>{
+            print!("{}", m.magenta());
+        }
+
+        _ => {
+            print!("{}", m);
+
+        }
+    };
+}
+
 
 
 // pub fn perform_sql_query_get_row(query: &str, getrow: &str,database: &str) -> String {

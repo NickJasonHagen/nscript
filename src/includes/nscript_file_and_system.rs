@@ -40,6 +40,19 @@ pub fn keytest(thiskey: &str) {
     // Disable raw mode and show the cursor when done
     let _ = terminal::disable_raw_mode();
 }
+
+pub struct Nterminal{
+
+}
+
+impl Nterminal{
+    pub fn enableraw(){
+        let _ = terminal::enable_raw_mode();
+    }
+    pub fn disableraw(){
+        let _ = terminal::disable_raw_mode();
+    }
+}
 pub struct Nfile {
     // nscript filesystem
 }

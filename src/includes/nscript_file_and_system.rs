@@ -2,6 +2,7 @@ use crate::*;
 use sysinfo::{System, SystemExt};
 use psutil::process::Process;
 use std::process;
+use std::process::Command;
 use std::io::{self, Write};
 use crossterm::{
     execute,
@@ -40,7 +41,18 @@ pub fn keytest(thiskey: &str) {
     // Disable raw mode and show the cursor when done
     let _ = terminal::disable_raw_mode();
 }
+pub fn browseropen(site: &str) {
+    // Execute the xdg-open command with the URL
+    let result = Command::new("xdg-open")
+        .arg(site)
+        .output();
 
+    // Check if the command executed successfully
+    match result {
+        Ok(_) => println!("Opened the URL in the default browser."),
+        Err(e) => eprintln!("Error: {}", e),
+    }
+}
 pub struct Nterminal{
 
 }

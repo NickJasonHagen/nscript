@@ -33,16 +33,16 @@ use std::thread;
 // use std::thread;
 //mod nscriptapilib;
 
-use includes::nscript_time::*;
-use includes::nscript_http_html::*;
-use includes::nscript_rust_fn_bindings::*;
-use includes::nscript_zip::*;
-use includes::nscript_interpreter::*;
-use includes::nscript_api_lib::*;
-use includes::nscript_functions::*;
-use includes::nscript_strings::*;
-use includes::nscript_arrays::*;
-use includes::nscript_file_and_system::*;
+// use includes::nscript_time::*;
+// use includes::nscript_http_html::*;
+// use includes::nscript_rust_fn_bindings::*;
+// use includes::nscript_zip::*;
+// use includes::nscript_interpreter::*;
+// use includes::nscript_api_lib::*;
+// use includes::nscript_functions::*;
+// use includes::nscript_strings::*;
+// use includes::nscript_arrays::*;
+// use includes::nscript_file_and_system::*;
 use rand::Rng;
 #[cfg(windows)]
 mod ioctlsocket {
@@ -56,7 +56,7 @@ mod ioctlsocket {
 
 //#[cfg(not(windows))]
 //use std::os::unix::io::AsRawFd;
-pub const NSCRIPT_VERSION: &'static str = "v2.012";
+pub const NSCRIPT_VERSION: &'static str = "v2.013";
 // const NSCRIPT_INFO: &'static str = "
 // Nscript core in Rust-language.
 // Created by Nick Hagen.
@@ -94,6 +94,7 @@ mod includes {
     pub mod nscript_rust_fn_bindings;
     pub mod nscript_http_html;
     pub mod nscript_time;
+    pub mod nscript_networking;
 }
 
 pub use includes::nscript_zip::*;
@@ -107,6 +108,7 @@ pub use includes::nscript_rust_fn_bindings::*;
 pub use includes::nscript_http_html::*;
 pub use includes::nscript_time::*;
 
+pub use includes::nscript_networking::*;
 
 
 

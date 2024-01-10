@@ -36,6 +36,22 @@ use crate::*;
             // "scope" => {
             //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
             // }
+        "tcplistener" => {
+            return vmap.ntcp.listener( param1,param2);
+        }
+        "tcpaccept" => {
+            return vmap.ntcp.accept(param1);
+        }
+        "tcpconnect" => {
+            return vmap.ntcp.connect(param1,param2);
+        }
+        "tcpsend" => {
+            return vmap.ntcp.send(param1,param2);
+        }
+        "tcpreceive" => {
+            return vmap.ntcp.receive(param1);
+        }
+
         "terminalenableraw" => {
             Nterminal::enableraw();
             return String::new();
@@ -315,18 +331,23 @@ use crate::*;
                 );
                 return "ok".to_owned();
             }
-            "sheet" => {
-                return nscript_parsesheet(&Nfile::read(param1), vmap);
-            }
-            "code" => {
-                return nscript_parsesheet(&param1, vmap);
-            }
-            "cin" => {
-                return param1.to_string();
-            }
-            "cwrite" | "print" => {
-                cwrite(param1, param2);
-                return param1.to_owned();
+        "sheet" => {
+            return nscript_parsesheet(&Nfile::read(param1), vmap);
+        }
+        "code" => {
+            return nscript_parsesheet(&param1, vmap);
+        }
+
+        "cin" => {
+            return param1.to_string();
+        }
+        "browseropen" => {
+            browseropen(param1);
+            return String::new();
+        }
+        "cwrite" | "print" => {
+            cwrite(param1, param2);
+            return param1.to_owned();
             }
             "cwriteraw" | "printraw" => {
                 cwriteraw(param1, param2);
@@ -435,6 +456,7 @@ use crate::*;
             "html_encode" => {
                 return html_encode(&param1);
             }
+
         "keytest" => {
 
             keytest("w");

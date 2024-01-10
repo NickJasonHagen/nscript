@@ -12,7 +12,7 @@ pub fn emptyfnbuffer(vmap: &mut Varmap) -> String{
     // Default behavior
     "".to_string()
 }
-
+//#[derive(Clone)]
 pub struct Varmap{
     //global values of the vmap system
    pub varmap: HashMap<String,String>,
@@ -32,6 +32,8 @@ pub struct Varmap{
     pub param7: String,
     pub param8: String,
     pub param9: String,
+    pub ntcp: NscriptTcp,
+
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -56,6 +58,7 @@ impl Varmap {
             param7: "".to_owned(),
             param8: "".to_owned(),
             param9: "".to_owned(),
+            ntcp: NscriptTcp::new(),
 
         }
      }
@@ -154,7 +157,7 @@ impl Varmap {
         // delete children/parents register
         let objparenth =  "nscript_classparents__".to_owned() + &obj;
         let parents = self.inobj(&objparenth);
-        println!("parents: {}",parents);
+        //println!("parents: {}",parents);
         for eachparent in split(&parents,"|"){
 
             if eachparent != "" {
@@ -443,15 +446,19 @@ pub fn nscript_execute_script(
     let argusvec: Vec<String> = vec![param1.to_owned(),param2.to_owned(), param3.to_owned(), param4.to_owned(), param5.to_owned(), param6.to_owned(), param7.to_owned(), param8.to_owned(), param9.to_owned()];
     nscript_setparams_exec(&argusvec,vmap);
     let mut code = String::new();
-    if Nstring::fromleft(&code,4) == "RAW>" {
+    if Nstring::fromleft(&file,4) == "RAW>" {
         code = Nstring::trimleft(&file,4);
     }
     else{
         code = read_file_utf8(&file);
+
     }
     vmap.setcode(&thisparsingsheet,&nscript_stringextract(&code));
     //vmap.setcode(&thisparsingsheet,&code);
     //extract the functions and classes from the sheet.
+
+
+    nscript_thread_scopeextract(vmap);
     nscript_class_scopeextract(vmap);
     code = vmap.getcode(&thisparsingsheet);
     nscript_func_scopeextract("", vmap);
@@ -620,6 +627,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     }
                     return String::new();
                 }
+
                 "loop" => {
                     let scopeargs = Nstring::stringbetween(&words[1], "(", ")");
                     let splitscopearg = split(&scopeargs,",");
@@ -660,6 +668,11 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                 "match" | "Match" => {
 
                     return nscript_match(&words[1],&words[2],vmap);
+                }
+                "thread" => {
+                    nscript_threadscope(words[1],words[2],vmap);
+
+                    return String::new();
                 }
                 NC_ASYNC_LOOPS_KEY => {
                     let scopeargs = Nstring::stringbetween(&words[words.len()-1], "(", ")");
@@ -954,8 +967,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap){
                     //println!("The replacement: {}",&toreplace);
                     vmap.setcode(&parsecode,&Nstring::replace(&code, &toreplace,"" ));
                     //println!("FoundClass:{}",&classname[0]);
-
-                    //println!("classcode:{}",&vmap.getcode("___interpretercode"));
+                   //println!("classcode:{}",&vmap.getcode("___interpretercode"));
 
                 }
                 let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
@@ -1384,6 +1396,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
         if Nstring::fromleft(&fnname,1) == "*" {
             fnname = nscript_checkvar(&Nstring::replace(&fnname,"*",""), vmap);
             reg = "nscript_classfuncs__".to_owned()  + &isclass +"."+ &fnname;
+
 
             //println!("going to check for fn:{}",&fnname);
         }
@@ -2451,19 +2464,161 @@ pub fn nscript_replaceparams(code: &str,thisargument: &str) -> String{
     block = Nstring::replace(&block,&torep, &param);
     block
 }
+pub fn nscript_thread_scopeextract(vmap: &mut Varmap){
+    // this function will at the beginning of executing a script extract and load
+    // all class scopes, all functions inside these scopes will be linked giving access to self var
+    // usage.
+    //  - special: function .construct() will be triggered if a class spawns of a class wich has
+    //  this declared. func .construct() on obj a : b   and on delobj(a) .destruct() will be
+    //  triggered.
+    // -----------------------------------------------------------------------
+    //let mut parsingtext = text.to_string();
+    //let mut toreturn: String;
+    let parsecode = vmap.getprop("__interpreter","parsingsheet");
+    let parsesubcode = vmap.getprop("__interpreter","parsingsubsheet");
+    let code = vmap.getcode(&parsecode);
+    let mut i = 0; //<-- serves to filter first split wich isnt if found but default.
+    let classes = split(&code,"thread");
+    for eachclass in classes {
+        if i > 0 {
+            let code = vmap.getcode(&parsecode);
+            if eachclass != "" {
+                let classnamepart = split(&eachclass, "{")[0];
+                let classname = split(&classnamepart,":");
+                vmap.setvar(classname[0].trim().to_string().clone(), &classname[0].trim()); // assign classname = classname
 
-pub fn nscript_threadscope(code: &str){
-let codeclone = "RAW>".to_owned() + code;
+                if classname.len() > 1 {
+                    let toobjname = nscript_checkvar(&classname[0].trim(),vmap);
+                    //println!("OBJ CLONE: {}",&toobjname);
+                    vmap.setobj(&classname[1].trim(), &toobjname);
+                }
+                let block = extract_scope(&eachclass);// extract the class scope between { }
+
+                let toreplace = "thread".to_owned() + &classnamepart +  &block ;
+                if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}")  {
+
+                    //println!("The was: {}",&block);
+                    //println!("The replacement: {}",&toreplace);
+                    let mut packedblock = Nstring::trimleft(&block,1);
+                    packedblock = Nstring::trimright(&packedblock,1);
+                    //packedblock = "thread".to_owned() + &classname[0] + " " + &string_to_hex(&packedblock);
+                    packedblock = " ".to_owned() + &string_to_hex(&packedblock);
+
+                    //println!("packedblock {}",packedblock);
+                    vmap.setcode(&parsecode,&Nstring::replace(&code, &block,&packedblock ));
+                    //println!("FoundClass:{}",&classname[0]);
+                   //println!("classcode:{}",&vmap.getcode("___interpretercode"));
+
+                }
+                let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
+
+                    nscript_func(&isconfn, vmap);
+
+            }
+        }
+        i +=1;
+    }
+    //println!("endparse:{}",vmap.getcode(&parsecode));
+    //code
+}
+
+
+pub fn nscript_threadscope(args: &str,code: &str,vmap: &mut Varmap){
+    // let splitscp = split(&code,"(");
+    // if splitscp.len() < 1 {
+    //     return
+    // }
+    // let splitscp = split(&splitscp[1],",");
+    // if splitscp.len() < 2 {
+    //     return
+    // }
+    //
+    //println!("thread=>>>{}",&hex_to_string(code));
+    let mut threadvmap: Varmap;
+    let codeclone = "RAW>".to_owned() + &hex_to_string(&code);
+    if args == "[*]" {
+        // threadvmap = vmap.clone();
+        // threadvmap.delobj("nscript_loops");
+        threadvmap = Varmap::new();
+    }
+    else{
+        threadvmap = Varmap::new();
+
+        let mut implements = Nstring::trimright(&args,1);
+        implements = Nstring::trimleft(&implements,1);
+        for each in split(&implements,","){
+            if each != ""{
+                let mut  argsplit = split(&each,":");
+                if argsplit.len() > 1 {
+                    let checkedvar: String;
+                    if Nstring::fromleft(argsplit[1],1) == "*"{
+                         checkedvar = nscript_checkvar(&Nstring::trimleft(&argsplit[1],1), vmap);
+
+                        argsplit[1] = &checkedvar;
+
+                    }
+                        match argsplit[0]{
+                        "v" => {
+                            let g = nscript_checkvar(&argsplit[1],vmap);
+                            //println!("v:{} = {}",argsplit[1],g);
+
+                            threadvmap.setvar(argsplit[1].to_owned(),&g);
+
+                        }
+                        "f" => {
+                            threadvmap.setcode(&argsplit[1],&vmap.getcode(&argsplit[1]));
+
+                        }
+                        "c" => {
+                            let getall = vmap.inobj(argsplit[1]);
+                            for x in split(&getall,"|"){
+                                let name = argsplit[1].to_owned() + "." + &x;
+                                threadvmap.setvar(name.clone(),&nscript_checkvar(&name,vmap));
+                                //println!("c.{}",&x);
+
+                            }
+                            let name = "nscript_classfuncs__".to_owned() + &argsplit[1].trim();
+                            let getall = vmap.inobj(&name);
+                            for x in split(&getall,"|"){
+                                //println!("c-f.{}",&x);
+
+                                let iscoderootprop = "nscript_classfuncs__".to_owned() + &argsplit[1] + "." +&x;
+
+                                let rootfn = vmap.getvar(&iscoderootprop);
+                                //println!("rootfn:{}",&rootfn);
+                                let iscode = rootfn.to_owned() + "__" +&x;
+                                let iscode = vmap.getcode(&iscode);
+                                println!("iscode:{}",iscode);
+
+                                let iscodeiregprop = "".to_owned() + &argsplit[1] + "__" +&x;
+                                let iscoderootprop = "nscript_classfuncs__".to_owned() + &argsplit[1] + "." +&x;
+
+                                threadvmap.setcode(&iscodeiregprop,&iscode);
+                                threadvmap.setvar(iscoderootprop,&argsplit[1]);
+                            }
+
+
+                        }
+                        _ => {}
+                    }
+
+                }
+            }
+        }
+    }
+
     thread::spawn(move || {
 
-        let mut threadvmap = Varmap::new();
+        //let mut threadvmap = Varmap::new();
 
         nscript_execute_script(&codeclone,"","","","","","","","","",&mut threadvmap);
+        //println!("threadcode: {}",&codeclone);
         loop {
             nscript_loops(&mut threadvmap);
             let activeloops = threadvmap.inobj("nscript_loops");
 
-            if activeloops != "" {
+            if activeloops == "" {
+                //println!("threadclosed");
                 break;
             }
         }

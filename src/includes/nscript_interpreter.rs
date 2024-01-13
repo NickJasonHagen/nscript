@@ -500,7 +500,7 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
     let fixedcode  = nscript_scopeextract(&fixedcode);
 
     //let fixedcode = nscript_compilesheet(&code);
-    //println!("code:{}",&fixedcode);
+    println!("code:{}",&fixedcode);
     let mut toreturn: String;
     let lines = fixedcode.split("\n");
     for line in lines {
@@ -681,6 +681,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
 
                     let loopscope = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0]));
                     vmap.setvar("nscript_loops".to_owned() + "." + &loopref.trim(), &loopscope);
+                    println!("adding loopcode:{}",loopscope);
                     return "".to_owned();
 
                 }
@@ -1126,6 +1127,9 @@ pub fn nscript_checkvar(key: &str,vmap: &mut Varmap) -> String {
     let mut checkvar_toreturn = String::new();
     if key == "" || key == "\"\""{
         return checkvar_toreturn;
+    }
+    if key == "true" || key == "false"{
+        return key.to_string();
     }
     //println!("key={}",&key);
     if is_float(&key) || is_number(&key) || key == "2"{

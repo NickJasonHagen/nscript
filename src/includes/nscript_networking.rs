@@ -1,7 +1,7 @@
 use crate::*;
 use std::collections::HashMap;
 
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream,Shutdown};
 
 pub struct NscriptTcp{
     pub streammap: HashMap<String,TcpStream>,
@@ -35,8 +35,8 @@ impl NscriptTcp{
         let mut newid = String::new();
         match listener.set_nonblocking(true){
             Ok(_) => {
-                let newi = self.listeneridcounter + 1;
-                newid = "nc_listener_".to_owned() + &newi.to_string();
+                 self.listeneridcounter = self.listeneridcounter + 1;
+                newid = "nc_listener_".to_owned() + &self.listeneridcounter.to_string();
                 self.listenermap.insert(newid.clone(), listener);
                 println!("socked ok!");
 
@@ -60,8 +60,8 @@ impl NscriptTcp{
         }
         match listener.accept() { // add the stream to the map
             Ok((stream, _)) => {
-                let newi = self.streamidcounter + 1;
-                newid = "nc_listener_".to_owned() + &newi.to_string();
+                self.streamidcounter = self.streamidcounter + 1;
+                newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
                 self.streammap.insert(newid.clone(), stream);
                 println!("stream ok!");
 
@@ -84,13 +84,13 @@ impl NscriptTcp{
             // Use the port number (port) here in your code
         } else {
             port = 8888;
-            println!("Failed to parse port number");
+            println!("Failed to parse port number: using port:8888");
             // Handle the case when parsing fails
         }
         match TcpStream::connect((ip, port)){
             Ok(e) => {
-                let newi = self.streamidcounter + 1;
-                newid = "nc_stream_".to_owned() + &newi.to_string();
+                self.streamidcounter = self.streamidcounter + 1;
+                newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
                 self.streammap.insert(newid.clone(), e);
 
 
@@ -100,6 +100,21 @@ impl NscriptTcp{
             }
         };
         newid
+    }
+        pub fn disconnect(&mut self, id: &str) -> String {
+        if id.starts_with("nc_stream_") {
+            if let Some((_i, stream)) = self.streammap.remove_entry(id) {
+                // Close the stream if needed
+                 stream.shutdown(Shutdown::Both).ok();
+                true.to_string()
+            } else {
+                false.to_string()
+            }
+        } else if id.starts_with("nc_listener_") {
+            self.listenermap.remove(id).is_some().to_string()
+        } else {
+            false.to_string()
+        }
     }
     pub fn send(&mut self,id:&str,msg: &str)->String{
         let g = self.streammap.get_key_value(id);
@@ -116,7 +131,10 @@ impl NscriptTcp{
 
 
         }
-        stream.write(msg.as_bytes()).unwrap();
+        match stream.write(msg.as_bytes()){
+            Ok(_) => {},
+            Err(_) => {},
+        }
         return "ok".to_owned();
     }
     pub fn receive(&mut self,id:&str)->String{
@@ -141,14 +159,15 @@ impl NscriptTcp{
             Ok(bytes_read) => {
 
                 //println!("\nbytesRead!{}\n",bytes_read);
-
-                response = "".to_owned() + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                let ispacket = String::from_utf8_lossy(&buffer[0..bytes_read]);
+                if ispacket == "[/nc]"{}
+                response = "".to_owned() + &ispacket;
 
                 // procceed the connection.
 
             }
-            Err(_) => {
-
+            Err(e) => {
+                println!("receive error:{}",e);
                 // handle OS error on connection-reset
 
             }

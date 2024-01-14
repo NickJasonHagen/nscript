@@ -132,10 +132,10 @@ impl NscriptTcp{
 
         }
         match stream.write(msg.as_bytes()){
-            Ok(_) => {},
-            Err(_) => {},
+            Ok(_) => {return "ok".to_owned();},
+            Err(_) => {return "error".to_string();},
         }
-        return "ok".to_owned();
+
     }
     pub fn receive(&mut self,id:&str)->String{
         let g = self.streammap.get_key_value(id);
@@ -154,7 +154,8 @@ impl NscriptTcp{
 
         }
         let mut buffer = [0; 1024];
-
+        //let timeout = Duration::from_millis(0);
+        //stream.set_read_timeout(Some(timeout));
         match stream.read(&mut buffer) {
             Ok(bytes_read) => {
 

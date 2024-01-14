@@ -51,7 +51,9 @@ use crate::*;
         "tcpreceive" => {
             return vmap.ntcp.receive(param1);
         }
-
+        "tcpdisconnect" => {
+            return vmap.ntcp.disconnect(param1);
+        }
         "terminalenableraw" => {
             Nterminal::enableraw();
             return String::new();
@@ -345,6 +347,10 @@ use crate::*;
             browseropen(param1);
             return String::new();
         }
+        "chain" => {
+
+            return nscript_runchains(split(param1," "), vmap);
+        }
         "cwrite" | "print" => {
             cwrite(param1, param2);
             return param1.to_owned();
@@ -357,9 +363,20 @@ use crate::*;
             "timerinit" => {
                 return Ntimer::init().to_string();
             }
-            "timerdiff" => {
-                return Ntimer::diff(param1.parse::<i64>().unwrap()).to_string();
-            }
+        "timerdiff" => {
+            let ret = match param1.parse::<i64>(){
+
+                Ok(r) => {
+                    Ntimer::diff(r)
+                },
+                Err(e) => {
+                    print!("timererror:{}",e);
+                   0
+                }
+            };
+            return ret.to_string();
+
+        }
             "fread" | "fileread" => {
                 return Nfile::read(param1);
             }

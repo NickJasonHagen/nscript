@@ -453,13 +453,15 @@ pub fn nscript_execute_script(
         code = read_file_utf8(&file);
 
     }
-    vmap.setcode(&thisparsingsheet,&nscript_stringextract(&code));
+    //code = nscript_formatsheet(&code);
+    vmap.setcode(&thisparsingsheet,&nscript_array_scopeextract(&nscript_chains(&trim_lines(&nscript_stringextract(&code)))));
     //vmap.setcode(&thisparsingsheet,&code);
     //extract the functions and classes from the sheet.
 
 
     nscript_thread_scopeextract(vmap);
     nscript_class_scopeextract(vmap);
+
     code = vmap.getcode(&thisparsingsheet);
     nscript_func_scopeextract("", vmap);
     code = vmap.getcode(&thisparsingsheet);
@@ -494,13 +496,18 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
 
     let fixedcode = code.to_owned();// + NC_LINE_ENDING;
     let fixedcode = nscript_stripcomments(&fixedcode);
+
+    //let fixedcode = nscript_array_scopeextract(&fixedcode);
     let fixedcode = trim_lines(&fixedcode);
     let fixedcode = nscript_stringextract(&fixedcode);
     let fixedcode = nscript_formatargumentspaces(&fixedcode);
+    let fixedcode = nscript_array_scopeextract(&fixedcode);
+    let fixedcode = nscript_chains(&fixedcode);
     let fixedcode  = nscript_scopeextract(&fixedcode);
 
+
     //let fixedcode = nscript_compilesheet(&code);
-    println!("code:{}",&fixedcode);
+    //println!("code:{}",&fixedcode);
     let mut toreturn: String;
     let lines = fixedcode.split("\n");
     for line in lines {
@@ -542,7 +549,72 @@ let mut toreturn: String;
 
     return "..".to_owned();
 }
+pub fn nscript_chains(coderaw: &str) -> String {
+    // ------------------------------------------------------------------------
+    let mut toreturn = String::new();
+    let fixc = Nstring::replace(&coderaw,"\n.",".");
+    let lines = fixc.split("\n");
+    for line in lines {
+        if line != "" {
+            if Nstring::instring(line,").") {
+                let mut pref = String::new();
+                if Nstring::instring(&line," = "){
+                    pref = "".to_owned() + split(&line," = ")[0]+ " = ";
 
+                }
+                let chainself = split(&line,"(")[0];
+                let chainself = split(&chainself," ");
+
+                let chainself = split(&chainself[chainself.len()-1],".")[0];
+                if chainself == "self" {
+                    let torep = ") ".to_owned() + &chainself + "." ;
+
+                    toreturn = toreturn +&pref+ "chain(^" + &string_to_hex(&line.replace(").",&torep).replace("self.", "*self.").trim())+ ")\n";
+                }
+                else{
+                    let torep = ") ".to_owned() + &chainself + "." ;
+
+                    toreturn = toreturn + &pref+ "chain(^" + &string_to_hex(&line.replace(").",&torep).trim())+ ")\n";
+
+                }
+                //cwrite(&chainself,"m");
+                let msg = "code:".to_owned()+&toreturn;
+                //cwrite(&msg,"b");
+            }
+            else{
+                toreturn = toreturn + line + "\n";
+
+            }
+
+        }
+    }
+//cwrite(&toreturn,"g");
+
+    toreturn
+}
+
+pub fn nscript_runchains(args: Vec<&str>,vmap:&mut Varmap)->String{
+    let mut res = String::new();
+    //println!("{:?}",args);
+    for x in args{
+
+        if Nstring::instring(&x, "(") && Nstring::instring(&x, ")"){
+            if split(&x,"(").len() > 2 {
+                let unwrap = nscript_funcextract(&x, vmap);
+                res = nscript_func(&unwrap, vmap);
+                //cwrite("chainresult:","m");
+                //cwrite(&res,"m");
+            }
+            res = nscript_func(&x, vmap);
+            //cwrite("chainresult:","m");
+            //cwrite(&res,"m");
+        }
+        //cwrite("chainresult:","m");
+
+    }
+//cwrite(&res,"g");
+    res
+}
 
 pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
    // allright this be the most core mechanic function of them all this is the core interpreter
@@ -556,6 +628,9 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
     let words = line_to_words(&line);
     //words = split(&line," ");
     // println!("line lenght in words:{}",&words.len());
+    if words[0] == "chain"{
+return nscript_runchains(words, vmap);
+    }
     match words.len() {
         1 => {
             // 1 word lines
@@ -681,7 +756,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
 
                     let loopscope = nscript_formatsheet(&nscript_unpackscopereturnclean(&splitscopearg[1],&splitscopearg[0]));
                     vmap.setvar("nscript_loops".to_owned() + "." + &loopref.trim(), &loopscope);
-                    println!("adding loopcode:{}",loopscope);
+                    //println!("adding loopcode:{}",loopscope);
                     return "".to_owned();
 
                 }
@@ -1109,6 +1184,7 @@ pub fn nscript_func_scopeextract(selfvar: &str,vmap: &mut Varmap) {
 
                 if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {// extraxt
                     // the functions from the class/script to clean it out.
+                    //let toreplace = nscript_array_scopeextract(&nscript_chains(&nscript_stringextract(&toreplace)));
                     vmap.setcode(&internalcoderef,&Nstring::replace(&code.trim(), &toreplace.trim(),"" ));
 
                 }
@@ -1153,6 +1229,7 @@ pub fn nscript_checkvar(key: &str,vmap: &mut Varmap) -> String {
             checkvar_toreturn = nscript_getmacro(&key,vmap);
         }
         "_" => {
+
             if Nstring::instring(&key,"(") && Nstring::instring(&key,")") {
                 checkvar_toreturn = nscript_func(&nscript_funcextract(&key, vmap),vmap);
 
@@ -1168,15 +1245,21 @@ pub fn nscript_checkvar(key: &str,vmap: &mut Varmap) -> String {
             checkvar_toreturn = key.to_string();
         }
         _ => {
+
             if Nstring::instring(&key,"(") && Nstring::instring(&key,")") {
+
+
                 if vmap.getcode(  &Nstring::replace(&split(&key,"(")[0],".","__")) != "" {
-                    //println!("a func found on a call");
-                    checkvar_toreturn = nscript_func(&nscript_funcextract(&key, vmap),vmap);
+                    //println!("a func found on a call")
+                        //cwrite(&key,"p");
+                        checkvar_toreturn = nscript_func(&nscript_funcextract(&key, vmap),vmap);
+
                 }
                 else {
 
                     let mut unwrap = "".to_owned() + &key;
                         if split(&unwrap,"(").len() > 2 {
+
                             unwrap = nscript_funcextract(&key, vmap);
 
                         }
@@ -1478,6 +1561,40 @@ pub fn extract_scope(text: &str) -> String {
                 depth += 1;
             }
             '}' => {
+                stack.pop();
+                depth -= 1;
+                if stack.is_empty() && depth == 0 {
+                    end = Some(index + 1);
+                    break;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    match (start, end) {
+        (Some(start), Some(end)) => text[start..end].to_string(),
+        _ => String::new(),
+    }
+}
+pub fn extract_blockscope(text: &str) -> String {
+    // a internal function to extract the scopes
+    // -------------------------------
+    let mut stack = Vec::new();
+    let mut start = None;
+    let mut end = None;
+    let mut depth = 0;
+
+    for (index, ch) in text.char_indices() {
+        match ch {
+            '[' => {
+                if stack.is_empty() {
+                    start = Some(index);
+                }
+                stack.push(ch);
+                depth += 1;
+            }
+            ']' => {
                 stack.pop();
                 depth -= 1;
                 if stack.is_empty() && depth == 0 {
@@ -2468,6 +2585,29 @@ pub fn nscript_replaceparams(code: &str,thisargument: &str) -> String{
     block = Nstring::replace(&block,&torep, &param);
     block
 }
+
+pub fn nscript_array_scopeextract(code:&str) -> String{
+    let mut i = 0; //<-- serves to filter first split wich isnt if found but default.
+    let  mut fixedcode = code.to_string();
+    let classes: Vec<String>  = fixedcode.split("= [\n").map(String::from).collect();
+    for eachclass in classes {
+        if i > 0 {
+
+            if eachclass != "" {
+                let blockend = split(&eachclass,"\n]")[0];
+                let isblockorigin = "= [\n".to_owned() + blockend + "\n]";
+                let replacement = Nstring::replace(blockend, "\n", "");
+                let replacement = Nstring::replace(&replacement, " ", "");
+                let replacement = "= [".to_owned() + &replacement + "]";
+                let replacement = Nstring::replace(&replacement,",]","]");
+                fixedcode = fixedcode.replace(&isblockorigin,&replacement );
+            }
+        }
+        i +=1;
+    }
+    fixedcode
+}
+
 pub fn nscript_thread_scopeextract(vmap: &mut Varmap){
     // this function will at the beginning of executing a script extract and load
     // all class scopes, all functions inside these scopes will be linked giving access to self var
@@ -2514,9 +2654,9 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap){
                    //println!("classcode:{}",&vmap.getcode("___interpretercode"));
 
                 }
-                let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
-
-                    nscript_func(&isconfn, vmap);
+                // let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
+                //
+                //     nscript_func(&isconfn, vmap);
 
             }
         }
@@ -2548,7 +2688,7 @@ pub fn nscript_threadscope(args: &str,code: &str,vmap: &mut Varmap){
     else{
         threadvmap = Varmap::new();
 
-        let mut implements = Nstring::trimright(&args,1);
+        let mut implements = Nstring::trimright(&args.trim(),1);
         implements = Nstring::trimleft(&implements,1);
         for each in split(&implements,","){
             if each != ""{
@@ -2592,7 +2732,7 @@ pub fn nscript_threadscope(args: &str,code: &str,vmap: &mut Varmap){
                                 //println!("rootfn:{}",&rootfn);
                                 let iscode = rootfn.to_owned() + "__" +&x;
                                 let iscode = vmap.getcode(&iscode);
-                                println!("iscode:{}",iscode);
+                                //println!("iscode:{}",iscode);
 
                                 let iscodeiregprop = "".to_owned() + &argsplit[1] + "__" +&x;
                                 let iscoderootprop = "nscript_classfuncs__".to_owned() + &argsplit[1] + "." +&x;

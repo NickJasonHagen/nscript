@@ -600,6 +600,7 @@ pub fn nscript_chains(coderaw: &str) -> String {
 pub fn nscript_runchains(args: Vec<&str>, vmap: &mut Varmap) -> String {
     let mut res = String::new();
     //println!("{:?}",args);
+    let oldself = vmap.getvar("self");
     for x in args {
         if Nstring::instring(&x, "(") && Nstring::instring(&x, ")") {
             if split(&x, "(").len() > 2 {
@@ -614,6 +615,12 @@ pub fn nscript_runchains(args: Vec<&str>, vmap: &mut Varmap) -> String {
         }
         //cwrite("chainresult:","m");
     }
+
+    if oldself != "" {
+        print!("oldself:{}",oldself);
+        vmap.setvar("self".to_owned(), &oldself);
+    }
+
     //cwrite(&res,"g");
     res
 }
@@ -749,11 +756,21 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     let scopeargs = Nstring::stringbetween(&words[words.len() - 1], "(", ")");
                     let splitscopearg = split(&scopeargs, ",");
                     let loopref = nscript_checkvar(&words[1], vmap);
-
-                    let loopscope = nscript_formatsheet(&nscript_unpackscopereturnclean(
+                    let loopscope = nscript_unpackscopereturnclean(
                         &splitscopearg[1],
                         &splitscopearg[0],
-                    ));
+                    );
+                    let loopscope = Nstring::replace(&loopscope,"self","coSelf");
+                    // let loopscope = Nstring::replace(&loopscope,"self)","coSelf)");
+                    //
+                    // let loopscope = Nstring::replace(&loopscope,"self.","*coSelf.");
+                    // let loopscope = Nstring::replace(&loopscope," self"," coSelf");
+                    //
+                    // let loopscope = Nstring::replace(&loopscope,"*self.","*coSelf.");
+                    // let loopscope = Nstring::replace(&loopscope,"**coSelf.","*coSelf.");
+                    //println!("loopscope:{}",loopscope);
+                    let loopscope = nscript_formatsheet(&loopscope);
+
                     vmap.setvar(
                         "nscript_loops".to_owned() + "." + &loopref.trim(),
                         &loopscope,
@@ -1027,9 +1044,11 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
 
                 nscript_func_scopeextract(classname[0], vmap); // extract functions from class scope
                 let blocknew = vmap.getcode(&parsesubcode); // remaining when functions are removed
-                                                            //println!("Subblock::{}",&blocknew);
+                //let oldself = vmap.getvar("self");// set self stack
+                vmap.stackpush("___self", &classname[0].trim());                                                          //println!("Subblock::{}",&blocknew);
                 vmap.setvar("self".to_owned(), &classname[0].trim()); // assigning self var self.
-                                                                      //println!("running class extraction assigning self:{}",&classname[0]);
+
+                                                                            //println!("running class extraction assigning self:{}",&classname[0]);
                 let blocknew = Nstring::replace(&blocknew, "self.", "*self."); // Reflect self!!!
                 nscript_parseformattedsheet(&nscript_formatsheet(&blocknew),vmap); // run the remaining as classblock.
                 //println!("Blc:{}",&blocknew);
@@ -1043,6 +1062,8 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                 let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
 
                 nscript_func(&nscript_formatsheet(&isconfn),vmap);
+                let oldself = vmap.stackpop("___self");                                                          //println!("Subblock::{}",&blocknew);
+                vmap.setvar("self".to_owned(), &oldself);
             }
         }
         i += 1;
@@ -1440,7 +1461,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
 
     // set self and classfunction registers
     let mut isclass: String;
-    let mut usedself = "__functioninternal"; // set to make sure the while extract will parse this
+   // set to make sure the while extract will parse this
                                              // block only
     if Nstring::instring(&func, ".") == true {
         let splitfn = split(&func, ".");
@@ -1473,14 +1494,14 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
         let rootfnobj = vmap.getvar(&reg); // get root obj where the func is located.
         let rootfnfullname = "".to_owned() + &rootfnobj + "__" + &fnname; //+ &rootfnobj + "__" + &fnname;
         iscodebblock = vmap.getcode(&rootfnfullname); // load code
+        //let oldself = vmap.getvar("___self");
         vmap.stackpush("___self", &isclass);
         vmap.setvar("self".to_owned(), &isclass);
-        usedself = &isclass;
         iscodebblock = Nstring::replace(&iscodebblock, "self.", "*self."); // change all to the obj itself.
     } else {
         iscodebblock = vmap.getcode(&fname); // load code
     }
-    let internalcoderef = vmap.getprop("__interpreter", "parsingsubsheet");
+    //let internalcoderef = vmap.getprop("__interpreter", "parsingsubsheet");
     let get = nscript_parsesheet(&nscript_stringextract(&iscodebblock), vmap); // run code
     let isclass = vmap.stackpop("___self");
     vmap.setvar("self".to_owned(), &isclass);
@@ -2493,10 +2514,10 @@ pub fn nscript_loops(vmap: &mut Varmap) {
         for x in subloops {
             let d = vmap.getprop("nscript_loops", &x);
             vmap.stackpush("___self", &x);
-            vmap.setvar("self".to_owned(), &x);
+            vmap.setvar("coSelf".to_owned(), &x);
             nscript_parseformattedsheet(&d, vmap);
             vmap.stackpop("___self");
-            vmap.setvar("self".to_owned(), &x);
+            //vmap.setvar("self".to_owned(), &x);
         }
     } else {
         vmap.activeloops = false;

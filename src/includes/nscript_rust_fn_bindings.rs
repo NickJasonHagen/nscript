@@ -199,6 +199,9 @@ use crate::*;
             "dirmove" => {
                 return directory_move(&param1,&param2);
             }
+            "arrayreverse" => {
+                return arrayreverse(&param1);
+            }
             "arraypush" => {
                 return arraypush(&param1,&param2);
             }
@@ -307,7 +310,7 @@ use crate::*;
             }
             "setobj" => {
                 vmap.setobj(param1, param2);
-                let isconfn = "_".to_owned() + &param1 + ".construct()"; // should only execute if it exists.. else continue
+                let isconfn = "".to_owned() + &param1 + ".construct()"; // should only execute if it exists.. else continue
                 nscript_func(&isconfn, vmap);
                 return String::new();
             }
@@ -370,8 +373,10 @@ use crate::*;
                     Ntimer::diff(r)
                 },
                 Err(e) => {
-                    print!("timererror:{}",e);
-                   0
+                    println!("timererror:{}",e);
+                    println!("timer var:{}",param1);
+                    0
+
                 }
             };
             return ret.to_string();
@@ -405,6 +410,7 @@ use crate::*;
                     return Nfile::dirtolist(param1, true);
                 }
             }
+
             "split" => {
                 return Nstring::split(param1, param2);
             }

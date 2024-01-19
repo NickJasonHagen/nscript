@@ -107,7 +107,19 @@ pub fn arraysearch(array: &str,tosearch: &str) -> String{
         ret
     }
 }
-
+pub fn arrayreverse(array: &str) -> String{
+    //println!("searching array:{} for {}",&array,&tosearch);
+    let mut ret = String::new();
+    for entree in split(&array.reverse(),&NC_ARRAY_DELIM){
+            ret = "".to_owned() + &ret + &entree+ NC_ARRAY_DELIM;
+     }
+    if Nstring::fromleft(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimleft(&ret, NC_ARRAY_DELIM.len());
+    }
+    else{
+        ret
+    }
+}
 pub fn arrayshuffle(arraystr:&str) -> String{
     let mut array = split(&arraystr,NC_ARRAY_DELIM);
     let mut rng = rand::thread_rng();

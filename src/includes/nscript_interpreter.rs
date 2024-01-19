@@ -617,7 +617,7 @@ pub fn nscript_runchains(args: Vec<&str>, vmap: &mut Varmap) -> String {
     }
 
     if oldself != "" {
-        print!("oldself:{}",oldself);
+        //print!("oldself:{}",oldself);
         vmap.setvar("self".to_owned(), &oldself);
     }
 
@@ -931,8 +931,8 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     // constructor function if inherented, be triggered after instantiation
                     let isconfn = "".to_owned() + &obj2 + ".construct()"; // should only execute if it exists.. else continue
 
-                    nscript_func(&isconfn, vmap); // if empty returns else exec
-
+                    let isr = nscript_func(&isconfn, vmap); // if empty returns else exec
+                    //println!("copied:{} for obj:{}",isr,isconfn);
                     return String::new();
                 }
             }
@@ -1027,6 +1027,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
         if i > 0 {
             let code = vmap.getcode(&parsecode);
             if eachclass != "" {
+                let mut oldself = String::new();
                 let classnamepart = split(&eachclass, "{")[0];
                 let classname = split(&classnamepart, ":");
                 vmap.setvar(
@@ -1044,7 +1045,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
 
                 nscript_func_scopeextract(classname[0], vmap); // extract functions from class scope
                 let blocknew = vmap.getcode(&parsesubcode); // remaining when functions are removed
-                //let oldself = vmap.getvar("self");// set self stack
+                 oldself = vmap.getvar("self");// set self stack
                 vmap.stackpush("___self", &classname[0].trim());                                                          //println!("Subblock::{}",&blocknew);
                 vmap.setvar("self".to_owned(), &classname[0].trim()); // assigning self var self.
 
@@ -1062,7 +1063,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                 let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
 
                 nscript_func(&nscript_formatsheet(&isconfn),vmap);
-                let oldself = vmap.stackpop("___self");                                                          //println!("Subblock::{}",&blocknew);
+                //let oldself = vmap.stackpop("___self");                                                          //println!("Subblock::{}",&blocknew);
                 vmap.setvar("self".to_owned(), &oldself);
             }
         }
@@ -1116,8 +1117,8 @@ pub fn nscript_func_scopeextract(selfvar: &str, vmap: &mut Varmap) {
                                 //println!("this-argument:{}[{}]",&i,&thisargument);
                                 i += 1; // bellow  we replace the given argument/parameters back
                                         // towars internalparamx
-                                let param =
-                                    "\n".to_owned() + "internalparam" + &i.to_string() + " ";
+
+                                let param = "\n".to_owned() + "internalparam" + &i.to_string() + " ";
                                 let torep = "\n".to_owned() + &thisargument + " ";
                                 block = Nstring::replace(&block, &torep, &param);
                                 let param = "(".to_owned() + "internalparam" + &i.to_string() + "";
@@ -1137,10 +1138,19 @@ pub fn nscript_func_scopeextract(selfvar: &str, vmap: &mut Varmap) {
                                 let param = "".to_owned() + "internalparam" + &i.to_string() + ".";
                                 let torep = "".to_owned() + &thisargument + ".";
                                 block = Nstring::replace(&block, &torep, &param);
+                                let param = "*".to_owned() + "internalparam" + &i.to_string() + "";
+                                let torep = "*".to_owned() + &thisargument + "";
+                                block = Nstring::replace(&block, &torep, &param);
+                                let param = "".to_owned() + "internalparam" + &i.to_string() + "..";
+                                let torep = "".to_owned() + &thisargument + ".";
+                                block = Nstring::replace(&block, &torep, &param);
+
                             }
                         }
                     } else {
                         if splitarguments[0] != "" {
+
+
                             let param = "\n".to_owned() + "internalparam1" + " ";
                             let torep = "\n".to_owned() + &splitarguments[0] + " ";
                             block = Nstring::replace(&block, &torep, &param);
@@ -1159,8 +1169,15 @@ pub fn nscript_func_scopeextract(selfvar: &str, vmap: &mut Varmap) {
                             block = Nstring::replace(&block, &torep, &param);
 
                             let param = "".to_owned() + "internalparam1.";
-                            let torep = "".to_owned() + &splitarguments[0];
+                            let torep = "".to_owned() + &splitarguments[0]+".";
                             block = Nstring::replace(&block, &torep, &param);
+                            let param = "*".to_owned() + "internalparam1" + "";
+                            let torep = "*".to_owned() + &splitarguments[0] + "";
+                            block = Nstring::replace(&block, &torep, &param);
+                            let param = "".to_owned() + "internalparam1" + "..";
+                            let torep = "".to_owned() + &splitarguments[0] + ".";
+                            block = Nstring::replace(&block, &torep, &param);
+                            //println!("function block:{}",&block);
                         }
                     }
                 }
@@ -1250,13 +1267,14 @@ pub fn nscript_checkvar(key: &str, vmap: &mut Varmap) -> String {
         "%" => {
             checkvar_toreturn = key.to_string();
         }
-        _ => {
+        "*" | _ => {
             if Nstring::instring(&key, "(") && Nstring::instring(&key, ")") {
                 if vmap.getcode(&Nstring::replace(&split(&key, "(")[0], ".", "__")) != "" {
-                    //println!("a func found on a call")
-                    //cwrite(&key,"p");
+                    println!("a func found on a call");
+                    cwrite(&key,"p");
                     checkvar_toreturn = nscript_func(&nscript_funcextract(&key, vmap), vmap);
-                } else {
+                }
+                else {
                     let mut unwrap = "".to_owned() + &key;
                     if split(&unwrap, "(").len() > 2 {
                         unwrap = nscript_funcextract(&key, vmap);
@@ -1283,7 +1301,9 @@ pub fn nscript_checkvar(key: &str, vmap: &mut Varmap) -> String {
                         &argvec[5], &argvec[6], &argvec[7], &argvec[8], vmap,
                     );
                 }
-            } else {
+            }
+            else {
+
                 //checkvar_toreturn = key.to_string();
                 if Nstring::instring(&key, "[") && Nstring::instring(&key, "]") {
                     let getref = split(&key, "[")[0];
@@ -1462,7 +1482,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     // set self and classfunction registers
     let mut isclass: String;
    // set to make sure the while extract will parse this
-                                             // block only
+             let mut oldself = String::new();                                // block only
     if Nstring::instring(&func, ".") == true {
         let splitfn = split(&func, ".");
         if Nstring::fromleft(&splitfn[0], 1) == "_".to_owned() {
@@ -1470,7 +1490,8 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
             //old syntax old nc begin with _ for udf.
 
             isclass = Nstring::trimleft(&splitfn[0].trim(), 1);
-        } else {
+        }
+        else {
             isclass = splitfn[0].trim().to_string().clone();
         }
 
@@ -1494,7 +1515,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
         let rootfnobj = vmap.getvar(&reg); // get root obj where the func is located.
         let rootfnfullname = "".to_owned() + &rootfnobj + "__" + &fnname; //+ &rootfnobj + "__" + &fnname;
         iscodebblock = vmap.getcode(&rootfnfullname); // load code
-        //let oldself = vmap.getvar("___self");
+        oldself = vmap.getvar("self");
         vmap.stackpush("___self", &isclass);
         vmap.setvar("self".to_owned(), &isclass);
         iscodebblock = Nstring::replace(&iscodebblock, "self.", "*self."); // change all to the obj itself.
@@ -1504,7 +1525,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     //let internalcoderef = vmap.getprop("__interpreter", "parsingsubsheet");
     let get = nscript_parsesheet(&nscript_stringextract(&iscodebblock), vmap); // run code
     let isclass = vmap.stackpop("___self");
-    vmap.setvar("self".to_owned(), &isclass);
+    vmap.setvar("self".to_owned(), &oldself);
 
     //println!("setting self to:[{}]",&isclass);
     get
@@ -1621,6 +1642,17 @@ pub fn nscript_getprefix(s: &str) -> String {
     //let mut ret = String::new();
     match &s[0..1] {
         "$" => return String::from("var"),
+
+        "*" => {
+            if Nstring::instring(&s, "(") == true && Nstring::instring(&s, ")") == true {
+                return String::from("call");
+            } else {
+                if s == "exit" || s == "Exit" {
+                    process::exit(1);
+                }
+                return String::from("var");
+            }
+        }
         "-" => return String::from("int"),
 
         "[" => return String::from("array"),

@@ -95,6 +95,7 @@ mod includes {
     pub mod nscript_http_html;
     pub mod nscript_time;
     pub mod nscript_networking;
+    //pub mod nscript_egui;
 }
 
 pub use includes::nscript_zip::*;
@@ -109,7 +110,7 @@ pub use includes::nscript_http_html::*;
 pub use includes::nscript_time::*;
 
 pub use includes::nscript_networking::*;
-
+//pub use includes::nscript_egui::*;
 
 
 

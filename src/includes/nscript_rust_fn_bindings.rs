@@ -202,6 +202,13 @@ use crate::*;
             "arrayreverse" => {
                 return arrayreverse(&param1);
             }
+            "arrayfirstout" => {
+                return arrayfirstout(&param1);
+            }
+            "arraylastout" => {
+                return arraylastout(&param1);
+            }
+
             "arraypush" => {
                 return arraypush(&param1,&param2);
             }

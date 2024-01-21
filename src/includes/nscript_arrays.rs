@@ -136,3 +136,33 @@ pub fn arrayshuffle(arraystr:&str) -> String{
 
 }
 
+pub fn arrayfirstout(array:&str) -> String{
+    let  array = split(&array,NC_ARRAY_DELIM);
+    let mut ret = String::new();
+    let u = array.len();
+    for each in array{
+        if u > 0{
+            ret = ret + &each + NC_ARRAY_DELIM;
+        }
+    }
+    if Nstring::fromright(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimright(&ret, NC_ARRAY_DELIM.len());
+    }
+    ret
+}
+
+pub fn arraylastout(array:&str) -> String{
+    let  array = split(&array,NC_ARRAY_DELIM);
+    let mut ret = String::new();
+    let u = array.len();
+    for each in array{
+        if u > 0{
+            ret = ret + &each + NC_ARRAY_DELIM;
+        }
+    }
+    if Nstring::fromright(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimright(&ret, NC_ARRAY_DELIM.len());
+    }
+    ret
+}
+

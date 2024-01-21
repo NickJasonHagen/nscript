@@ -1270,8 +1270,8 @@ pub fn nscript_checkvar(key: &str, vmap: &mut Varmap) -> String {
         "*" | _ => {
             if Nstring::instring(&key, "(") && Nstring::instring(&key, ")") {
                 if vmap.getcode(&Nstring::replace(&split(&key, "(")[0], ".", "__")) != "" {
-                    println!("a func found on a call");
-                    cwrite(&key,"p");
+                    //println!("a func found on a call");
+                    //cwrite(&key,"p");
                     checkvar_toreturn = nscript_func(&nscript_funcextract(&key, vmap), vmap);
                 }
                 else {

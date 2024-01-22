@@ -1,23 +1,23 @@
 
 
 use crate::*;
-use reqwest;
-use reqwest::blocking::get;
+//use reqwest;
+//use reqwest::blocking::get;
 use std::time::Duration;
 
 
-pub fn curl(url: &str) -> String {
-    match get(url) {
-        Ok(mut response) => {
-            let mut content = String::new();
-            if let Ok(_) = response.read_to_string(&mut content) {
-                return content;
-            }
-        }
-        Err(err) => eprintln!("Error: {:?}", err),
-    }
-    String::new()
-}
+// pub fn curl(url: &str) -> String {
+//     match get(url) {
+//         Ok(mut response) => {
+//             let mut content = String::new();
+//             if let Ok(_) = response.read_to_string(&mut content) {
+//                 return content;
+//             }
+//         }
+//         Err(err) => eprintln!("Error: {:?}", err),
+//     }
+//     String::new()
+// }
 
 pub fn raw_http_get(url: &str,fname: &str) -> Result<String, Box<dyn std::error::Error>> {
 

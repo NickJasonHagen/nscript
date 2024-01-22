@@ -921,17 +921,23 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
             if words.len() > 3 {
                 // syntax for object spawning1,
                 if words[0] == "obj" && words[2] == ":" {
-                    let obj1 = nscript_checkvar(&words[3], vmap);
-                    let obj2 = nscript_checkvar(&words[1], vmap);
+                    let mut obj1 = nscript_checkvar(&words[3], vmap);
+                    let mut obj2 = nscript_checkvar(&words[1], vmap);
+
                     if obj2 == "" {
-                        vmap.setobj(&obj1, &words[1]);
-                    } else {
-                        vmap.setobj(&obj1, &obj2);
+                        obj2 = words[1].to_string();
+                        vmap.setvar(words[1].to_owned(),words[1]);// set var to self
                     }
+                    if obj1 == ""{
+                        obj1 = words[3].to_string();
+                    }
+
+                    vmap.setobj(&obj1, &obj2);
+
                     // constructor function if inherented, be triggered after instantiation
                     let isconfn = "".to_owned() + &obj2 + ".construct()"; // should only execute if it exists.. else continue
 
-                    let isr = nscript_func(&isconfn, vmap); // if empty returns else exec
+                    nscript_func(&isconfn, vmap); // if empty returns else exec
                     //println!("copied:{} for obj:{}",isr,isconfn);
                     return String::new();
                 }
@@ -1035,10 +1041,20 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                     &classname[0].trim(),
                 ); // assign classname = classname
 
+                let mut toobjname = nscript_checkvar(&classname[0].trim(), vmap);
+                if toobjname == "" {
+                    toobjname = classname[0].trim().to_string();
+                    vmap.setvar(toobjname.clone(),&toobjname);
+                }
                 if classname.len() > 1 {
-                    let toobjname = nscript_checkvar(&classname[0].trim(), vmap);
+
+                    let mut fromobjname = nscript_checkvar(&classname[1].trim(), vmap);
+                    if fromobjname == "" {
+                        fromobjname = classname[1].trim().to_string();
+                        vmap.setvar(fromobjname.clone(),&fromobjname);
+                    }
                     //println!("OBJ CLONE: {}",&toobjname);
-                    vmap.setobj(&classname[1].trim(), &toobjname);
+                    vmap.setobj(&fromobjname.to_string(), &toobjname);
                 }
                 let block = extract_scope(&eachclass); // extract the class scope between { }
                 vmap.setcode(&parsesubcode, &block); // assign the subscope
@@ -1060,7 +1076,7 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                     //println!("FoundClass:{}",&classname[0]);
                     //println!("classcode:{}",&vmap.getcode("___interpretercode"));
                 }
-                let isconfn = "".to_owned() + &classname[0].trim() + ".construct()"; // should only execute if it exists.. else continue
+                let isconfn = "".to_owned() + &toobjname.trim() + ".construct()"; // should only execute if it exists.. else continue
 
                 nscript_func(&nscript_formatsheet(&isconfn),vmap);
                 //let oldself = vmap.stackpop("___self");                                                          //println!("Subblock::{}",&blocknew);

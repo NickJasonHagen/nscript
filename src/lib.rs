@@ -85,7 +85,7 @@ const NC_SCRIPT_DIR: &str = ".\\";
 
 mod includes {
     pub mod nscript_zip;
-    pub mod nscript_api_lib;
+    //pub mod nscript_api_lib;
     pub mod nscript_functions;
     pub mod nscript_arrays;
     pub mod nscript_file_and_system;
@@ -99,7 +99,7 @@ mod includes {
 }
 
 pub use includes::nscript_zip::*;
-pub use includes::nscript_api_lib::*;
+//pub use includes::nscript_api_lib::*;
 pub use includes::nscript_functions::*;
 pub use includes::nscript_arrays::*;
 pub use includes::nscript_file_and_system::*;

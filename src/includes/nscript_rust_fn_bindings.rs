@@ -218,10 +218,10 @@ use crate::*;
             "terminalinput" => {
                 return terminal_get_user_input(&param1,&param2);
             }
-            "discordmsg" => {
-                send_message_to_discord_api(&param1, &param2);
-                return String::new();
-            }
+            // "discordmsg" => {
+            //     send_message_to_discord_api(&param1, &param2);
+            //     return String::new();
+            // }
             "filecopy" => {
                 return filecopy(&param1,&param2);
             }
@@ -248,10 +248,10 @@ use crate::*;
             "filesize" => {
                 return filesize(&param1);
             }
-            "curl" => {
-                return curl(&param1);
-
-            }
+            // "curl" => {
+            //     return curl(&param1);
+            //
+            // }
             "iscode" => {
                 let ret = vmap.getcode(&param1);
                 cwrite(&ret,"red");

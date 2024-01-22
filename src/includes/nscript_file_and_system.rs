@@ -111,20 +111,20 @@ impl Nfile {
         return std::path::Path::new(fp).exists();
     }
     pub fn write(path: &str, data: &str) -> String {
-        let mut f: File;
-        if !std::path::Path::new(&path).exists(){
-            f = match File::create(path) {
-                Ok(file) => file,
-                Err(err) => return err.to_string(),
+        if std::path::Path::new(&path).exists(){
+            let  _error = match fs::remove_file(path) {
+                Ok(_) => format!("File deleted successfully"),
+                Err(err) =>{
+                    return format!("Error writing a file ( cant delete,before write): {}", err);
+                } ,
             };
 
+
         }
-        else{
-            f = match File::open(path) {
-                Ok(file) => file,
-                Err(_) => return String::new(), // Return empty string on error
-            };
-        }
+        let mut f = match File::create(path) {
+            Ok(file) => file,
+            Err(err) => return err.to_string(),
+        };
 
         if let Err(err) = f.write_all(data.as_bytes()) {
             return err.to_string();

@@ -197,7 +197,7 @@ pub fn decode_html_url(url: &str) -> String {
         ("&gt;", ">"),
         ("&quot;", "\""),
         ("&apos;", "'"),
-        ("%0D%0A","\n"),
+        ("%0A","\n"),
     ];
 
     let mut decoded = String::new();

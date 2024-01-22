@@ -14,8 +14,8 @@ chrono = "0.4.23"
 colored = "2.0.0"
 num = "0.4.0"
 hex = "0.4"
-reqwest = { version = "0.11", features = ["blocking"] }
-openssl-sys = "0.9"
+#reqwest = { version = "0.11", features = ["blocking"] }
+#openssl-sys = "0.9"
 encoding_rs = "0.8"
 psutil = "3.2.2"
 rand = "0.8.4"

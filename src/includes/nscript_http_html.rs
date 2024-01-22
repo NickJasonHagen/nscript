@@ -197,12 +197,16 @@ pub fn decode_html_url(url: &str) -> String {
         ("&gt;", ">"),
         ("&quot;", "\""),
         ("&apos;", "'"),
+        ("%0D%0A","\n"),
     ];
 
     let mut decoded = String::new();
     let xurl = Nstring::replace(&url,"+"," ");
     let mut iter = xurl.chars().peekable();
 
+    for (entity, replacement) in &entities {
+        decoded = decoded.replace(entity, replacement);
+    }
     while let Some(ch) = iter.next() {
         if ch == '%' {
             // Check if it's a valid percent-encoded sequence
@@ -219,9 +223,7 @@ pub fn decode_html_url(url: &str) -> String {
         decoded.push(ch);
     }
 
-    for (entity, replacement) in &entities {
-        decoded = decoded.replace(entity, replacement);
-    }
+
 
     decoded
 }

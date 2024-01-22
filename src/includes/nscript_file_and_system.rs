@@ -111,10 +111,20 @@ impl Nfile {
         return std::path::Path::new(fp).exists();
     }
     pub fn write(path: &str, data: &str) -> String {
-        let mut f = match File::create(path) {
-            Ok(file) => file,
-            Err(err) => return err.to_string(),
-        };
+        let mut f: File;
+        if !std::path::Path::new(&path).exists(){
+            f = match File::create(path) {
+                Ok(file) => file,
+                Err(err) => return err.to_string(),
+            };
+
+        }
+        else{
+            f = match File::open(path) {
+                Ok(file) => file,
+                Err(_) => return String::new(), // Return empty string on error
+            };
+        }
 
         if let Err(err) = f.write_all(data.as_bytes()) {
             return err.to_string();

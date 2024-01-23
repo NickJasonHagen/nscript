@@ -448,6 +448,7 @@ pub fn nscript_execute_script(
     //     &thisparsingsheet,
     //     &nscript_array_scopeextract(&nscript_chains(&trim_lines(&nscript_stringextract(&code)))),
     // );
+    code = nscript_stringextract(&code); // clearly this is also required here not to have "< class" stuff break syntax from strings
     vmap.setcode(
         &thisparsingsheet,
         &code,

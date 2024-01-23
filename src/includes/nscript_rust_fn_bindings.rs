@@ -393,8 +393,8 @@ use crate::*;
                 return Nfile::read(param1);
             }
             "fwrite" | "filewrite" => {
-                Nfile::write(param1, param2);
-                return String::new();
+                let var = Nfile::write(param1, param2);
+                return var;
             }
             "splitselect" => {
 

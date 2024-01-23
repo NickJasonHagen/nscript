@@ -388,6 +388,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
             //println!("strippedpostdata:{}",&postdata);
         }
         else {
+            //println!("somejacked up stuff");
             return;//some jacked up post request being done.
         }
 
@@ -395,56 +396,62 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
         if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {
             if ["nc"].contains(&extension.as_str()) {
                 //println!("Its a Post to Nc");
-                let response =  "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-                match stream.write(response.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            // Handle the situation where not all data was written if needed.
-                        }
-
-                    }
-                    Err(_) => {
-                        //return;
-                    }
-                }
                 let bsize = nscript_f64(&Nstring::stringbetween(&request,"Content-Length: ","Cache").trim());
+
+                println!("receiving:{}",&bsize);
+                let response =  "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+                    match stream.write(response.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
+
+                        }
+                        Err(_) => {
+                            //return;
+                        }
+                    }
+                match stream.set_read_timeout(Some(Duration::new(0, 10000000))){
+
+                    Ok(_) => {},
+                    Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+                }
+
+                // let err = result.unwrap_err();
+                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                match stream.set_write_timeout(Some(Duration::new(0, 10000000))){
+
+                    Ok(_) => {},
+                    Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+                }
+
+
                 if bsize > nscript_f64(&nscript_checkvar("server.POSTbytesmax",vmap)){
                     let response = "SERVERERROR:PostSizeExceedsLimit";
                     match stream.write(response.as_bytes()) {
-                    Ok(_) => {
+                        Ok(_) => {
                             return;
-                    }
-                    Err(_) => {
-                        return;
+                        }
+                        Err(_) => {
+                            return;
+                        }
                     }
                 }
-                                    }
                 //println!("bytesize:{}",&bsize);
-                if bsize > 454.0 {
+                if bsize > 198.0 {
+
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
                     let mut  dctimer = Ntimer::init();
                     // set ensurances to break the connection if some hangs.
 
-                    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
 
-                        Ok(_) => {},
-                        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
-                    }
-
-                    // let err = result.unwrap_err();
-                    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
-
-                        Ok(_) => {},
-                        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
-                    }
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
 
                     loop{
-                        if Ntimer::diff(dctimer) >= 420{
+                        if Ntimer::diff(dctimer) >= 20{
                             // dc timer for inactivity should break the loop.
                             break;
                         }
@@ -465,9 +472,10 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                                 // procceed the connection.
 
                             }
-                            Err(_) => {
+                            Err(e) => {
+                                print!("error nchttp {}",e);// handle OS error on connection-reset)
                                 break;
-                                // handle OS error on connection-reset
+
 
                             }
                         }
@@ -493,11 +501,12 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 // }
                 // nscript_setparams_handleconnections(&newparams,vmap);
                 let scriptcode = read_file_utf8(&file_path);
-                let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode));
+                let compcode = nscript_formatsheet(&scriptcode);
                 let response = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
                         // Check if all bytes were successfully written.
+                        //println!("writingback bytes : {}",bytes_written);
                         if bytes_written < response.len() {
                             // Handle the situation where not all data was written if needed.
                         }
@@ -510,8 +519,9 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 //println!("post: {}",postdata);
 
             }
-            return;
+
         }
+        return;
     }
     if request_parts[0] == "GET" {
         if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {

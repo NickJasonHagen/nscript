@@ -398,7 +398,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 //println!("Its a Post to Nc");
                 let bsize = nscript_f64(&Nstring::stringbetween(&request,"Content-Length: ","Cache").trim());
 
-                println!("receiving:{}",&bsize);
+                //println!("receiving:{}",&bsize);
                 let response =  "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
                     match stream.write(response.as_bytes()) {
                         Ok(bytes_written) => {
@@ -526,14 +526,41 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     if request_parts[0] == "GET" {
         if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {
             if ["nc"].contains(&extension.as_str()) {
-            let _ = match File::open(&file_path) {
-                Ok(_) => {},
-                Err(_) => {
-                    let response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                    stream.write(response.as_bytes()).unwrap();
-                    return;
-                }
-            };
+                let _ = match File::open(&file_path) {
+                    Ok(_) => {},
+                    Err(_) => {
+
+                        let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                        let nc404file = NC_SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/404.nc";
+                        println!("404={},",nc404file);
+                        if Nfile::checkexists(&nc404file){
+                            let compcode = nscript_formatsheet(&read_file_utf8(&nc404file));
+                            let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
+                            nscript_clearparams_handleconnections(vmap);
+                            response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
+                            stream.write(response.as_bytes()).unwrap();
+                            match stream.write(ret.as_bytes()) {
+                                Ok(bytes_written) => {
+                                    // Check if all bytes were successfully written.
+                                    if bytes_written < response.len() {
+                                        // Handle the situation where not all data was written if needed.
+                                    }
+                                }
+                                Err(_) => {
+                                    return;
+                                }
+                            }
+                            return;
+
+                        }else{
+                            stream.write(response.as_bytes()).unwrap();
+                            return;
+
+                        }
+
+
+                    }
+                };
             let scriptcode = read_file_utf8(&file_path);
                 let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode));
                 let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.

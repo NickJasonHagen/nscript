@@ -34,7 +34,17 @@ impl Nscriptsound{
 
     pub fn playfile(&mut self,filepath: &str)->String{
         let path = Path::new(&filepath);
-        let duration = mp3_duration::from_path(&path).unwrap();
+        let duration = match mp3_duration::from_path(&path){
+            Ok(res) =>{
+res
+            },
+            Err(err) => Duration::from_secs(0)
+        };
+        if duration == Duration::from_secs(0)
+ {
+            println!("Error getting the duration of :{}",&filepath);
+            return "error".to_owned();
+        }
         let thisid = self.play(filepath.to_string());
         self.durations.insert(thisid.clone().to_string(),duration);
 

@@ -28,6 +28,8 @@ base64 = "0.21.2"
 url = "2.2.2"
 winapi = "0.3.9"
 crossterm = "0.22.0"
-
+rodio = "0.13"
 #egui = "0.25.0"
 #eframe = "0.25.0"
+mp3-duration = "0.1.10"
+

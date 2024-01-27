@@ -149,14 +149,12 @@ pub fn random_number_between(min: &str, max: &str, decimals: &str) -> String {
 
 
 
-pub fn call_program(command: &str) -> String {
-    let mut parts = command.split_whitespace();
-    let program = parts.next().expect("No program provided");
-    let args: Vec<_> = parts.collect();
-
-    let output = Command::new(program)
-        .args(&args)
-        .output();
+pub fn call_program(command: &str,arg1: &str,arg2: &str,arg3: &str,arg4: &str,arg5: &str,arg6: &str,arg7: &str,arg8: &str) -> String {
+    // let mut parts = command.split_whitespace();
+    // let program = parts.next().expect("No program provided");
+    // let args: Vec<_> = parts.collect();
+    //
+    let output = Command::new(arg1).arg(arg2).arg(arg3).arg(arg4).arg(arg5).arg(arg6).arg(arg7).arg(arg8).output();
 
     match output {
         Ok(output) => {

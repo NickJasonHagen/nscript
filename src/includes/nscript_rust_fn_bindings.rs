@@ -1,41 +1,49 @@
 
 use crate::*;
 
-    pub fn nscript_callfn(
-        func: &str,
-        param1: &str,
-        param2: &str,
-        param3: &str,
-        param4: &str,
-        param5: &str,
-        param6: &str,
-        param7: &str,
-        param8: &str,
-        param9: &str,
-        vmap: &mut Varmap,
-    ) -> String {
-        // translate nscript calls towards the runtime functions and return vallues as string
-        // all calls must be from String and back to String new adds be required to do so aswell
-        // !! this is where you add your functions to the nscript syntaxis, if you have this included in your rust project
-        // --------------------------------------------------------------------------------------
+pub fn nscript_callfn(
+    func: &str,
+    param1: &str,
+    param2: &str,
+    param3: &str,
+    param4: &str,
+    param5: &str,
+    param6: &str,
+    param7: &str,
+    param8: &str,
+    param9: &str,
+    vmap: &mut Varmap,
+) -> String {
+    // translate nscript calls towards the runtime functions and return vallues as string
+    // all calls must be from String and back to String new adds be required to do so aswell
+    // !! this is where you add your functions to the nscript syntaxis, if you have this included in your rust project
+    // --------------------------------------------------------------------------------------
 
-        // this is where you can override the built in functions with your custom functions and extent the
-        // current functions with your own, just make a switch on the func and the others are given
-        // arguments from the .nc calls
-        // let customfunctions = Nscriptfunctions::nscript_custom_functions(&func,&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9,vmap);
-        // if customfunctions != "" {
-        //     return customfunctions
-        // }
+    // this is where you can override the built in functions with your custom functions and extent the
+    // current functions with your own, just make a switch on the func and the others are given
+    // arguments from the .nc calls
+    // let customfunctions = Nscriptfunctions::nscript_custom_functions(&func,&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9,vmap);
+    // if customfunctions != "" {
+    //     return customfunctions
+    // }
     let mut custom_behavior: NscriptCustomFunctions = vmap.fnextentions;
     let customret = custom_behavior(vmap);
     if customret != ""{
-        return customret
+        return customret.to_owned();
     }
 
-        match func {
-            // "scope" => {
-            //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
-            // }
+    match func {
+        // "scope" => {
+        //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
+        // }
+        "playsoundfile" => {
+
+            return vmap.sound.playfile(&param1);
+        }
+        "stopsound" =>{
+            vmap.sound.stop(&param1);
+            return "".to_owned();
+        }
         "tcplistener" => {
             return vmap.ntcp.listener( param1,param2);
         }
@@ -64,7 +72,7 @@ use crate::*;
         }
 
         "download" =>{
-           let mut port: u16 = 80;
+            let mut port: u16 = 80;
             if let Ok(port) = param2.to_owned().parse::<u16>() {
                 println!("Parsed port number: {}", port);
                 // Use the port number (port) here in your code
@@ -80,7 +88,7 @@ use crate::*;
             return "".to_string();
         }
         "httpget" => {
-           let mut port: u16 = 80;
+            let mut port: u16 = 80;
             if let Ok(port) = param2.to_owned().parse::<u16>() {
                 println!("Parsed port number: {}", port);
                 // Use the port number (port) here in your code
@@ -101,248 +109,248 @@ use crate::*;
                 Err(_) => return "error".to_string(),
             }
         }
-            "ncwebserver" => {
+        "ncwebserver" => {
             match ncwebserver(vmap){
-                    Ok(_) => return String::new() ,
-                    Err(_) => return String::new(),
+                Ok(_) => return String::new() ,
+                Err(_) => return String::new(),
             }
 
         }
-            "rawget" => {
-                match raw_http_get(param1,param2) {
-                    Ok(response) => return response ,
-                    Err(_) => return String::new(),
-                }
+        "rawget" => {
+            match raw_http_get(param1,param2) {
+                Ok(response) => return response ,
+                Err(_) => return String::new(),
             }
-            "rawgetfile" => {
-                match raw_http_get_file(param1,param2,param3) {
-                    Ok(response) => return response ,
-                    Err(_) => return "rawgetfile fileerror".to_string(),
-                }
+        }
+        "rawgetfile" => {
+            match raw_http_get_file(param1,param2,param3) {
+                Ok(response) => return response ,
+                Err(_) => return "rawgetfile fileerror".to_string(),
             }
-            "restrictionmode" => {
-                nscript_setrestrictionmode(&param1,vmap);
-                return "".to_owned() + &param1;
-            }
-            "debugmode" => {
-                nscript_setdebugmode(&param1,vmap);
-                return "".to_owned() + &param1;
-            }
-            "math" | "calc" => {
-                let res = nscript_runmath(&split(&param1," "),0, vmap);
-                return res;
-            }
-            "run" => {
-                return call_program(&param1);
-            }
-            // "sqlgetrow" => {
-            //     return perform_sql_query_get_row(&param1,&param2,param3);
-            // }
-            // "decrypt" => {
-            //     return encrypt_string(&param1,&param2);
-            // }
-            //
-            // "encrypt" => {
-            //     return decrypt_string(&param1,&param2);
-            // }
-            "trim" => {
-                return param1.trim().to_string();
-            }
-            "minutes_in_ms" => {
-                return Ntimer::minutes_in_ms(&param1);
-            }
-            "hours_in_ms" => {
-                return Ntimer::hours_in_ms(&param1);
-            }
-            "days_in_ms" => {
-                return Ntimer::days_in_ms(&param1);
-            }
-            "weeks_in_ms" => {
-                return Ntimer::weeks_in_ms(&param1);
-            }
-            "months_in_ms" => {
-                return Ntimer::months_in_ms(&param1);
-            }
-            "years_in_ms" => {
-                return Ntimer::years_in_ms(&param1);
-            }
+        }
+        "restrictionmode" => {
+            nscript_setrestrictionmode(&param1,vmap);
+            return "".to_owned() + &param1;
+        }
+        "debugmode" => {
+            nscript_setdebugmode(&param1,vmap);
+            return "".to_owned() + &param1;
+        }
+        "math" | "calc" => {
+            let res = nscript_runmath(&split(&param1," "),0, vmap);
+            return res;
+        }
+        "run" => {
+            return call_program(&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9);
+        }
+        // "sqlgetrow" => {
+        //     return perform_sql_query_get_row(&param1,&param2,param3);
+        // }
+        // "decrypt" => {
+        //     return encrypt_string(&param1,&param2);
+        // }
+        //
+        // "encrypt" => {
+        //     return decrypt_string(&param1,&param2);
+        // }
+        "trim" => {
+            return param1.trim().to_string();
+        }
+        "minutes_in_ms" => {
+            return Ntimer::minutes_in_ms(&param1);
+        }
+        "hours_in_ms" => {
+            return Ntimer::hours_in_ms(&param1);
+        }
+        "days_in_ms" => {
+            return Ntimer::days_in_ms(&param1);
+        }
+        "weeks_in_ms" => {
+            return Ntimer::weeks_in_ms(&param1);
+        }
+        "months_in_ms" => {
+            return Ntimer::months_in_ms(&param1);
+        }
+        "years_in_ms" => {
+            return Ntimer::years_in_ms(&param1);
+        }
 
-            "stringtobase64" => {
-                return string_to_base64(&param1);
-            }
+        "stringtobase64" => {
+            return string_to_base64(&param1);
+        }
 
-            "base64tostring" => {
-                return base64_to_string(&param1);
-            }
-            "unzip" => {
-                return unzip_file(&param1,&param2);
-            }
-            "zip" => {
-                return zip_directory(&param1,&param2);
-            }
-            "memusage" => {
-                return memoryusage();
-            }
-            "memstats" | "memorystatus" => {
-                return memorystatus();
-            }
-            "objtojson" => {
-                return objtojson(&param1,vmap);
-            }
-            "objfromjson" => {
-                objfromjson(&param1,param2,vmap);
-                return param1.trim().to_owned();
-            }
-            "dirdelete" => {
-                return directory_delete(&param1);
-            }
-            "dirmove" => {
-                return directory_move(&param1,&param2);
-            }
-            "arrayreverse" => {
-                return arrayreverse(&param1);
-            }
-            "arrayfirstout" => {
-                return arrayfirstout(&param1);
-            }
-            "arraylastout" => {
-                return arraylastout(&param1);
-            }
+        "base64tostring" => {
+            return base64_to_string(&param1);
+        }
+        "unzip" => {
+            return unzip_file(&param1,&param2);
+        }
+        "zip" => {
+            return zip_directory(&param1,&param2);
+        }
+        "memusage" => {
+            return memoryusage();
+        }
+        "memstats" | "memorystatus" => {
+            return memorystatus();
+        }
+        "objtojson" => {
+            return objtojson(&param1,vmap);
+        }
+        "objfromjson" => {
+            objfromjson(&param1,param2,vmap);
+            return param1.trim().to_owned();
+        }
+        "dirdelete" => {
+            return directory_delete(&param1);
+        }
+        "dirmove" => {
+            return directory_move(&param1,&param2);
+        }
+        "arrayreverse" => {
+            return arrayreverse(&param1);
+        }
+        "arrayfirstout" => {
+            return arrayfirstout(&param1);
+        }
+        "arraylastout" => {
+            return arraylastout(&param1);
+        }
 
-            "arraypush" => {
-                return arraypush(&param1,&param2);
-            }
-            "arraypushroll" => {
-                return arraypushroll(&param1,&param2);
-            }
-            "terminalinput" => {
-                return terminal_get_user_input(&param1,&param2);
-            }
-            // "discordmsg" => {
-            //     send_message_to_discord_api(&param1, &param2);
-            //     return String::new();
-            // }
-            "filecopy" => {
-                return filecopy(&param1,&param2);
-            }
-            "filedelete" => {
-                return filedelete(&param1);
-            }
+        "arraypush" => {
+            return arraypush(&param1,&param2);
+        }
+        "arraypushroll" => {
+            return arraypushroll(&param1,&param2);
+        }
+        "terminalinput" => {
+            return terminal_get_user_input(&param1,&param2);
+        }
+        // "discordmsg" => {
+        //     send_message_to_discord_api(&param1, &param2);
+        //     return String::new();
+        // }
+        "filecopy" | "fcopy" => {
+            return filecopy(&param1,&param2);
+        }
+        "filedelete" | "fdelete" => {
+            return filedelete(&param1);
+        }
 
-            "filemove" => {
-                return filemove(&param1,&param2);
-            }
-            "round" => {
-                return round_number(&param1,&param2);
-            }
-            "random" => {
-                return random_number_between(&param1,&param2,&param3);
-            }
-            "dircreate" => {
-                return create_directory(&param1);
-            }
-            "filesizebytes" => {
-                return filesizebytes(&param1);
-            }
+        "filemove" | "fmove"=> {
+            return filemove(&param1,&param2);
+        }
+        "round" => {
+            return round_number(&param1,&param2);
+        }
+        "random" => {
+            return random_number_between(&param1,&param2,&param3);
+        }
+        "dircreate" => {
+            return create_directory(&param1);
+        }
+        "filesizebytes" => {
+            return filesizebytes(&param1);
+        }
 
-            "filesize" => {
-                return filesize(&param1);
-            }
-            // "curl" => {
-            //     return curl(&param1);
-            //
-            // }
-            "iscode" => {
-                let ret = vmap.getcode(&param1);
-                cwrite(&ret,"red");
-                return String::from(&ret);
+        "filesize" => {
+            return filesize(&param1);
+        }
+        // "curl" => {
+        //     return curl(&param1);
+        //
+        // }
+        "iscode" => {
+            let ret = vmap.getcode(&param1);
+            cwrite(&ret,"red");
+            return String::from(&ret);
 
+        }
+        "inpool" => {
+            return inpool(&param1,&param2);
+        }
+        "pooladd" => {
+            return pooladd(&param1,&param2);
+        }
+        "poolremove" => {
+            return poolremove(&param1,&param2);
+        }
+        "arraysort" => {
+            return arraysort(&param1);
+        }
+        "stackpush" => {
+            vmap.stackpush(param1, param2);
+            return String::new();
+        }
+        "sleep" => {
+            if let Ok(duration) = param1.parse::<u64>() {
+                std::thread::sleep(std::time::Duration::from_millis(duration));
+            } else {
+                // Invalid argument, handle the error
+                return String::from("Invalid argument for sleep function");
             }
-            "inpool" => {
-                return inpool(&param1,&param2);
-            }
-            "pooladd" => {
-                return pooladd(&param1,&param2);
-            }
-            "poolremove" => {
-                return poolremove(&param1,&param2);
-            }
-            "arraysort" => {
-                return arraysort(&param1);
-            }
-            "stackpush" => {
-                vmap.stackpush(param1, param2);
-                return String::new();
-            }
-            "sleep" => {
-                if let Ok(duration) = param1.parse::<u64>() {
-                    std::thread::sleep(std::time::Duration::from_millis(duration));
-                } else {
-                    // Invalid argument, handle the error
-                    return String::from("Invalid argument for sleep function");
-                }
-                return String::from("") // Return an empty string as the result
-            }
-            "hextostring" => {
-                //vmap.stackpush(param1, param2);
-                return hex_to_string(param1);
-            }
-            "stringtohex" => {
-                //vmap.stackpush(param1, param2);
-                return string_to_hex(param1);
-            }
-            "stackpop" => {
-                return vmap.stackpop(param1);
-            }
-            "delobj"  | "objdel" => {
-                // execute deconstruct function (if is has it)
-                let isdeconfn = "".to_owned() + &param1 + ".deconstruct()"; // should only execute if it exists.. else continue
-                nscript_func(&isdeconfn, vmap);
-                vmap.delobj(param1);
-                return String::new();
-            }
-            "objparents" => {
-                return vmap.objparents(param1);
-            }
-            "objchildren" | "getobjchildren"=> {
-                return vmap.objchildren(param1);
-            }
-            "setobjprop" => {
-                vmap.setprop(param1, param2, param3);
-                return String::new();
-            }
-            "getobjprop" => {
-                let get = vmap.getprop(param1, param2);
-                return get;
-            }
-            "setobj" => {
-                vmap.setobj(param1, param2);
-                let isconfn = "".to_owned() + &param1 + ".construct()"; // should only execute if it exists.. else continue
-                nscript_func(&isconfn, vmap);
-                return String::new();
-            }
-            "inobj" => {
-                return Nstring::replace(&vmap.inobj(param1),"|",NC_ARRAY_DELIM);
-            }
+            return String::from("") // Return an empty string as the result
+        }
+        "hextostring" => {
+            //vmap.stackpush(param1, param2);
+            return hex_to_string(param1);
+        }
+        "stringtohex" => {
+            //vmap.stackpush(param1, param2);
+            return string_to_hex(param1);
+        }
+        "stackpop" => {
+            return vmap.stackpop(param1);
+        }
+        "delobj"  | "objdel" => {
+            // execute deconstruct function (if is has it)
+            let isdeconfn = "".to_owned() + &param1 + ".deconstruct()"; // should only execute if it exists.. else continue
+            nscript_func(&isdeconfn, vmap);
+            vmap.delobj(param1);
+            return String::new();
+        }
+        "objparents" => {
+            return vmap.objparents(param1);
+        }
+        "objchildren" | "getobjchildren"=> {
+            return vmap.objchildren(param1);
+        }
+        "setobjprop" => {
+            vmap.setprop(param1, param2, param3);
+            return String::new();
+        }
+        "getobjprop" => {
+            let get = vmap.getprop(param1, param2);
+            return get;
+        }
+        "setobj" => {
+            vmap.setobj(param1, param2);
+            let isconfn = "".to_owned() + &param1 + ".construct()"; // should only execute if it exists.. else continue
+            nscript_func(&isconfn, vmap);
+            return String::new();
+        }
+        "inobj" => {
+            return Nstring::replace(&vmap.inobj(param1),"|",NC_ARRAY_DELIM);
+        }
 
-            "delobjprop" => {
-                vmap.delprop(param1, param2);
-                return String::new();
-            }
-            "stringtoeval" => {
-                return Nstring::stringtoeval(param1);
-            }
-            "isfunction" => {
-                let testc = vmap.getcode(param1);
-                //println!("isfunction:{}",testc);
-                return nscript_parsesheet(&testc, vmap);
-            }
-            "exec" => {
-                nscript_execute_script(
-                    param1, param2, param3, param4, param5, param6, param7, param8, param9, "", vmap,
-                );
-                return "ok".to_owned();
-            }
+        "delobjprop" => {
+            vmap.delprop(param1, param2);
+            return String::new();
+        }
+        "stringtoeval" => {
+            return Nstring::stringtoeval(param1);
+        }
+        "isfunction" => {
+            let testc = vmap.getcode(param1);
+            //println!("isfunction:{}",testc);
+            return nscript_parsesheet(&testc, vmap);
+        }
+        "exec" => {
+            nscript_execute_script(
+                param1, param2, param3, param4, param5, param6, param7, param8, param9, "", vmap,
+            );
+            return "ok".to_owned();
+        }
         "sheet" => {
             return nscript_parsesheet(&Nfile::read(param1), vmap);
         }
@@ -364,15 +372,15 @@ use crate::*;
         "cwrite" | "print" => {
             cwrite(param1, param2);
             return param1.to_owned();
-            }
-            "cwriteraw" | "printraw" => {
-                cwriteraw(param1, param2);
+        }
+        "cwriteraw" | "printraw" => {
+            cwriteraw(param1, param2);
             io::stdout().flush().unwrap();
             return param1.to_owned();
-            }
-            "timerinit" => {
-                return Ntimer::init().to_string();
-            }
+        }
+        "timerinit" => {
+            return Ntimer::init().to_string();
+        }
         "timerdiff" => {
             let ret = match param1.parse::<i64>(){
 
@@ -389,129 +397,160 @@ use crate::*;
             return ret.to_string();
 
         }
-            "fread" | "fileread" => {
-                return Nfile::read(param1);
-            }
-            "fwrite" | "filewrite" => {
-                let var = Nfile::write(param1, param2);
-                return var;
-            }
-            "splitselect" => {
+        "fread" | "fileread" => {
+            return Nfile::read(param1);
+        }
+        "fwrite" | "filewrite" => {
+            let var = Nfile::write(param1, param2);
+            return var;
+        }
+        "splitselect" => {
 
-                return splitselect(&param1,&param2,parse_string_to_usize(&param3))
+            return splitselect(&param1,&param2,parse_string_to_usize(&param3))
+        }
+        "file_read_utf8" =>{
+            return read_file_utf8(&param1).to_owned();
+        }
+        "fexists" | "fileexists"=> {
+            if Nfile::checkexists(&param1) == true {
+                return String::from("true");
+            } else {
+                return String::from("false");
             }
-            "file_read_utf8" =>{
-                return read_file_utf8(&param1).to_owned();
+        }
+        "listdir" | "dirtolist" | "dirlist" => {
+            if param2 == "" {
+                return Nfile::dirtolist(param1, false);
+            } else {
+                return Nfile::dirtolist(param1, true);
             }
-            "fexists" | "fileexists"=> {
-                if Nfile::checkexists(&param1) == true {
-                    return String::from("1");
-                } else {
-                    return String::from("0");
-                }
-            }
-            "listdir" | "dirtolist" | "dirlist" => {
-                if param2 == "" {
-                    return Nfile::dirtolist(param1, false);
-                } else {
-                    return Nfile::dirtolist(param1, true);
-                }
-            }
+        }
 
-            "split" => {
-                return Nstring::split(param1, param2);
+        "split" => {
+            return Nstring::split(param1, param2);
+        }
+        "instring" => {
+            if Nstring::instring(param1, param2) == true {
+                return String::from("true");
+            } else {
+                return String::from("false");
             }
-            "instring" => {
-                if Nstring::instring(param1, param2) == true {
-                    return String::from("1");
-                } else {
-                    return String::from("0");
-                }
-            }
-            "replace" => {
-                //println!("replace a{} b{} c{}",&param1,&param2,&param3);
-                //            let ret = param1.to_owned().replace(param2,param3);
-                let ret = Nstring::replace(param1,param2,param3);
-                //println!("replaced: [{}]",&ret);
+        }
+        "replace" => {
+            //println!("replace a{} b{} c{}",&param1,&param2,&param3);
+            //            let ret = param1.to_owned().replace(param2,param3);
+            let ret = Nstring::replace(param1,param2,param3);
+            //println!("replaced: [{}]",&ret);
 
-                return ret;            //return Nstring::replace(param1, param2, param3);
-            }
-            "trimleft" => {
-                return Nstring::trimleft(param1, param2.parse::<usize>().unwrap());
-            }
-            "trimright" => {
-                return Nstring::trimright(param1, param2.parse::<usize>().unwrap());
-            }
+            return ret;            //return Nstring::replace(param1, param2, param3);
+        }
+        "trimleft" => {
+            return Nstring::trimleft(param1, param2.parse::<usize>().unwrap());
+        }
+        "trimright" => {
+            return Nstring::trimright(param1, param2.parse::<usize>().unwrap());
+        }
 
-            "fromleft" => {
-                return Nstring::fromleft(param1, param2.parse::<usize>().unwrap());
-            }
-            "fromright" => {
-                return Nstring::fromright(param1, param2.parse::<usize>().unwrap());
-            }
-            "save" => {
-                Njh::write(param1, param2, param3);
-                return String::new();
-            }
-            "load" => {
-                return Njh::read(param1, param2);
-            }
-            "setvar" => {
-                vmap.setvar(param1.to_string(), param2);
-                return String::new();
-            }
-            "getvar" => {
-                return vmap.getvar(param1);
-            }
+        "fromleft" => {
+            return Nstring::fromleft(param1, param2.parse::<usize>().unwrap());
+        }
+        "fromright" => {
+            return Nstring::fromright(param1, param2.parse::<usize>().unwrap());
+        }
+        "save" => {
+            Njh::write(param1, param2, param3);
+            return String::new();
+        }
+        "load" => {
+            return Njh::read(param1, param2);
+        }
+        "setvar" => {
+            vmap.setvar(param1.to_string(), param2);
+            return String::new();
+        }
+        "getvar" => {
+            return vmap.getvar(param1);
+        }
 
-            "exit" => {
-                return String::from("exit");
-            }
-            "arrayfilter" => {
-                return arrayfilter(param1,param2);
-            }
-            "arraysearch" => {
-                return arraysearch(param1,param2);
-            }
-            "arrayshuffle" => {
-                return arrayshuffle(param1);
-            }
-            "" => {
-                return String::new();
-                //required?!
-            }
-            "decode_html_url" => {
-                return decode_html_url(&param1).to_string();
-            }
-            "html_encode" => {
-                return html_encode(&param1);
-            }
+        "exit" => {
+            return String::from("exit");
+        }
+        "arrayfilter" => {
+            return arrayfilter(param1,param2);
+        }
+        "arraysearch" => {
+            return arraysearch(param1,param2);
+        }
+        "arrayshuffle" => {
+            return arrayshuffle(param1);
+        }
+        "" => {
+            return String::new();
+            //required?!
+        }
+        "decode_html_url" => {
+            return decode_html_url(&param1).to_string();
+        }
+        "html_encode" => {
+            return html_encode(&param1);
+        }
+        "int64" => {
+            let res = match param1.parse::<i64>(){
+                Ok(_) => "true",
+                Err(_) => "false",
+            };
+            return res.to_owned();
+        }
+        "int32" => {
+            let res = match param1.parse::<i32>(){
+                Ok(_) => "true",
+                Err(_) => "false",
+            };
+            return res.to_owned();
+        }
+
+        "f64" => {
+            let res = match param1.parse::<f64>(){
+                Ok(_) => "true",
+                Err(_) => "false",
+            };
+            return res.to_owned();
+        }
+        "f32" => {
+            let res = match param1.parse::<f32>(){
+                Ok(_) => "true",
+                Err(_) => "false",
+            };
+            return res.to_owned();
+        }
 
         "keytest" => {
 
             keytest("w");
-           return  "".to_owned();
+            return  "".to_owned();
         }
-            "stringbetween" => return Nstring::stringbetween(param1, param2, param3),
-            "combine" | "cat"=> {
-                let nothing = param1.to_owned()
-                + param2
-                + param3
-                + param4
-                + param5
-                + param6
-                + param7
-                + param8
-                + param9;
-                return nothing;
-            }
-            _ => {
-                let error = "".to_owned() + "A non declared function call is done:" + &func;
-                nscript_interpreterdebug(&error,vmap.debugmode,vmap.strictness);
-                return String::new();
-                // debug broken/non existing call
-            }
-        };
-    }
+        "stringbetween" => return Nstring::stringbetween(param1, param2, param3),
+        "combine" | "cat"=> {
+            let nothing = param1.to_owned()
+            + param2
+            + param3
+            + param4
+            + param5
+            + param6
+            + param7
+            + param8
+            + param9;
+            return nothing;
+        }
+        _ => {
+            let error = "".to_owned() + "A non declared function call is done:" + &func;
+            nscript_interpreterdebug(&error,vmap.debugmode,vmap.strictness);
+            return String::new();
+            // debug broken/non existing call
+        }
+    };
+
+
+}
 
 

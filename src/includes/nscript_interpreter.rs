@@ -1,5 +1,7 @@
 use crate::*;
 
+use super::nscript_sound;
+
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const NC_ARRAY_DELIM: &str = "]].n.c.arr.[[";
 pub const NC_ASYNC_LOOPS_KEY: &str = "coroutine"; // async loops scopes keyword
@@ -31,6 +33,8 @@ pub struct Varmap {
     pub param8: String,
     pub param9: String,
     pub ntcp: NscriptTcp,
+    pub envvar: String,
+    pub sound: Nscriptsound,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -56,6 +60,8 @@ impl Varmap {
             param8: "".to_owned(),
             param9: "".to_owned(),
             ntcp: NscriptTcp::new(),
+            envvar: Nc_os::envvarget("NSCRIPTPATH"),
+            sound: Nscriptsound::new(),
         }
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {
@@ -448,7 +454,7 @@ pub fn nscript_execute_script(
     //     &thisparsingsheet,
     //     &nscript_array_scopeextract(&nscript_chains(&trim_lines(&nscript_stringextract(&code)))),
     // );
-    code = nscript_stringextract(&code); // clearly this is also required here not to have "< class" stuff break syntax from strings
+    code = nscript_stripcomments(&nscript_stringextract(&code)); // clearly this is also required here not to have "< class" stuff break syntax from strings
     vmap.setcode(
         &thisparsingsheet,
         &code,
@@ -1963,6 +1969,21 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
     //----------------------------------------------------
     let time = chrono::Utc::now();
     match mac {
+        "@binram" => {
+            match get_process_memory_usage(){
+            Some(r) =>r.to_string(),
+            None =>0.to_string()
+            }
+        }
+        "@error" => {
+        vmap.getvar("___error")
+        }
+        "@array" => {
+            NC_ARRAY_DELIM.to_string()
+        }
+        "@nscriptpath" => {
+             vmap.envvar.to_string()
+        }
         "@webpublic" => {
             NC_SCRIPT_DIR.to_owned()
                 + "domains/"
@@ -2568,8 +2589,10 @@ pub fn nscript_loops(vmap: &mut Varmap) {
             vmap.stackpop("___self");
             //vmap.setvar("self".to_owned(), &x);
         }
+        vmap.sound.runtimers();
     } else {
         vmap.activeloops = false;
+        process::exit(1);
     }
 }
 

@@ -240,7 +240,7 @@ pub fn get_own_pid() -> u32 {
     process::id()
 }
 
-fn get_process_memory_usage() -> Option<u64> {
+pub fn get_process_memory_usage() -> Option<u64> {
     // Get the current process ID
     let pid = get_own_pid();
 
@@ -257,6 +257,29 @@ fn get_process_memory_usage() -> Option<u64> {
     None
 }
 
+pub struct Nc_os{
+
+}
+ impl Nc_os{
+
+    pub fn envvarget(var:&str)->String{
+        let ret: String;
+        if let Ok(value) = env::var(var) {
+            ret = value;
+        } else {
+            ret = "~/nscript".to_owned();
+        }
+        ret
+    }
+        pub fn envvars()->String{
+            let mut ret = String::new();
+            // Iterate over all environment variables
+            for (key, value) in env::vars() {
+                ret = ret +"\n" + &format!("{}: {}", key, value);
+            }
+            ret
+        }
+}
 // fn convert_array<T: std::fmt::Display>(array: &[T]) -> String {
 //     let elements: Vec<String> = array.iter().map(|element| element.to_string()).collect();
 //     format!("{{{}}}", elements.join(", "))

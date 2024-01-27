@@ -56,6 +56,17 @@ res
         //let elapsed_time = start_time.elapsed();
         thisid
     }
+    pub fn getduration(&mut self,musicid:&str)->String{
+let mut ret = String::new();
+        if let Some(duration) = self.durations.get(musicid) {
+        ret = format!("{:?}",duration)
+        };
+if ret != ""{
+            return ret;
+        }
+String::from("error")
+
+    }
     pub fn runtimers(&mut self){
         if self.allsoundids == "" {
             return

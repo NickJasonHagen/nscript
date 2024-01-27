@@ -36,6 +36,10 @@ pub fn nscript_callfn(
         // "scope" => {
         //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
         // }
+        "mp3duration" => {
+
+            return vmap.sound.getduration(&param1);
+        }
         "playsoundfile" => {
 
             return vmap.sound.playfile(&param1);

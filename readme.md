@@ -1,5 +1,73 @@
+#integrate nscript into your rust projects
+```rust
+
+extern crate nscript;
+use nscript::*;
+
+
+fn yourfunctionmapping(vmap: &mut Varmap)-> String{
+    // testoverride requires vmap, this function extents the parsers functions to be used in Nscript.
+    // you can retrieve the nscript call's data by using : vmap.funcname ( the name of the function)
+    // and vmap.param1 ~ vmap.param9 , hardcoded functions be capped to 9 arguments, here you can
+    // map your own logic, just return the result as a String and the parser will manage the rest.
+    // params and funcnames are all String. if they are unused by nscript they are set to be empty
+    // if your function requires data you can check by if vmap.param1 != "" error(yourlogic)
+
+    // example: if nscript calls : testing("first arg given","2","third")
+
+    // map your functions and their logics inside this match
+    // returns a string back to nscript
+    match vmap.funcname.as_str() {
+        "testing" => { // maps this scope as function testing() in nscript.
+            cwrite("testingoverrides!!","g");
+
+            cwrite(&vmap.param1,"g"); // <- holds "first arg given"
+            cwrite(&vmap.param2,"g");
+            cwrite(&vmap.param3,"g");
+            return vmap.param1.to_owned()
+        }
+        "secondmapping" => {
+            // requiring arguments. (nscript has overrides and defaults for each
+            // so you need to check and catch your own things for it, like below!)
+            if vmap.param1 != ""{
+                cwrite("well this only executes if param1 was given","y");
+                return "somethingtoreturn".to_owned()
+            }
+            else{
+                cwrite("ohhh something dind happen! the func did not give argument1..","");
+                // if you want to exit or not is up to you
+                // but you would do it here.
+            }
+        }
+        _ =>{
+        }
+    }
+    "".to_owned() // if no match continue core mappings.
+
+}
+
+fn main() -> std::io::Result<()>  {
+
+    //vmap is the hashmap which stores all data for nscript so keep it safe.
+    let mut vmap = Varmap::new(); // global
+
+    // here we inject the function parser with your functions
+    vmap.setextentionfunctions(yourfunctionmapping);
+
+    // this begins the nscript engine1, we set a init script and run it
+    let initscript = SCRIPT_DIR.to_owned() +"init.nc";
+    nscript_execute_script(&initscript,"","","","","","","","","",&mut vmap);
+
+    loop {
+        // this handles the nscripts loop system.
+        nscript_loops(&mut vmap);
+
+    }
+}
+
+```
 #Nscript examples:
-function:/elseif
+## /elseif :nscript core function
 ```swift
 // else if statements 
 
@@ -18,7 +86,7 @@ elseif var > 2 {
 }   
 
 ```
-function:/sleep
+## /sleep :nscript core function
 ```swift
 // this function holds the script for a duration in miliseconds
 // it can be used in loops to reduce the powerusage.
@@ -28,7 +96,7 @@ while 1 {
 }
 
 ```
-function:/helloworld
+## /helloworld :nscript core function
 ```swift
 // print has 2 arguments first is your msg
 // the second can be a color as a string, "green", red ,blue , yellow
@@ -36,7 +104,7 @@ print("helloWorld","green")
 
 
 ```
-function:/threads
+## /threads :nscript core function
 ```swift
 class tcp{
     func client(ip,port){
@@ -108,7 +176,7 @@ thread [c:tcp]{
 tcp.server("127.0.0.1",8888)
 
 ```
-function:/arrayfilter
+## /arrayfilter :nscript core function
 ```swift
 //array filter will create a new array based on the given array, any entree containing the filter substring will be moved out of the new array.
 
@@ -118,7 +186,7 @@ array = ["tom@hotmail.com","gerry@gmail.com","belle@gmail.com","jeffrey@hotmail.
 nohotmailarray = arrayfilter(array,"@hotmail.com") //<-- filter all hotmails form the array.
 
 ```
-function:/trimleft
+## /trimleft :nscript core function
 ```swift
 // this allows you to trim a string from the left side by a number of characters,
 // it returns the new string
@@ -127,7 +195,7 @@ string = "email=big_john@swaggers.com"
 newstring = trimleft(string,6)
 
 ```
-function:/discordmsg
+## /discordmsg :nscript core function
 ```swift
 // so this function allows you to sent a msg to your discord channels,
 // in discord you need to go to your channel settings to copy the hook api.
@@ -138,7 +206,7 @@ msg = "Heeeeeeeeeeeeellllllloooooooooo goooooooooooooooood mornnnnnnnnning disco
 discordmsg(msg,api)
 
 ```
-function:/objfromjson
+## /objfromjson :nscript core function
 ```swift
 // objtojson(obj) - objfromjson(objname,jsonstring)
 // with these functions you can convert all properties of a obj/class
@@ -163,7 +231,7 @@ copiedclass = objfromjson("newuniqueclassreferencestring",jsonstring)
 print(copiedclass.name,"green")
 
 ```
-function:/fromright
+## /fromright :nscript core function
 ```swift
 // with this function you get a new string from the left or right side of a stirng by a given number of characters
 // fromright(string,charsasInt) fromleft()
@@ -173,7 +241,7 @@ string = "music.mp3"
 filetype = fromright(string,4)
 
 ```
-function:/arraysearch
+## /arraysearch :nscript core function
 ```swift
 // this function allows you to search in a array for a substring, a new array will return with all entrees wich has the substring in them.
 
@@ -185,7 +253,7 @@ for each in array {
 }
 
 ```
-function:/save
+## /save :nscript core function
 ```swift
 // these are database like system to quickly store or load data to a file ( textformat )
 // it saves the header on a line , and the line bellow it contains the data.
@@ -195,7 +263,7 @@ save("#header","data","filelocation")
 data = load("#header","filelocation")
 
 ```
-function:/years_in_ms
+## /years_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -224,7 +292,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/for
+## /for :nscript core function
 ```swift
 // there are 2 different loops you can use with the for scope
 // for in: this
@@ -238,7 +306,7 @@ for x to 100 {
 }
 
 ```
-function:/timerinit
+## /timerinit :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -267,7 +335,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/loop
+## /loop :nscript core function
 ```swift
 // loop { break} is a scope wich will run until you say break. 
 // unlike breaking a async with a reference this loop only needs 1 word
@@ -281,14 +349,14 @@ loop {
 }
 
 ```
-function:/exit
+## /exit :nscript core function
 ```swift
 // yea i know right gotta love nscript why close it, but in case you wonder how.
 
 exit
 
 ```
-function:/filesizebytes
+## /filesizebytes :nscript core function
 ```swift
 // this function returns a full format of the file size 
 // related : filesize(fname)
@@ -297,7 +365,7 @@ size = filesizebytes("./testfile.bin") // returns the actual size of the file in
 
 
 ```
-function:/reflection
+## /reflection :nscript core function
 ```swift
 // function/variable reflection/dispatching
 // these can be used on functions, class-functions and variable-properties
@@ -319,7 +387,7 @@ print(a.*prop) // reflecting the property part
 print(*classname.*prop) // yeah you get it !
 
 ```
-function:/dirmove
+## /dirmove :nscript core function
 ```swift
 // if you want to move a directory
 // dirmove(source,destination)
@@ -327,13 +395,13 @@ function:/dirmove
 status = dirmove("./dir/","./bk/dir/")
 
 ```
-function:/filewrite
+## /filewrite :nscript core function
 ```swift
 // write data to a file
 filewrite("./bangalist.txt","Kim, Rachel, Joyce")
 
 ```
-function:/unzip
+## /unzip :nscript core function
 ```swift
 // to unzip a file to a directory you can use this function
 // unzip(zipfile,extractionlocation)
@@ -343,7 +411,7 @@ function:/unzip
 status = unzip("./myzip.zip","./extracthere/")
 
 ```
-function:/days_in_ms
+## /days_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -372,7 +440,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/variables
+## /variables :nscript core function
 ```swift
 // in nscript variables dont come with a prefix their just words.
 // you can set a variabe with functions, strings, numbers, macro's switches.
@@ -395,14 +463,14 @@ the interpreter will format this
 (tech: to 1 line of syntax for interpretation)"
 
 ```
-function:/dircreate
+## /dircreate :nscript core function
 ```swift
 // this functions creates a directory
 
 dircreate("./newdir/")
 
 ```
-function:/arrays
+## /arrays :nscript core function
 ```swift
 // arrays in nscript are still variables( they contain a delimerstring.)
 // to define a array
@@ -418,7 +486,7 @@ arraysize = array[?] // <-- the questionmark used on [] in a array variable
 print(array[1])
 
 ```
-function:/stringtobase64
+## /stringtobase64 :nscript core function
 ```swift
 // to encrypt or decrypt a file from binary to a string or from a string to binary 
 // you can use a system called base64, ive implemented 2 functions
@@ -430,7 +498,7 @@ print(base64tostring("QmlnIGpvaG4gbG92ZXMgY29sZCBiZWVycyE=")) // this will decry
 packed = stringtobase64("super secret stuff whooohooo!")
 
 ```
-function:/stackpush
+## /stackpush :nscript core function
 ```swift
 // stacks, these are last in first out stacks. you can push things to a stack and pop them out one by one.
 // stacks have a string reference. the first argument wil represent the name of the stack wich has to be unique, you can enter a variable but it has to hold the reference of the stack's reference as a string.
@@ -451,14 +519,14 @@ stackpush(stackref(),"hearts king") //<-- reffed by a function return
 mycard = stackpop(mystack)
 
 ```
-function:/filedelete
+## /filedelete :nscript core function
 ```swift
 // filedelete(filename) returns the status
 
 status = filedelete("./googlechrome")
 
 ```
-function:/pooladd
+## /pooladd :nscript core function
 ```swift
 // pool system, this is the same format as a array! but using pooladd() and poolremove() 
 // will make sure that each entree in this array is unique !
@@ -474,7 +542,7 @@ array = pooladd(array,"David") //<--- now this one is already in the pool and wo
 array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool ! 
 
 ```
-function:/file_read_utf8
+## /file_read_utf8 :nscript core function
 ```swift
 // well as mister Satan likes to mess things up his Satansoft product kinda dont use utf8 format.
 // however in some cases ( like interpreteting) you dont want to deal with mister satan.
@@ -483,7 +551,7 @@ function:/file_read_utf8
 utf8data = file_read_utf8("./satansoftcreatedfile.docx")
 
 ```
-function:/asyncloops
+## /asyncloops :nscript core function
 ```swift
 // async loops these are somewhat like how go routines work.
 // the difference is you have to identify a loop by a string.
@@ -503,7 +571,7 @@ break myloopref
 
 
 ```
-function:/minutes_in_ms
+## /minutes_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -532,7 +600,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/stackpop
+## /stackpop :nscript core function
 ```swift
 // stacks, these are last in first out stacks. you can push things to a stack and pop them out one by one.
 // stacks have a string reference. the first argument wil represent the name of the stack wich has to be unique, you can enter a variable but it has to hold the reference of the stack's reference as a string.
@@ -553,7 +621,7 @@ stackpush(stackref(),"hearts king") //<-- reffed by a function return
 mycard = stackpop(mystack)
 
 ```
-function:/months_in_ms
+## /months_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -582,7 +650,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/terminalinput
+## /terminalinput :nscript core function
 ```swift
 // this function can be set to run commands inside the termina, keep in mind that this does pause the script until the input is given
 // userinput(message,defaultpromptonEnter)
@@ -592,14 +660,14 @@ userinput = terminalinput("Do you want a cold beer ?","Aaaaaii")
 
 
 ```
-function:/dirdelete
+## /dirdelete :nscript core function
 ```swift
 // if you want to delete a directory
 
 status = dirdelete("./microsoft/")
 
 ```
-function:/ifstatements
+## /ifstatements :nscript core function
 ```swift
 // if statements allow you to perform checks you can nest them as much as you like,
 
@@ -636,7 +704,7 @@ if user.status == "loggedin" || user == "Big John" {
 }
 
 ```
-function:/switch
+## /switch :nscript core function
 ```swift
 // following shows how to do a match (//switch) like thing
 
@@ -675,7 +743,7 @@ myvar = match tocheck{
 }
 
 ```
-function:/print
+## /print :nscript core function
 ```swift
 // print has 2 arguments first is your msg
 // the second can be a color as a string, "green", red ,blue , yellow
@@ -704,7 +772,7 @@ for color in colorarray{
 
 
 ```
-function:/test.nscript
+## /test.nscript :nscript core function
 ```swift
 print("helloword!")
 print("what is up ??")
@@ -715,7 +783,7 @@ case 1 {
 }
 
 ```
-function:/fileexist
+## /fileexist :nscript core function
 ```swift
 // if you like to check if a file exists you can use these 2 functions
 
@@ -725,7 +793,7 @@ if check == 1 {
 }
 
 ```
-function:/replace
+## /replace :nscript core function
 ```swift
 // replace(strin,toreplace,replacewith) 
 // this function replaces a substring in a string by another given string.
@@ -736,7 +804,7 @@ string = "Big John hates beer !"
 string = replace(string,"beer","Microsoft") // as you can see the confusion arround Big John hating beer all got fixed. now Big John is back to himself again.
 
 ```
-function:/arrayshuffle
+## /arrayshuffle :nscript core function
 ```swift
 // this function allows you to instantly shuffle the entrees of a array.
 // lets say you have a card game and the deck of cards is hold in a array.
@@ -746,7 +814,7 @@ array = ["beer","whiskey","is","it","friday","yet??"]
 array = arrayshuffle(array) // <-- takes array shuffles it and set back variable array with the new aray data.
 
 ```
-function:/match
+## /match :nscript core function
 ```swift
 // following shows how to do a match (//switch) like thing
 
@@ -785,7 +853,7 @@ myvar = match tocheck{
 }
 
 ```
-function:/stringtohex
+## /stringtohex :nscript core function
 ```swift
 // these functions convert a string to a hex string , and back
 
@@ -793,7 +861,7 @@ hexstring = stringtohex("hello world !")
 print(hextostring(hexstring)) 
 
 ```
-function:/weeks_in_ms
+## /weeks_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -822,7 +890,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/arraysort
+## /arraysort :nscript core function
 ```swift
 // this sorts a array to alphabetic/nummeric order
 
@@ -830,7 +898,7 @@ array = ["b","c","a"]
 array = arraysort(array) //<-- returns a new array with sorted order
 
 ```
-function:/random
+## /random :nscript core function
 ```swift
 // this function returns a random number
 // ranndom(minimum,maximim,roundedDecimals)
@@ -845,7 +913,7 @@ number = random(1,100,1)
 number = random(1,100)
 
 ```
-function:/split
+## /split :nscript core function
 ```swift
 // with this function you can split a string into a nscript arraystring and use it in loops
 
@@ -857,7 +925,7 @@ for each in array {
 }
 
 ```
-function:/instring
+## /instring :nscript core function
 ```swift
 // you can use this to check if a substring is found in a string
 // returns 0 if not found and 1 if found
@@ -869,7 +937,7 @@ if instring(string,"hello") == 1 {
 }
 
 ```
-function:/function
+## /function :nscript core function
 ```swift
 // this example shows how to make a function wich takes arguments.
 // ! the arguments names you assign inside the function scopes are local
@@ -885,7 +953,7 @@ myreturnvar = myfirstfunction("Big John")
 print(myreturnvar)
 
 ```
-function:/hextostring
+## /hextostring :nscript core function
 ```swift
 // these functions convert a string to a hex string , and back
 
@@ -893,7 +961,7 @@ hexstring = stringtohex("hello world !")
 print(hextostring(hexstring)) 
 
 ```
-function:/objtojson
+## /objtojson :nscript core function
 ```swift
 // objtojson(obj) - objfromjson(objname,jsonstring)
 // with these functions you can convert all properties of a obj/class
@@ -918,14 +986,14 @@ copiedclass = objfromjson("newuniqueclassreferencestring",jsonstring)
 print(copiedclass.name,"green")
 
 ```
-function:/curl
+## /curl :nscript core function
 ```swift
 // curl(url) this retrieves data from a url performing a get i believe.
 
 get = curl("http://www.google.com")
 
 ```
-function:/filesize
+## /filesize :nscript core function
 ```swift
 // this function returns a fancy rounded format of the file size 
 // related : filesizebytes(fname)
@@ -934,7 +1002,7 @@ size = filesize("./testfile.bin") // lets say its 2000 bytes then this returns "
 
 
 ```
-function:/round
+## /round :nscript core function
 ```swift
 // this function allows you to roundup a number by given decimals
 // round(number,decimalstoround)
@@ -944,7 +1012,7 @@ number = 0.499
 rounded = round(number,1) // returns 0.5
 
 ```
-function:/else
+## /else :nscript core function
 ```swift
 // else is a scope wich you can use to trigger when a if scope was false, 
 //unlike elseif this else has no condition else then the previous if scope been false.
@@ -959,7 +1027,7 @@ else{
 }
 
 ```
-function:/rawget
+## /rawget :nscript core function
 ```swift
 // raw get gets the response of a get to a unsecure http webhost
 
@@ -971,7 +1039,7 @@ print(combine("curlvar:",curlvar),"blue")
 
 
 ```
-function:/exec
+## /exec :nscript core function
 ```swift
 // this functions calls a new nscript file parsing, this will also load in class/func scopes.
 // this can be used , include new script or to re-new class scopes during runtime by re-initializing them.
@@ -979,7 +1047,7 @@ function:/exec
 exec("./server.nc")
 
 ```
-function:/hours_in_ms
+## /hours_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -1006,7 +1074,7 @@ if timerdiff(timer) > months_in_ms(2) {
  
 
 ```
-function:/setobj
+## /setobj :nscript core function
 ```swift
 // set object is the function to spawn a object from a class.
 // the function will automaticly trigger the construct function from the class tree, the last inherentance wich has this function scope initialized
@@ -1021,7 +1089,7 @@ class playerbase{
 setobj("playerbase","BigJohn")
 
 ```
-function:/inpool
+## /inpool :nscript core function
 ```swift
 // pool system, this is the same format as a array! but using pooladd() and poolremove() 
 // will make sure that each entree in this array is unique !
@@ -1042,7 +1110,7 @@ if inpool(array,"Kim") == 1 {
 }
 
 ```
-function:/combine
+## /combine :nscript core function
 ```swift
 // combine is a special line syntax and can also be used as a function
 // it concetinates strings, or combines them
@@ -1061,7 +1129,7 @@ ORrrrrrrrrrrrrrrrrr
 print(combine(@scriptdir,"database/",user,".db"))
 
 ```
-function:/load
+## /load :nscript core function
 ```swift
 // these are database like system to quickly store or load data to a file ( textformat )
 // it saves the header on a line , and the line bellow it contains the data.
@@ -1071,7 +1139,7 @@ save("#header","data","filelocation")
 data = load("#header","filelocation")
 
 ```
-function:/poolremove
+## /poolremove :nscript core function
 ```swift
 // pool system, this is the same format as a array! but using pooladd() and poolremove() 
 // will make sure that each entree in this array is unique !
@@ -1087,7 +1155,7 @@ array = pooladd(array,"David") //<--- now this one is already in the pool and wo
 array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool ! 
 
 ```
-function:/trimright
+## /trimright :nscript core function
 ```swift
 // this allows you to trim a string from the right side by a number of characters,
 // it returns the new string
@@ -1096,7 +1164,7 @@ string = "BigJohn_users"
 newstring = trimright(string,6) // will be BigJohn
 
 ```
-function:/arraypushroll
+## /arraypushroll :nscript core function
 ```swift
 // this pushes a entree to a array as a roller system
 // this means first-in-last-out
@@ -1108,14 +1176,14 @@ rollerarray arraypushroll(array,"im in !")
 rollerarray arraypushroll(array,"im in too !")
 
 ```
-function:/filecopy
+## /filecopy :nscript core function
 ```swift
 // filecopy( file , destination) , copies a file and returns the status
 
 status = filecopy("./beer.txt","./mybelly/beer.txt")
 
 ```
-function:/tcp
+## /tcp :nscript core function
 ```swift
 class tcp{
     func client(ip,port){
@@ -1187,7 +1255,7 @@ thread [c:tcp]{
 tcp.server("127.0.0.1",8888)
 
 ```
-function:/run_program
+## /run_program :nscript core function
 ```swift
 // if you want to run another process you can use y
 // if you need to escape the syntax and get a quote in your string use " quote=(\") "
@@ -1196,20 +1264,20 @@ function:/run_program
 run("for --your --life --run --to --those --hills")
 
 ```
-function:/filemove
+## /filemove :nscript core function
 ```swift
 // filemove(file,destination) returns the status as a string
 
 status = filemove("./windows11","./chemicalwastebin/neverrestoreme")
 
 ```
-function:/fileread
+## /fileread :nscript core function
 ```swift
 // reading a file is easy you can use
 filedata = fileread("./file.txt")
 
 ```
-function:/base64tostring
+## /base64tostring :nscript core function
 ```swift
 // to encrypt or decrypt a file from binary to a string or from a string to binary 
 // you can use a system called base64, ive implemented 2 functions
@@ -1221,7 +1289,7 @@ print(base64tostring("QmlnIGpvaG4gbG92ZXMgY29sZCBiZWVycyE=")) // this will decry
 packed = stringtobase64("super secret stuff whooohooo!")
 
 ```
-function:/timerdiff
+## /timerdiff :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
 // is can be combed with timerdiff(var) to get the time elapased in miliseconds
@@ -1250,7 +1318,7 @@ if timerdiff(timer) > years_in_ms(2) {
  
 
 ```
-function:/zip
+## /zip :nscript core function
 ```swift
 // to zip a directory to a zip file
 //zip(directorytozip,zipfile)
@@ -1259,7 +1327,7 @@ function:/zip
 status = zip("./testfolder/","./test.zip")
 
 ```
-function:/classes
+## /classes :nscript core function
 ```swift
 //classes, this is where the real power of nscript comes to play, classes are unique referenced group object they can hold properties and functions
 // a class can spawn new objects, this means a new reference is being made by a clone of a object, all properties and functions of the objects current state will be cloned.
@@ -1328,7 +1396,7 @@ for x to 3 {
 
 
 ```
-function:/dirlist
+## /dirlist :nscript core function
 ```swift
 // dirtolist / dirlist / listdir(".dir")
 
@@ -1339,7 +1407,7 @@ for each in array {
 }
 
 ```
-function:/fromleft
+## /fromleft :nscript core function
 ```swift
 // with this function you get a new string from the left or right side of a stirng by a given number of characters
 // fromright(string,charsasInt) fromleft()
@@ -1349,7 +1417,7 @@ string = "music.mp3"
 filetype = fromright(string,4)
 
 ```
-function:/macros
+## /macros :nscript core function
 ```swift
 //macros begin with a @ they are build in functions to return a value.
 
@@ -1380,7 +1448,7 @@ function:/macros
 @webpublic      //this refurs to ./domains/yourdomainname/public/
 
 ```
-function:/splitselect
+## /splitselect :nscript core function
 ```swift
 // this function can be used to quickly fetch something from a string without getting a array first
 

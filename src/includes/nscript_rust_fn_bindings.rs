@@ -36,6 +36,30 @@ pub fn nscript_callfn(
         // "scope" => {
         //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
         // }
+        "soundvolume" =>{
+            let res = match param2.parse::<f32>(){
+                Ok(res) => {
+                    vmap.sound.setvolume(param1,res);
+
+                    vmap.setvar("___error".to_string(),"false");
+                    return "ok".to_string();
+
+                }
+                Err(_) => {
+                    vmap.setvar("___error".to_string(),"true");
+                    return "coulnd parse the given volume argument as a f32, make sure the number be like 0.0".to_string();
+                }
+            };
+        }
+        "soundmute" =>{
+            vmap.sound.mute(param1);
+            return "".to_string();
+        }
+        "soundunmute" =>{
+            vmap.sound.unmute(param1);
+            return "".to_string();
+        }
+
         "join" =>{
             return param1.replace(param2,NC_ARRAY_DELIM);
         }
@@ -45,7 +69,7 @@ pub fn nscript_callfn(
         }
         "playsoundfile" => {
 
-            return vmap.sound.playfile(&param1);
+             return vmap.sound.playfile(&param1);
         }
         "stopsound" =>{
             vmap.sound.stop(&param1);

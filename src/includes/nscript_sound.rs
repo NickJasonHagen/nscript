@@ -11,6 +11,8 @@ use std::path::Path;
 //use cpal::traits::{DeviceTrait, StreamTrait};
 use std::time::Instant;
 
+use crate::split;
+
 pub struct Nscriptsound{
     threadssenders: HashMap<String,mpsc::Sender<String>>,
     durations: HashMap<String,Duration>,
@@ -18,6 +20,7 @@ pub struct Nscriptsound{
     instants: HashMap<String,Instant>,
     allsoundids: String,
     soundint:usize,
+    currentvolume: f32
 }
 
 impl Nscriptsound{
@@ -28,7 +31,9 @@ impl Nscriptsound{
             //timers: HashMap::new(),
             instants: HashMap::new(),
             allsoundids:  String::new(),
-            soundint: 0
+            soundint: 0,
+            currentvolume: 1.0
+
         }
     }
 
@@ -145,11 +150,29 @@ String::from("error")
                 }
                 let received_message = rx.recv().unwrap();
                 match received_message.as_str(){
+                    "mute" =>{
+                        sink.set_volume(0.0);
+                    }
+                    "unmute" =>{
+                        sink.set_volume(1.0);
+                    }
                     "stop" => {
 
                         break;
                     }
-                    _ =>{}
+                    _ =>{
+                        if received_message.as_str().contains("volume>"){
+                            match split(received_message.as_str(),">")[1].parse::<f32>(){
+                                Ok(r) =>{
+                                    sink.set_volume(r);
+
+                                }
+                                Err(_) =>{
+
+                                }
+                            };
+                        }
+                    }
                 }
                 thread::sleep(Duration::from_millis(10));
             }
@@ -162,6 +185,24 @@ String::from("error")
         self.threadssenders.insert(thisid.clone().to_string(),tx);
         thisid
     }
+    pub fn setvolume(&mut self,id:&str,vol: f32){
+        if let Some(sender) = self.threadssenders.get(id) {
+            sender.send("volume>".to_string()+&vol.to_string());
+                self.currentvolume = vol;
+            }
+    }
+    pub fn mute(&mut self,id: &str){
+        if let Some(sender) = self.threadssenders.get(id) {
+            sender.send("volume>0.0".to_string());
+             }
+    }
+    pub fn unmute(&mut self,id: &str){
+        if let Some(sender) = self.threadssenders.get(id) {
+            sender.send("volume>".to_string()+&self.currentvolume.to_string());
+            }
+    }
+
+
     pub fn stop(&mut self,id:&str){
         if let Some(sender) = self.threadssenders.get(id) {
             sender.send("stop".to_string());

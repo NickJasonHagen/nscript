@@ -51,6 +51,18 @@ pub fn nscript_callfn(
                 }
             };
         }
+        "soundplay" =>{
+            vmap.sound.play(param1);
+            return "".to_string();
+        }
+        "soundstop" =>{
+            vmap.sound.stop(param1);
+            return "".to_string();
+        }
+        "soundclose" =>{
+            vmap.sound.stop(param1);
+            return "".to_string();
+        }
         "soundmute" =>{
             vmap.sound.mute(param1);
             return "".to_string();

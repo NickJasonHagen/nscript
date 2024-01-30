@@ -34,7 +34,7 @@ pub struct Varmap {
     pub param9: String,
     pub ntcp: NscriptTcp,
     pub envvar: String,
-    pub sound: Nscriptsound,
+    pub sound: Ncplayer,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -61,7 +61,7 @@ impl Varmap {
             param9: "".to_owned(),
             ntcp: NscriptTcp::new(),
             envvar: Nc_os::envvarget("NSCRIPTPATH"),
-            sound: Nscriptsound::new(),
+            sound: Ncplayer::new(),
         }
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {

@@ -32,4 +32,4 @@ rodio = "0.13"
 #egui = "0.25.0"
 #eframe = "0.25.0"
 mp3-duration = "0.1.10"
-
+termion = "1.5.6"

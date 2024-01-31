@@ -56,7 +56,7 @@ pub fn splitselect(arrayvar: &str,delim: &str,entree: usize) -> String{
 }
 
 pub fn terminal_get_user_input(message: &str, default: &str) -> String {
-    print!("{} default:[{}]: ", message, default);
+    print!("D:{} \n{}: ", default, message);
     io::stdout().flush().unwrap(); // Flushes the output to ensure the message is displayed immediately
 
     let mut input = String::new();

@@ -3,13 +3,21 @@ use sysinfo::{System, SystemExt};
 use psutil::process::Process;
 use std::process;
 use std::process::Command;
-use std::io::{self, Write};
+use std::io::{self, Write,Read};
 use crossterm::{
     execute,
     event::{self, KeyCode, KeyEvent, KeyModifiers},
     terminal, ExecutableCommand,
 };
-pub fn keytest(thiskey: &str) {
+use std::{thread, time};
+
+use termion::{
+    event::{Event, Key, MouseButton, MouseEvent},
+    input::TermRead,
+    raw::{IntoRawMode, RawTerminal},
+    cursor,
+    clear,
+};pub fn keytest(thiskey: &str) {
     // Hide the cursor and enable raw mode for handling input
     let _ = terminal::enable_raw_mode();
 
@@ -63,6 +71,267 @@ impl Nterminal{
     }
     pub fn disableraw(){
         let _ = terminal::disable_raw_mode();
+    }
+    pub fn updatedterminal(printframe:&str){
+        // Set up the terminal
+        let stdout = io::stdout().into_raw_mode().unwrap();
+        let mut stdout = io::BufWriter::new(stdout);
+        //let stdin = io::stdin();
+
+        print!("{}{}", clear::All, cursor::Hide);
+        stdout.flush().unwrap();
+        let mut i =  1;
+
+        for line in split(printframe,"\n"){
+            let mut beginline = 1;
+            for subline in split(line,"|||"){
+                let checkcolor = split(subline,"&printcolor=");
+                if checkcolor.len() > 1{
+                    Nterminal::print(checkcolor[0],checkcolor[1],beginline,i);
+                    let lenght: u16 =  split(checkcolor[0],"").len() as u16;
+                    beginline = beginline + lenght ;
+
+
+                }
+                else{
+                    print!(
+                    "{}{}",
+                    cursor::Goto(1,i),
+                    line
+                );
+                }
+
+
+            }
+            i = i +1;
+        }
+        stdout.flush().unwrap();
+        //thread::sleep(Duration::from_secs(1));
+        // Restore the terminal state
+        print!("{}{}", cursor::Show, clear::All);
+    }
+    pub fn terminalkey()->String{
+        // Listen for keyboard input in the main thread
+        let stdout = io::stdout().into_raw_mode().unwrap();
+        let mut stdout = io::BufWriter::new(stdout);
+        let stdin = io::stdin();
+        let mut ret = String::new();
+
+        for c in stdin.keys() {
+            match c.unwrap() {
+                Key::Char('e') =>{
+                    ret = "e".to_owned();
+                    break
+                },
+                Key::Char('f') =>{
+                    ret = "f".to_owned();
+                    break
+                },
+                Key::Char('g') =>{
+                    ret = "g".to_owned();
+                    break
+                },
+                Key::Char('h') =>{
+                    ret = "h".to_owned();
+                    break
+                },
+                Key::Char('j') =>{
+                    ret = "j".to_owned();
+                    break
+                },
+                Key::Char('k') =>{
+                    ret = "k".to_owned();
+                    break
+                },
+                Key::Char('l') =>{
+                    ret = "l".to_owned();
+                    break
+                },
+                Key::Char('m') =>{
+                    ret = "m".to_owned();
+                    break
+                },
+                Key::Char('n') =>{
+                    ret = "n".to_owned();
+                    break
+                },
+                Key::Char('o') =>{
+                    ret = "o".to_owned();
+                    break
+                },
+                Key::Char('p') =>{
+                    ret = "p".to_owned();
+                    break
+                },
+                Key::Char('q') =>{
+                    ret = "q".to_owned();
+                    break
+                },
+                Key::Char('r') =>{
+                    ret = "r".to_owned();
+                    break
+                },
+                Key::Char('s') =>{
+                    ret = "s".to_owned();
+                    break
+                },
+                Key::Char('t') =>{
+                    ret = "t".to_owned();
+                    break
+                },
+                Key::Char('v') =>{
+                    ret = "v".to_owned();
+                    break
+                },
+                Key::Char('w') =>{
+                    ret = "w".to_owned();
+                    break
+                },
+                Key::Char('x') =>{
+                    ret = "x".to_owned();
+                    break
+                },
+                Key::Char('y') =>{
+                    ret = "y".to_owned();
+                    break
+                },
+                Key::Char('z') =>{
+                    ret = "z".to_owned();
+                    break
+                },
+                Key::Char('\n') =>{
+                    ret = "enter".to_owned();
+                    break
+                },
+                Key::Char(' ') =>{
+                    ret = "space".to_owned();
+                    break
+                },
+
+                Key::Up =>{
+                    ret =  "up".to_owned();
+                    break
+                },
+                Key::Down =>{
+                    ret =  "down".to_owned();
+                    break
+                },
+                Key::Left =>{
+                    ret =  "left".to_owned();
+                    break
+                },
+                Key::Right =>{
+                    ret =  "right".to_owned();
+                    break
+                },
+
+                Key::BackTab=>{
+                    ret =  "tab".to_owned();
+                    break
+                },
+                Key::Backspace =>{
+                    ret =  "backspace".to_owned();
+                    break
+                },
+                Key::Esc =>{
+                    ret =  "esc".to_owned();
+                    break
+                },
+                _ => {
+
+                }
+            }
+            //stdout.flush().unwrap();
+        }
+        stdout.flush().unwrap();
+
+        return ret;
+
+    }
+    fn print(m:&str,color:&str,x:u16,i:u16){
+    match color {
+        "bright blue" | "bb" => {
+
+            print!(
+            "{}{}",
+            cursor::Goto(1,i),
+            m.bright_blue()
+        );
+        }
+        "bright green" | "bg"=> {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_green());
+        }
+        "bright cyan" | "bc" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_cyan());
+        }
+        "bright red" | "br" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_red());
+        }
+        "bright magenta" | "bm" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_magenta());
+        }
+        "bright yellow" | "by" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_yellow());
+        }
+        "bright purple" | "bp" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.bright_purple());
+        }
+        "purple" | "p" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.purple());
+        }
+        "cyan" | "c" =>{
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.cyan());
+        }
+        "yellow" | "y" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.yellow());
+        }
+        "red" | "r" => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.red());
+        }
+        "green" | "g" => {
+                       print!(
+            "{}{}",
+            cursor::Goto(x,i), m.green());
+        }
+        "blue" | "b" =>{
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.blue());
+        }
+        "magenta" | "m" =>{
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m.magenta());
+        }
+
+        _ => {
+                        print!(
+            "{}{}",
+            cursor::Goto(x,i), m);
+
+        }
+    };
+
     }
 }
 pub struct Nfile {

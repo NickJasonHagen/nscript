@@ -269,6 +269,15 @@ pub fn nscript_callfn(
         "terminalinput" => {
             return terminal_get_user_input(&param1,&param2);
         }
+        "updatedterminal" =>{
+            Nterminal::updatedterminal(param1);
+            return "".to_owned();
+        }
+        "terminalkey" =>{
+
+            return Nterminal::terminalkey();
+        }
+
         // "discordmsg" => {
         //     send_message_to_discord_api(&param1, &param2);
         //     return String::new();

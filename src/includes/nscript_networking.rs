@@ -32,17 +32,18 @@ impl NscriptTcp{
         #[cfg(windows)]
         listener.set_nonblocking(true).expect("Cannot set non-blocking");
         #[cfg(not(windows))]
-        let mut newid = String::new();
+        let newid = String::new();
         match listener.set_nonblocking(true){
             Ok(_) => {
                  self.listeneridcounter = self.listeneridcounter + 1;
-                newid = "nc_listener_".to_owned() + &self.listeneridcounter.to_string();
+                let newid = "nc_listener_".to_owned() + &self.listeneridcounter.to_string();
                 self.listenermap.insert(newid.clone(), listener);
-                println!("socked ok!");
+                eprintln!("socked ok!");
+                return newid;
 
             }
             Err(e) => {
-                println!("Error on NscriptTcp listener, cant set nonblocking tcp code:{}",e);
+                eprintln!("Error on NscriptTcp listener, cant set nonblocking tcp code:{}",e);
             }
         };
         newid
@@ -53,7 +54,7 @@ impl NscriptTcp{
         let  newid = String::new();
         match g {
             None => {
-                println!("listener error, does not exist!id={}",id);
+                eprintln!("listener error, does not exist!id={}",id);
                 return newid;
             },
             Some((_i, k)) => listener = k,

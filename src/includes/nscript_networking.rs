@@ -61,9 +61,10 @@ impl NscriptTcp{
         match listener.accept() { // add the stream to the map
             Ok((stream, _)) => {
                 self.streamidcounter = self.streamidcounter + 1;
-                newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
+                let newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
                 self.streammap.insert(newid.clone(), stream);
-                println!("stream ok!");
+                eprintln!("stream ok!");
+                return newid;
 
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {

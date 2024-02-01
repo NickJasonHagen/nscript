@@ -120,6 +120,13 @@ impl Nterminal{
         // Restore the terminal state
         print!("{}{}", cursor::Show, clear::All);
     }
+
+    #[cfg(windows)]
+    pub fn terminalkey()->String{
+        return "error_nonwinfunction".to_owned();
+    }
+
+#[cfg(not(windows))]
     pub fn terminalkey()->String{
         // Listen for keyboard input in the main thread
         let mut ret = String::new();
@@ -260,6 +267,9 @@ impl Nterminal{
         return ret;
 
     }
+
+
+#[cfg(not(windows))]
     fn print(m:&str,color:&str,x:u16,i:u16){
     match color {
         "bright blue" | "bb" => {

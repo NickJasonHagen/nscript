@@ -112,6 +112,7 @@ pub use includes::nscript_time::*;
 
 pub use includes::nscript_networking::*;
 pub use includes::nscript_sound::*;
+pub use core::fmt::Error;
 //pub use includes::nscript_egui::*;
 
 

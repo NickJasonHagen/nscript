@@ -75,11 +75,11 @@ pub const NC_SERVER_PORT: u16 = 8088;
 #[cfg(not(windows))]
 pub const NC_SERVER_ROOT: &str = "./public/";
 #[cfg(windows)]
-const NC_SERVER_ROOT: &str = ".\\public\\";
+pub const NC_SERVER_ROOT: &str = ".\\public\\";
 #[cfg(not(windows))]
 pub const NC_SCRIPT_DIR : &str = "./";
 #[cfg(windows)]
-const NC_SCRIPT_DIR: &str = ".\\";
+pub const NC_SCRIPT_DIR: &str = ".\\";
 
 //use std::path::{PathBuf, Path};
 

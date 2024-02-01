@@ -1,6 +1,6 @@
 use crate::*;
 use sysinfo::{System };
-use psutil::process::Process;
+//use psutil::process::Process;
 use std::process;
 use std::process::Command;
 use std::io::{self, Write,Read};
@@ -507,36 +507,36 @@ pub fn memorystatus()->String{
     return toreturn;
 }
 
-pub fn memoryusage() -> String{
-    if let Some(memory_usage) = get_process_memory_usage() {
-        //println!("Process Memory Usage: {} bytes", memory_usage);
-        return memory_usage.to_string();
-    } else {
-        //println!("Failed to get process memory usage.");
-        return "error".to_string();
-    }
-}
-pub fn get_own_pid() -> u32 {
-    // Get the current process ID using std::process::id()
-    process::id()
-}
-
-pub fn get_process_memory_usage() -> Option<u64> {
-    // Get the current process ID
-    let pid = get_own_pid();
-
-    // Try to get the process by its ID
-    if let Ok(process) = Process::new(pid) {
-        // Get the memory information for the process
-        if let Ok(mem_info) = process.memory_info() {
-            // Return the RSS (Resident Set Size) in bytes
-            return Some(mem_info.rss());
-        }
-    }
-
-    // Return None if there was an error or the process is not found
-    None
-}
+// pub fn memoryusage() -> String{
+//     if let Some(memory_usage) = get_process_memory_usage() {
+//         //println!("Process Memory Usage: {} bytes", memory_usage);
+//         return memory_usage.to_string();
+//     } else {
+//         //println!("Failed to get process memory usage.");
+//         return "error".to_string();
+//     }
+// }
+// pub fn get_own_pid() -> u32 {
+//     // Get the current process ID using std::process::id()
+//     process::id()
+// }
+//
+// pub fn get_process_memory_usage() -> Option<u64> {
+//     // Get the current process ID
+//     let pid = get_own_pid();
+//
+//     // Try to get the process by its ID
+//     if let Ok(process) = rocess::new(pid) {
+//         // Get the memory information for the process
+//         if let Ok(mem_info) = process.memory_info() {
+//             // Return the RSS (Resident Set Size) in bytes
+//             return Some(mem_info.rss());
+//         }
+//     }
+//
+//     // Return None if there was an error or the process is not found
+//     None
+// }
 
 pub struct Nc_os{
 

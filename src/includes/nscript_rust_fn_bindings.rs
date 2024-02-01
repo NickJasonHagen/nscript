@@ -231,9 +231,9 @@ pub fn nscript_callfn(
         "zip" => {
             return zip_directory(&param1,&param2);
         }
-        "memusage" => {
-            return memoryusage();
-        }
+        // "memusage" => {
+        //     return memoryusage();
+        // }
         "memstats" | "memorystatus" => {
             return memorystatus();
         }

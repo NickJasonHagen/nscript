@@ -17,7 +17,7 @@ hex = "0.4"
 #reqwest = { version = "0.11", features = ["blocking"] }
 #openssl-sys = "0.9"
 encoding_rs = "0.8"
-psutil = "3.3.0"
+#psutil = "3.3.0"
 rand = "0.8.4"
 libc = "0.2"
 zip = "0.5.11"

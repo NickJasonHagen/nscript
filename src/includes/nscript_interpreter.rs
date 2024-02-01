@@ -1971,12 +1971,12 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
     //----------------------------------------------------
     let time = chrono::Utc::now();
     match mac {
-        "@binram" => {
-            match get_process_memory_usage(){
-            Some(r) =>r.to_string(),
-            None =>0.to_string()
-            }
-        }
+        // "@binram" => {
+        //     match get_process_memory_usage(){
+        //     Some(r) =>r.to_string(),
+        //     None =>0.to_string()
+        //     }
+        // }
         "@error" => {
         vmap.getvar("___error")
         }
@@ -2018,7 +2018,7 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
         "@nscriptversion" => String::from(NSCRIPT_VERSION),
         "@crlf" => String::from("\r\n"),
         "@lf" => String::from("\n"),
-        "@pid" => get_own_pid().to_string(),
+        //"@pid" => get_own_pid().to_string(),
         "@emptystring" => String::new(), //<- internal-parser used!!
 
         _ => String::from(mac),

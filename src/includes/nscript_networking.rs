@@ -46,7 +46,7 @@ impl NscriptTcp{
                 eprintln!("Error on NscriptTcp listener, cant set nonblocking tcp code:{}",e);
             }
         };
-        newid
+       return "".to_owned();
     }
     pub fn accept(&mut self,id: &str)->String{
         let g = self.listenermap.get_key_value(id);
@@ -75,7 +75,7 @@ impl NscriptTcp{
                 eprintln!("Error accepting connection: {}", e);
             }
         }
-        newid
+        return "".to_owned();
     }
     pub fn connect(&mut self,ip: &str,ports:&str)->String{
         let stream: TcpStream;

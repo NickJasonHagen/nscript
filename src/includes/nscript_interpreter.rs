@@ -403,6 +403,8 @@ pub fn startnscript(input: &str, string_processor: &dyn Fn(&str) -> String) -> S
     input.to_string() + " " + &processed
 }
 
+/// executes a nscript file, if the if you concat RAW> before the code you can also feed it
+/// a variable string containing the code.
 pub fn nscript_execute_script(
     file: &str,
     param1: &str,

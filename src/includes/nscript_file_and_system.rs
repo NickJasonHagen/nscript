@@ -1,5 +1,5 @@
 use crate::*;
-use sysinfo::{System, SystemExt};
+use sysinfo::{System };
 use psutil::process::Process;
 use std::process;
 use std::process::Command;
@@ -112,10 +112,12 @@ impl Nterminal{
     }
     pub fn terminalkey()->String{
         // Listen for keyboard input in the main thread
+        let mut ret = String::new();
+
+         //let soundthread = thread::spawn(move || {
         let stdout = io::stdout().into_raw_mode().unwrap();
         let mut stdout = io::BufWriter::new(stdout);
         let stdin = io::stdin();
-        let mut ret = String::new();
 
         for c in stdin.keys() {
             match c.unwrap() {
@@ -244,7 +246,7 @@ impl Nterminal{
             //stdout.flush().unwrap();
         }
         stdout.flush().unwrap();
-
+//});
         return ret;
 
     }
@@ -485,8 +487,8 @@ pub fn memorystatus()->String{
     system.refresh_all();
 
     // Get system memory information
-    let total_memory = system.get_total_memory();
-    let free_memory = system.get_free_memory();
+    let total_memory = system.total_memory();
+    let free_memory = system.free_memory();
     let used_memory = total_memory - free_memory;
 
     // Print the memory information

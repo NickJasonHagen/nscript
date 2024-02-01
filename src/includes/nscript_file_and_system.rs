@@ -10,14 +10,16 @@ use crossterm::{
     terminal, ExecutableCommand,
 };
 use std::{thread, time};
-
+#[cfg(not(windows))]
 use termion::{
     event::{Event, Key, MouseButton, MouseEvent},
     input::TermRead,
     raw::{IntoRawMode, RawTerminal},
     cursor,
     clear,
-};pub fn keytest(thiskey: &str) {
+};
+
+pub fn keytest(thiskey: &str) {
     // Hide the cursor and enable raw mode for handling input
     let _ = terminal::enable_raw_mode();
 
@@ -65,6 +67,7 @@ pub struct Nterminal{
 
 }
 
+
 impl Nterminal{
     pub fn enableraw(){
         let _ = terminal::enable_raw_mode();
@@ -72,6 +75,13 @@ impl Nterminal{
     pub fn disableraw(){
         let _ = terminal::disable_raw_mode();
     }
+    #[cfg(windows)]
+    pub fn updatedterminal(printframe:&str){
+        cwrite(printframe,"");
+    }
+
+#[cfg(not(windows))]
+
     pub fn updatedterminal(printframe:&str){
         // Set up the terminal
         let stdout = io::stdout().into_raw_mode().unwrap();

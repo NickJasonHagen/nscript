@@ -32,4 +32,5 @@ rodio = "0.17.3"
 #egui = "0.25.0"
 #eframe = "0.25.0"
 mp3-duration = "0.1.10"
+#[cfg(not(windows))]
 termion = "3.0.0"

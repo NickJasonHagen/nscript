@@ -50,7 +50,7 @@ impl NscriptTcp{
     pub fn accept(&mut self,id: &str)->String{
         let g = self.listenermap.get_key_value(id);
         let listener: &TcpListener;
-        let mut newid = String::new();
+        let  newid = String::new();
         match g {
             None => {
                 println!("listener error, does not exist!id={}",id);

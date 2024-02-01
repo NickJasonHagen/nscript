@@ -231,9 +231,9 @@ pub fn nscript_callfn(
         "zip" => {
             return zip_directory(&param1,&param2);
         }
-        // "memusage" => {
-        //     return memoryusage();
-        // }
+        "memusage" => {
+            return memoryusage();
+        }
         "memstats" | "memorystatus" => {
             return memorystatus();
         }
@@ -429,6 +429,30 @@ pub fn nscript_callfn(
             cwriteraw(param1, param2);
             io::stdout().flush().unwrap();
             return param1.to_owned();
+        }
+        "printpos" =>{
+            let x:u16 = match param3.parse::<usize>(){
+                Ok(res) =>{
+                    res.try_into().unwrap_or(1)
+                }
+                Err(_) =>{
+                    1
+                }
+            };
+            let y:u16 = match param4.parse::<usize>(){
+                Ok(res) =>{
+                    res.try_into().unwrap_or(1)
+                }
+                Err(_) =>{
+                    1
+                }
+            };
+            Nterminal::print(param1,param2,x,y);
+            return "".to_owned();
+        }
+        "terminalflush" => {
+            Nterminal::flush();
+            return "".to_owned();
         }
         "timerinit" => {
             return Ntimer::init().to_string();

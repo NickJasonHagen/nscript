@@ -17,7 +17,7 @@ hex = "0.4"
 #reqwest = { version = "0.11", features = ["blocking"] }
 #openssl-sys = "0.9"
 encoding_rs = "0.8"
-#psutil = "3.3.0"
+
 rand = "0.8.4"
 libc = "0.2"
 zip = "0.5.11"
@@ -34,3 +34,4 @@ rodio = "0.17.3"
 mp3-duration = "0.1.10"
 [target.'cfg(unix)'.dependencies]
 termion = "3.0.0"
+psutil = "3.3.0"

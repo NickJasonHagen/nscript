@@ -1,6 +1,8 @@
 use crate::*;
 use sysinfo::{System };
-//use psutil::process::Process;
+#[cfg(not(windows))]
+
+use psutil::process::Process;
 use std::process;
 use std::process::Command;
 use std::io::{self, Write,Read};
@@ -115,29 +117,68 @@ impl Nterminal{
             }
             i = i +1;
         }
-        stdout.flush().unwrap();
-        //thread::sleep(Duration::from_secs(1));
+                //thread::sleep(Duration::from_secs(1));
         // Restore the terminal state
-        print!("{}{}", cursor::Show, clear::All);
+    }
+    #[cfg(windows)]
+    pub fn flush()->String{
+        return "error_nonwinfunction".to_owned();
     }
 
+    #[cfg(not(windows))]
+    pub fn flush(){
+        let stdout = io::stdout().into_raw_mode().unwrap();
+        let mut stdout = io::BufWriter::new(stdout);
+        stdout.flush().unwrap();
+
+    }
     #[cfg(windows)]
     pub fn terminalkey()->String{
         return "error_nonwinfunction".to_owned();
     }
+    #[cfg(windows)]
+    pub fn resetterminal(){
+        //return "error-unixonly".to_owned();
 
-#[cfg(not(windows))]
+    }
+    #[cfg(windows)]
+    pub fn print(color:&str,s:&str,i:u16,x:u16){
+        //return "error-unixonly".to_owned();
+
+    }
+    #[cfg(not(windows))]
+    pub fn resetterminal(){
+        print!("{}{}", cursor::Show, clear::All);
+
+    }
+    #[cfg(not(windows))]
     pub fn terminalkey()->String{
         // Listen for keyboard input in the main thread
         let mut ret = String::new();
 
-         //let soundthread = thread::spawn(move || {
+        //let soundthread = thread::spawn(move || {
         let stdout = io::stdout().into_raw_mode().unwrap();
         let mut stdout = io::BufWriter::new(stdout);
         let stdin = io::stdin();
 
         for c in stdin.keys() {
             match c.unwrap() {
+                Key::Char('a') =>{
+                    ret = "a".to_owned();
+                    break
+                },
+                Key::Char('b') =>{
+                    ret = "b".to_owned();
+                    break
+                },
+                Key::Char('c') =>{
+                    ret = "c".to_owned();
+                    break
+                },
+                Key::Char('d') =>{
+                    ret = "d".to_owned();
+                    break
+                },
                 Key::Char('e') =>{
                     ret = "e".to_owned();
                     break
@@ -152,6 +193,10 @@ impl Nterminal{
                 },
                 Key::Char('h') =>{
                     ret = "h".to_owned();
+                    break
+                },
+                Key::Char('i') =>{
+                    ret = "i".to_owned();
                     break
                 },
                 Key::Char('j') =>{
@@ -210,6 +255,11 @@ impl Nterminal{
                     ret = "x".to_owned();
                     break
                 },
+                Key::Char('u') =>{
+                    ret = "u".to_owned();
+                    break
+                },
+
                 Key::Char('y') =>{
                     ret = "y".to_owned();
                     break
@@ -270,13 +320,13 @@ impl Nterminal{
 
 
 #[cfg(not(windows))]
-    fn print(m:&str,color:&str,x:u16,i:u16){
+    pub fn print(m:&str,color:&str,x:u16,i:u16){
     match color {
         "bright blue" | "bb" => {
 
             print!(
             "{}{}",
-            cursor::Goto(1,i),
+            cursor::Goto(x,i),
             m.bright_blue()
         );
         }
@@ -516,37 +566,41 @@ pub fn memorystatus()->String{
     + &used_memory.to_string() + "KB\nFree:" + &free_memory.to_string() + "KB";
     return toreturn;
 }
+#[cfg(windows)]
+pub fn memoryusage()-> String{
+    return "error-unixonly".to_string();
+}
+#[cfg(not(windows))]
+pub fn memoryusage() -> String{
+    if let Some(memory_usage) = get_process_memory_usage() {
+        //println!("Process Memory Usage: {} bytes", memory_usage);
+        return memory_usage.to_string();
+    } else {
+        //println!("Failed to get process memory usage.");
+        return "error".to_string();
+    }
+}
+pub fn get_own_pid() -> u32 {
+    // Get the current process ID using std::process::id()
+    process::id()
+}
+#[cfg(not(windows))]
+ fn get_process_memory_usage() -> Option<u64> {
+    // Get the current process ID
+    let pid = get_own_pid();
 
-// pub fn memoryusage() -> String{
-//     if let Some(memory_usage) = get_process_memory_usage() {
-//         //println!("Process Memory Usage: {} bytes", memory_usage);
-//         return memory_usage.to_string();
-//     } else {
-//         //println!("Failed to get process memory usage.");
-//         return "error".to_string();
-//     }
-// }
-// pub fn get_own_pid() -> u32 {
-//     // Get the current process ID using std::process::id()
-//     process::id()
-// }
-//
-// pub fn get_process_memory_usage() -> Option<u64> {
-//     // Get the current process ID
-//     let pid = get_own_pid();
-//
-//     // Try to get the process by its ID
-//     if let Ok(process) = rocess::new(pid) {
-//         // Get the memory information for the process
-//         if let Ok(mem_info) = process.memory_info() {
-//             // Return the RSS (Resident Set Size) in bytes
-//             return Some(mem_info.rss());
-//         }
-//     }
-//
-//     // Return None if there was an error or the process is not found
-//     None
-// }
+    // Try to get the process by its ID
+    if let Ok(process) = Process::new(pid) {
+        // Get the memory information for the process
+        if let Ok(mem_info) = process.memory_info() {
+            // Return the RSS (Resident Set Size) in bytes
+            return Some(mem_info.rss());
+        }
+    }
+
+    // Return None if there was an error or the process is not found
+    None
+}
 
 pub struct Nc_os{
 

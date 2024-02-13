@@ -107,7 +107,8 @@ impl NscriptTcp{
         if id.starts_with("nc_stream_") {
             if let Some((_i, stream)) = self.streammap.remove_entry(id) {
                 // Close the stream if needed
-                 stream.shutdown(Shutdown::Both).ok();
+
+                stream.shutdown(Shutdown::Both).ok();
                 true.to_string()
             } else {
                 false.to_string()

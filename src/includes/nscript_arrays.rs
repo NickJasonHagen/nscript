@@ -4,6 +4,7 @@ use crate::*;
 pub fn pooladd(pool: &str,entree: &str) -> String{
     // nscript arrays wich work with unique entrees,
     // adding some thats already there wont be added.
+    if entree == "" {return pool.to_string();}
     let array = split(&pool,NC_ARRAY_DELIM);
     let mut newstring = String::new();
     let mut found = false ;
@@ -19,7 +20,9 @@ pub fn pooladd(pool: &str,entree: &str) -> String{
     if Nstring::fromright(&newstring,NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
         newstring = Nstring::trimright(&newstring, NC_ARRAY_DELIM.len());
     }
-
+    if Nstring::fromleft(&newstring,NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        newstring = Nstring::trimleft(&newstring, NC_ARRAY_DELIM.len());
+    }
     newstring
 }
 
@@ -28,7 +31,7 @@ pub fn poolremove(pool: &str,entree: &str)-> String{
     let array = split(&pool,NC_ARRAY_DELIM);
     let mut newstring = String::new();
     for entr in array{
-        if entr != entree {
+        if entr != entree && entr != "" {
             newstring = newstring + &entr + NC_ARRAY_DELIM;
         }
     }

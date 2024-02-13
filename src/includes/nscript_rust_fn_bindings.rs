@@ -26,7 +26,7 @@ pub fn nscript_callfn(
     // if customfunctions != "" {
     //     return customfunctions
     // }
-    let mut custom_behavior: NscriptCustomFunctions = vmap.fnextentions;
+    let  custom_behavior: NscriptCustomFunctions = vmap.fnextentions;
     let customret = custom_behavior(vmap);
     if customret != ""{
         return customret.to_owned();
@@ -36,8 +36,14 @@ pub fn nscript_callfn(
         // "scope" => {
         //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
         // }
+        "objtofile" => {
+           return nscript_objecttofile(&param1,&param2, vmap);
+        }
+        "filetoobj" => {
+           return nscript_filetoobject(&param1,&param2, vmap);
+        }
         "soundvolume" =>{
-            let res = match param2.parse::<f32>(){
+            match param2.parse::<f32>(){
                 Ok(res) => {
                     vmap.sound.setvolume(param1,res);
 
@@ -221,6 +227,12 @@ pub fn nscript_callfn(
         "stringtobase64" => {
             return string_to_base64(&param1);
         }
+        "filetobase64" => {
+            return file_to_base64(&param1);
+        }
+        "base64tofile" => {
+            return base64_to_file(&param1,&param2);
+        }
 
         "base64tostring" => {
             return base64_to_string(&param1);
@@ -262,6 +274,54 @@ pub fn nscript_callfn(
 
         "arraypush" => {
             return arraypush(&param1,&param2);
+        }
+        "string_to_hexplus" =>{
+            return Nstring::tohexplus(param1);
+        }
+        "string_from_hexplus" =>{
+            return Nstring::fromhexplus(param1);
+        }
+
+        "threadtest" => {
+             match vmap.threadssenders.get(param1){
+                Some(sender) => {
+                match sender.send(param2.to_string()){
+                    Ok(_)=>{
+                            //println!("main send succes!");
+                            match vmap.threadsreceiver.get(param1){
+                                Some(receiver) =>{
+                                   let msg: String = match receiver.try_recv(){
+                                        Ok(m) =>m,
+                                        Err(_) =>"".to_owned()
+                                    };
+                                    match msg.as_str(){
+                                        _ =>{
+                                            if msg.as_str() != ""{
+                                                println!("main received:{}",msg);
+
+                                            }
+
+                                        }
+                                    }
+                                },
+                                None => {
+                                    println!("no thread receiver channel found!")
+                                }
+                            }
+
+                        },
+                    Err(_)=>{
+
+                            println!("main send error!")
+                        }
+                };
+                    return "ok".to_owned();
+                }
+                None => {
+                    println!("no threads found");
+                    return "error no threads".to_owned();
+                }
+            };
         }
         "arraypushroll" => {
             return arraypushroll(&param1,&param2);

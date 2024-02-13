@@ -46,6 +46,9 @@ impl Ncplayer{
         let path = Path::new(&filepath);
         // get and set duration
         let duration = mp3_duration::from_path(&path).unwrap_or(Duration::from_secs(0));
+        if duration < Duration::from_secs(1) {
+            return "error".to_owned();
+        }
         let thisid = self.spawnaudiothread(filepath.to_string());
         self.durations.insert(thisid.clone().to_string(),duration);
         //Add to activesoundbuffer and set timer

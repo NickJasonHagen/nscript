@@ -21,7 +21,51 @@ pub fn base64_to_string(string_in: &str) -> String {
         Err(_) => String::new(),
     }
 }
+pub fn file_to_base64(file_path: &str) -> String {
+    // Attempt to open the file
+    let mut file = match File::open(file_path) {
+        Ok(file) => file,
+        Err(_) => {
+            // Return an empty string if there's an error opening the file
+            return String::new();
+        }
+    };
 
+    // Read the file contents into a buffer
+    let mut buffer = Vec::new();
+    if let Err(_) = file.read_to_end(&mut buffer) {
+        // Return an empty string if there's an error reading the file
+        return String::new();
+    }
+
+    // Encode the buffer to base64
+    let base64_string = encode(&buffer);
+
+    base64_string
+}
+pub fn base64_to_file(base64_string: &str, file_path: &str) -> String {
+    // Decode the base64 string
+    let decoded_bytes = match decode(base64_string) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            return format!("Error: Failed to decode base64");
+        }
+    };
+
+    // Write the decoded bytes to the file
+    match File::create(file_path) {
+        Ok(mut file) => {
+            if let Err(_) = file.write_all(&decoded_bytes) {
+                return format!("Error: Failed to write to file");
+            }
+        }
+        Err(_) => {
+            return format!("Error: Failed to create file");
+        }
+    };
+
+    "ok".to_string()
+}
 
 pub fn read_file_utf8(filename: &str) -> String {
     let mut file = match File::open(filename) {

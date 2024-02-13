@@ -1,28 +1,26 @@
 // use std::char::ToLowercase;
 // Nscript v2 ( remade from au3 nscript) by Nick Hagen.
-use std::collections::{HashMap};
+//use std::collections::HashMap;
 //use std::{env, array, string};
 use std::fs;
 use std::fs::File;
-use std::path::{Path};
+use std::path::Path;
 use std::io::{self,Read, Write};
-use std::net::{TcpStream};
+use std::net::TcpStream;
 use std::process;
-use std::process::{Command};
-use std::time::{Duration};
+use std::process::Command;
+use std::time::Duration;
 // use url::Url;
 use colored::Colorize;
 use std::net::ToSocketAddrs;
 use rand::seq::SliceRandom;
-use encoding_rs::{ UTF_8};
+use encoding_rs::UTF_8;
 use std::env;
 
 //time
 use chrono::{Datelike, Timelike};
 
-use std::{
-     net::{TcpListener },
- };
+use std::net::TcpListener;
 
 use hex::FromHex;
 //use regex::Regex;
@@ -56,7 +54,7 @@ mod ioctlsocket {
 
 //#[cfg(not(windows))]
 //use std::os::unix::io::AsRawFd;
-pub const NSCRIPT_VERSION: &'static str = "1.024";
+pub const NSCRIPT_VERSION: &'static str = "1.027";
 // const NSCRIPT_INFO: &'static str = "
 // Nscript core in Rust-language.
 // Created by Nick Hagen.

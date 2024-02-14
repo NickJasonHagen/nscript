@@ -36,6 +36,9 @@ pub fn nscript_callfn(
         // "scope" => {
         //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
         // }
+        "nearest_even" => {
+            return nearest_even_number(&param1);
+        }
         "objtofile" => {
            return nscript_objecttofile(&param1,&param2, vmap);
         }

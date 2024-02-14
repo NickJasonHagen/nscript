@@ -330,8 +330,19 @@ pub fn cwriteraw(m: &str, color: &str) {
     };
 }
 
-
-
+pub fn nearest_even_number(num: &str) ->String {
+    let num2 = match num.parse::<f32>(){
+        Ok(res) =>{
+            res
+        }
+        Err(_) =>{
+            0.0
+        }
+    };
+    let rounded_num = num2.round() as i32;
+let ret = rounded_num / 2 * 2;
+    ret.to_string()
+}
 // pub fn perform_sql_query_get_row(query: &str, getrow: &str,database: &str) -> String {
 //     let conn = Connection::open(database).unwrap();
 //     let mut stmt = conn.prepare(query).unwrap();

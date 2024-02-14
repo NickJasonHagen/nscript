@@ -2,8 +2,14 @@
 extern crate nscript;
 use nscript::*;
 
+fn helloworld(param1:&str)->String{
+    return "helloworld! hi ".to_owned() + &param1;
+}
+fn examplefunction2(param1:&str)->String{
+    return "and more ! helloworld! hi ".to_owned() + &param1;
+}
 
-fn yourfunctionmapping(vmap: &mut Varmap)-> String{
+fn mycustombindings(vmap: &mut Varmap)-> String{
     // testoverride requires vmap, this function extents the parsers functions to be used in Nscript.
     // you can retrieve the nscript call's data by using : vmap.funcname ( the name of the function)
     // and vmap.param1 ~ vmap.param9 , hardcoded functions be capped to 9 arguments, here you can
@@ -15,27 +21,26 @@ fn yourfunctionmapping(vmap: &mut Varmap)-> String{
 
     // map your functions and their logics inside this match
     // returns a string back to nscript
-    match vmap.funcname.as_str() {
-        "testing" => { // maps this scope as function testing() in nscript.
-            cwrite("testingoverrides!!","g");
 
-            cwrite(&vmap.param1,"g"); // <- holds "first arg given"
-            cwrite(&vmap.param2,"g");
-            cwrite(&vmap.param3,"g");
-            return vmap.param1.to_owned()
+    // ownerships of the arguments applied to the nscript call made
+    // yes these are 1 to 9
+    let param1 = vmap.param1.to_owned();
+    let param2 = vmap.param2.to_owned();
+    let param3 = vmap.param3.to_owned();
+    let param4 = vmap.param4.to_owned();
+    let param5 = vmap.param5.to_owned();
+    let param6 = vmap.param6.to_owned();
+    let param7 = vmap.param7.to_owned();
+    let param8 = vmap.param8.to_owned();
+    let param9 = vmap.param9.to_owned();
+    // ! make sure to return something! Or the core functions will also be checked for a match if the
+    // empty string is returned.
+    match vmap.funcname.as_str() {
+        "helloworld" => { // maps this scope as function testing() in nscript.
+            return helloworld(&param1);
         }
-        "secondmapping" => {
-            // requiring arguments. (nscript has overrides and defaults for each
-            // so you need to check and catch your own things for it, like below!)
-            if vmap.param1 != ""{
-                cwrite("well this only executes if param1 was given","y");
-                return "somethingtoreturn".to_owned()
-            }
-            else{
-                cwrite("ohhh something dind happen! the func did not give argument1..","");
-                // if you want to exit or not is up to you
-                // but you would do it here.
-            }
+        "examplefunction2" => {
+            return examplefunction2(&param1);
         }
         _ =>{
         }
@@ -50,10 +55,10 @@ fn main() -> std::io::Result<()>  {
     let mut vmap = Varmap::new(); // global
 
     // here we inject the function parser with your functions
-    vmap.setextentionfunctions(yourfunctionmapping);
+    vmap.setextentionfunctions(mycustombindings);
 
     // this begins the nscript engine1, we set a init script and run it
-    let initscript = SCRIPT_DIR.to_owned() +"init.nc";
+    let initscript = NC_SCRIPT_DIR.to_owned() +"init.nc";
     nscript_execute_script(&initscript,"","","","","","","","","",&mut vmap);
 
     loop {

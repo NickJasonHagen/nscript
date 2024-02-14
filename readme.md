@@ -1,11 +1,19 @@
 # integrate nscript into your rust projects
+getting started, bellow you will find a example in which we launch nscript.
+we also have written 2 functions in rust that we want to use in nscript.
 ```rust
 
 extern crate nscript;
 use nscript::*;
 
+fn helloworld(param1:&str)->String{
+    return "helloworld! hi ".to_owned() + &param1;
+}
+fn examplefunction2(param1:&str)->String{
+    return "and more ! helloworld! hi ".to_owned() + &param1;
+}
 
-fn yourfunctionmapping(vmap: &mut Varmap)-> String{
+fn mycustombindings(vmap: &mut Varmap)-> String{
     // testoverride requires vmap, this function extents the parsers functions to be used in Nscript.
     // you can retrieve the nscript call's data by using : vmap.funcname ( the name of the function)
     // and vmap.param1 ~ vmap.param9 , hardcoded functions be capped to 9 arguments, here you can
@@ -17,27 +25,26 @@ fn yourfunctionmapping(vmap: &mut Varmap)-> String{
 
     // map your functions and their logics inside this match
     // returns a string back to nscript
-    match vmap.funcname.as_str() {
-        "testing" => { // maps this scope as function testing() in nscript.
-            cwrite("testingoverrides!!","g");
 
-            cwrite(&vmap.param1,"g"); // <- holds "first arg given"
-            cwrite(&vmap.param2,"g");
-            cwrite(&vmap.param3,"g");
-            return vmap.param1.to_owned()
+    // ownerships of the arguments applied to the nscript call made
+    // yes these are 1 to 9
+    let param1 = vmap.param1.to_owned();
+    let param2 = vmap.param2.to_owned();
+    let param3 = vmap.param3.to_owned();
+    let param4 = vmap.param4.to_owned();
+    let param5 = vmap.param5.to_owned();
+    let param6 = vmap.param6.to_owned();
+    let param7 = vmap.param7.to_owned();
+    let param8 = vmap.param8.to_owned();
+    let param9 = vmap.param9.to_owned();
+    // ! make sure to return something! Or the core functions will also be checked for a match if the
+    // empty string is returned.
+    match vmap.funcname.as_str() {
+        "helloworld" => { // maps this scope as function testing() in nscript.
+            return helloworld(&param1);
         }
-        "secondmapping" => {
-            // requiring arguments. (nscript has overrides and defaults for each
-            // so you need to check and catch your own things for it, like below!)
-            if vmap.param1 != ""{
-                cwrite("well this only executes if param1 was given","y");
-                return "somethingtoreturn".to_owned()
-            }
-            else{
-                cwrite("ohhh something dind happen! the func did not give argument1..","");
-                // if you want to exit or not is up to you
-                // but you would do it here.
-            }
+        "examplefunction2" => {
+            return examplefunction2(&param1);
         }
         _ =>{
         }
@@ -52,10 +59,10 @@ fn main() -> std::io::Result<()>  {
     let mut vmap = Varmap::new(); // global
 
     // here we inject the function parser with your functions
-    vmap.setextentionfunctions(yourfunctionmapping);
+    vmap.setextentionfunctions(mycustombindings);
 
     // this begins the nscript engine1, we set a init script and run it
-    let initscript = SCRIPT_DIR.to_owned() +"init.nc";
+    let initscript = NC_SCRIPT_DIR.to_owned() +"init.nc";
     nscript_execute_script(&initscript,"","","","","","","","","",&mut vmap);
 
     loop {
@@ -66,6 +73,51 @@ fn main() -> std::io::Result<()>  {
 }
 
 ```
+#getting a variable in rust from nscript
+so lets say you got myvar set with "helloworld" in nscript
+```swift
+class objectname{
+    self.prop = "hello i am .prop of object objectname"
+}
+myvar = "hello im a variable"
+```
+so you want to get itfrom your Varmap
+```rust
+let nscriptvar = vmap.getvar("myvar");
+
+```
+#setting a variable in nscript from rust
+so in nscript a var doesnt have do be set by default to be used if called when unset it will return a empty string
+so this means you can set nscript variables in rust for nscript to use.
+you can also addres objects (classes&spawns) if you know the objects name you can addres is staticly like
+objectname.prop
+
+if you have a variable which holds the name of the object you need to add a * infront of the variable
+ myobj = "objectname"
+ *myobj.prop
+
+the same goes for the property , this allows you to forge properties with cat() by concatinating things into the property that you are actually going to addres
+
+ p = "prop"
+ myobj = "objectname"
+ *myobj.*p
+```rust
+vmap.setvar("myvar".to_towned(),"blabla");
+vmap.setar("objectname.prop".to_towned(),"blabla");
+vmap.setar("*myobj.prop".to_towned(),"blabla");
+vmap.setar("*myobj.*p".to_towned(),"blabla");
+```
+# calling nscript functions in rust and catching their return values
+so this is somewhat more then just calling functions, actually it translates a word of nscriptsyntax, so it can be a variable, array,m@cro or function
+as long as it is one word, you can give it arguments up to 9 per function ( if nested resets to 9 again ) nested functions dont have a limit
+###important
+a chained function is not 1 word (formattedcode) this means you cannot call for obj.func().func2() however obj.func(a,b,c,x) is considered a single word 
+```rust
+let minute = nscript_checkvar("@min",vmap);
+let  = nscript_checkvar("@min",vmap);
+```
+
+
 # Nscript examples:
 ## elseif :nscript core function
 ```swift
@@ -91,7 +143,7 @@ elseif var > 2 {
 // this function holds the script for a duration in miliseconds
 // it can be used in loops to reduce the powerusage.
 
-while 1 {
+loop {
     sleep(10)
 }
 
@@ -145,7 +197,7 @@ class tcp{
         return self.listenersocked
     }
 }
-thread [c:tcp]{
+thread "threadid1" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
     timer = timerinit()
@@ -158,7 +210,7 @@ thread [c:tcp]{
 
     }
 }    
-thread [c:tcp]{
+thread "threadid2" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
     timer = timerinit()
@@ -193,17 +245,6 @@ nohotmailarray = arrayfilter(array,"@hotmail.com") //<-- filter all hotmails for
 
 string = "email=big_john@swaggers.com"
 newstring = trimleft(string,6)
-
-```
-## discordmsg :nscript core function
-```swift
-// so this function allows you to sent a msg to your discord channels,
-// in discord you need to go to your channel settings to copy the hook api.
-// function discordmsg(msg,api)
-
-api = "http://discord.blabla/myapicodeblabla089912390123" 
-msg = "Heeeeeeeeeeeeellllllloooooooooo goooooooooooooooood mornnnnnnnnning discord !"
-discordmsg(msg,api)
 
 ```
 ## objfromjson :nscript core function
@@ -259,8 +300,8 @@ for each in array {
 // it saves the header on a line , and the line bellow it contains the data.
 // headers must be unique per file, or it overwrites.
 
-save("#header","data","filelocation")
-data = load("#header","filelocation")
+save("#header","stored_data","./mydata.db")
+data = load("#header","./mydata.db")
 
 ```
 ## years_in_ms :nscript core function
@@ -270,7 +311,7 @@ data = load("#header","filelocation")
 
 timer = timerinit()
 
-while 1 {
+loop {
     if timerdiff(timer) > 999 {
         exit
     }
@@ -418,7 +459,7 @@ status = unzip("./myzip.zip","./extracthere/")
 
 timer = timerinit()
 
-while 1 {
+for {
     if timerdiff(timer) > 999 {
         exit
     }
@@ -484,6 +525,12 @@ arraysize = array[?] // <-- the questionmark used on [] in a array variable
 //results in the size of the array
 
 print(array[1])
+
+//multi line define
+array2 = [
+    "apple",
+    "pear",
+]
 
 ```
 ## stringtobase64 :nscript core function
@@ -551,26 +598,6 @@ array = poolremove(array,"David") // <-- gues the ladies dont want David to be i
 utf8data = file_read_utf8("./satansoftcreatedfile.docx")
 
 ```
-## asyncloops :nscript core function
-```swift
-// async loops these are somewhat like how go routines work.
-// the difference is you have to identify a loop by a string.
-// this reference is important when you want to break the loop
-// the loop can be broken from anywhere as long as you reference it correctly
-
-// Async loops set the self variable to their reference, using properties on this automaticly converts the refernce to an object.
-// you can break the loop whitin the scope "Break self" or break it from elsewhere with "break myloopref"
-
-myloopref = "mainloop"
-
-async myloopref{
-    break self
-}
-//this can be done outside of the scope.
-break myloopref
-
-
-```
 ## minutes_in_ms :nscript core function
 ```swift
 // this function sets a timestamp in miniseconds in a format wich would always be the same lenght,
@@ -578,7 +605,7 @@ break myloopref
 
 timer = timerinit()
 
-while 1 {
+loop {
     if timerdiff(timer) > 999 {
         exit
     }
@@ -628,7 +655,7 @@ mycard = stackpop(mystack)
 
 timer = timerinit()
 
-while 1 {
+loop {
     if timerdiff(timer) > 999 {
         exit
     }
@@ -868,7 +895,7 @@ print(hextostring(hexstring))
 
 timer = timerinit()
 
-while 1 {
+loop {
     if timerdiff(timer) > 999 {
         exit
     }
@@ -986,13 +1013,6 @@ copiedclass = objfromjson("newuniqueclassreferencestring",jsonstring)
 print(copiedclass.name,"green")
 
 ```
-## curl :nscript core function
-```swift
-// curl(url) this retrieves data from a url performing a get i believe.
-
-get = curl("http://www.google.com")
-
-```
 ## filesize :nscript core function
 ```swift
 // this function returns a fancy rounded format of the file size 
@@ -1036,6 +1056,26 @@ curlvar = rawget("192.168.1.66:8088","nscript_arrays.rs")
 
 print(combine("curlvar:",curlvar),"blue")
 
+
+
+```
+## coroutines :nscript core function
+```swift
+// coroutine loops these are somewhat like how go routines work.
+// the difference is you have to identify a loop by a string.
+// this reference is important when you want to break the loop
+// the loop can be broken from anywhere as long as you reference it correctly
+
+// coroutine loops set the self variable to their reference, using properties on this automaticly converts the refernce to an object.
+// you can break the loop whitin the scope "Break self" or break it from elsewhere with "break myloopref" / break self
+
+myloopref = "mainloop"
+
+coroutine myloopref{
+    break self
+}
+//this can be done outside of the scope.
+break myloopref
 
 
 ```
@@ -1135,8 +1175,8 @@ print(combine(@scriptdir,"database/",user,".db"))
 // it saves the header on a line , and the line bellow it contains the data.
 // headers must be unique per file, or it overwrites.
 
-save("#header","data","filelocation")
-data = load("#header","filelocation")
+save("#header","stored_data","./mydata.db")
+data = load("#header","./mydata.db")
 
 ```
 ## poolremove :nscript core function
@@ -1224,7 +1264,7 @@ class tcp{
         return self.listenersocked
     }
 }
-thread [c:tcp]{
+thread "threadid1" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
     timer = timerinit()
@@ -1237,7 +1277,7 @@ thread [c:tcp]{
 
     }
 }    
-thread [c:tcp]{
+thread "threadid2" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
     timer = timerinit()
@@ -1439,6 +1479,7 @@ filetype = fromright(string,4)
 
 //system
 @OS
+@nscriptpath // points to NSCRIPTPATH envoiremental variable default = ~/nscript
 
 //web-server ( these are set whenever some one triggers a .nc script on your webserver)
 @socketip       // returns the IP adres of the connecting client.

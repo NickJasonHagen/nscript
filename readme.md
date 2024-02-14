@@ -97,10 +97,11 @@ if you have a variable which holds the name of the object you need to add a * in
  *myobj.prop
 
 the same goes for the property , this allows you to forge properties with cat() by concatinating things into the property that you are actually going to addres
-
+```swift
  p = "prop"
  myobj = "objectname"
  *myobj.*p
+ ```
 ```rust
 vmap.setvar("myvar".to_towned(),"blabla");
 vmap.setar("objectname.prop".to_towned(),"blabla");
@@ -111,7 +112,7 @@ vmap.setar("*myobj.*p".to_towned(),"blabla");
 so this is somewhat more then just calling functions, actually it translates a word of nscriptsyntax, so it can be a variable, array,m@cro or function
 as long as it is one word, you can give it arguments up to 9 per function ( if nested resets to 9 again ) nested functions dont have a limit
 ###important
-a chained function is not 1 word (formattedcode) this means you cannot call for obj.func().func2() however obj.func(a,b,c,x) is considered a single word 
+a chained function is not 1 word (formattedcode) this means you cannot call for obj.func().func2() however obj.func(a,b,c,x) is considered a single word
 ```rust
 let minute = nscript_checkvar("@min",vmap);
 let  = nscript_checkvar("@min",vmap);
@@ -121,13 +122,13 @@ let  = nscript_checkvar("@min",vmap);
 # Nscript examples:
 ## elseif :nscript core function
 ```swift
-// else if statements 
+// else if statements
 
 
 var = 4
 // if this is false the elseif statements be checked until one of them is true,
 // the other elseifs be skipped.
-if var > 5 { 
+if var > 5 {
     print("..")
 }
 elseif var > 1 {
@@ -135,7 +136,7 @@ elseif var > 1 {
 }
 elseif var > 2 {
     print("var bigger 2") //<-- this wont
-}   
+}
 
 ```
 ## sleep :nscript core function
@@ -160,7 +161,7 @@ print("helloWorld","green")
 ```swift
 class tcp{
     func client(ip,port){
-        
+
         tmr = timerinit()
         loop{
             self.serversocket = tcpconnect(ip,port)
@@ -179,9 +180,9 @@ class tcp{
     func server(ip,port){
         self.listenersocked = tcplistener(ip,port)
         coroutine self.listenersocked{
-            
+
             incsocket = tcpaccept(self)
-            
+
             if incsocket != ""{
 
                 print(cat("new socket connected:",incsocket),"p")
@@ -190,7 +191,7 @@ class tcp{
                     if res != ""{
                         print(cat("socketloop:",self,"inc:[",res,"]"),"y")
                         tcpsend(self,"alrighty")
-                    }                  
+                    }
                 }
             }
         }
@@ -205,11 +206,11 @@ thread "threadid1" [c:tcp]{
         if timerdiff(timer) > 999{
             tcpsend(tcp.serversocket,cat("t1=",@sec,",haii"))
             timer = timerinit()
-            
+
         }
 
     }
-}    
+}
 thread "threadid2" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
@@ -218,11 +219,11 @@ thread "threadid2" [c:tcp]{
         if timerdiff(timer) > 679{
             tcpsend(tcp.serversocket,cat("t2=",@sec,",oiii"))
             timer = timerinit()
-            
+
         }
 
     }
-}   
+}
 
 
 tcp.server("127.0.0.1",8888)
@@ -263,7 +264,7 @@ class myclass{
 // convert a class to json string
 jsonstring = objtojson(myclass)
 
-// load a new class name (arg 1) with a jsonstring (arg2) 
+// load a new class name (arg 1) with a jsonstring (arg2)
 // and trow the objref back to the variable.
 copiedclass = objfromjson("newuniqueclassreferencestring",jsonstring)
 
@@ -287,7 +288,7 @@ filetype = fromright(string,4)
 // this function allows you to search in a array for a substring, a new array will return with all entrees wich has the substring in them.
 
 array = ["apple","tree","stair","chair"] // define a array
-resultarray = arraysearch(array,"e") // create a new array by searching the array for anything with "e" 
+resultarray = arraysearch(array,"e") // create a new array by searching the array for anything with "e"
 
 for each in array {
     print(each)
@@ -330,7 +331,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## for :nscript core function
@@ -373,19 +374,19 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## loop :nscript core function
 ```swift
-// loop { break} is a scope wich will run until you say break. 
+// loop { break} is a scope wich will run until you say break.
 // unlike breaking a async with a reference this loop only needs 1 word
 
-i = 0 
+i = 0
 loop {
     i ++
     if i > 10 {
-        break    
+        break
     }
 }
 
@@ -399,7 +400,7 @@ exit
 ```
 ## filesizebytes :nscript core function
 ```swift
-// this function returns a full format of the file size 
+// this function returns a full format of the file size
 // related : filesize(fname)
 
 size = filesizebytes("./testfile.bin") // returns the actual size of the file in bytes.
@@ -478,7 +479,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## variables :nscript core function
@@ -496,10 +497,10 @@ var = "this is a quote -> \" <-"
 
 //multi line variables
 // be aware of comments inside this !!
-multilinevar = " this is a 
+multilinevar = " this is a
 multiline variable // not a comment !! part of the string!
 everything between the quotes
-with exeptions of the escape \" 
+with exeptions of the escape \"
 the interpreter will format this
 (tech: to 1 line of syntax for interpretation)"
 
@@ -515,7 +516,7 @@ dircreate("./newdir/")
 ```swift
 // arrays in nscript are still variables( they contain a delimerstring.)
 // to define a array
-//-- 
+//--
 // if you call a number outbounds the array returns a empty string ""
 // this will not cause a runtime error ( by default)!
 //-----------------------------------------------
@@ -535,7 +536,7 @@ array2 = [
 ```
 ## stringtobase64 :nscript core function
 ```swift
-// to encrypt or decrypt a file from binary to a string or from a string to binary 
+// to encrypt or decrypt a file from binary to a string or from a string to binary
 // you can use a system called base64, ive implemented 2 functions
 // base64tostring(base64satring) and stringtobase64(string)
 
@@ -561,7 +562,7 @@ func stackref(){
     return "mystackreference"
 }
 
-stackpush(stackref(),"hearts king") //<-- reffed by a function return 
+stackpush(stackref(),"hearts king") //<-- reffed by a function return
 
 mycard = stackpop(mystack)
 
@@ -575,7 +576,7 @@ status = filedelete("./googlechrome")
 ```
 ## pooladd :nscript core function
 ```swift
-// pool system, this is the same format as a array! but using pooladd() and poolremove() 
+// pool system, this is the same format as a array! but using pooladd() and poolremove()
 // will make sure that each entree in this array is unique !
 // if an entree is pushed twice the array is unchanged
 // pooladd(array,entree) , poolremove(array,entree) < - both return the array as result
@@ -586,7 +587,7 @@ array = pooladd(array,"Kim")
 array = pooladd(array,"Alice")
 array = pooladd(array,"David") //<--- now this one is already in the pool and wont show
 
-array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool ! 
+array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool !
 
 ```
 ## file_read_utf8 :nscript core function
@@ -624,7 +625,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## stackpop :nscript core function
@@ -643,7 +644,7 @@ func stackref(){
     return "mystackreference"
 }
 
-stackpush(stackref(),"hearts king") //<-- reffed by a function return 
+stackpush(stackref(),"hearts king") //<-- reffed by a function return
 
 mycard = stackpop(mystack)
 
@@ -674,7 +675,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## terminalinput :nscript core function
@@ -753,7 +754,7 @@ match tocheck{
 }
 
 // you can also catch a variable by a match
-// on the match you can use a scope OR 1 word this be returned 
+// on the match you can use a scope OR 1 word this be returned
 // to the variable. the last lines result is auto-returned.
 myvar = match tocheck{
     "1" | "2" => print("first") //< no scope usage. print returns !
@@ -784,7 +785,7 @@ print("helloWorld","red")
 // print simply returns what you print and print it.
 // you can use it to debug and remove it at anytime wihtout breaking code.
 // just take care of the ()
-filedata = print(fileread("./somefile.txt"),"red")  
+filedata = print(fileread("./somefile.txt"),"red")
 
 //colors new::
 
@@ -822,7 +823,7 @@ if check == 1 {
 ```
 ## replace :nscript core function
 ```swift
-// replace(strin,toreplace,replacewith) 
+// replace(strin,toreplace,replacewith)
 // this function replaces a substring in a string by another given string.
 
 
@@ -863,7 +864,7 @@ match tocheck{
 }
 
 // you can also catch a variable by a match
-// on the match you can use a scope OR 1 word this be returned 
+// on the match you can use a scope OR 1 word this be returned
 // to the variable. the last lines result is auto-returned.
 myvar = match tocheck{
     "1" | "2" => print("first") //< no scope usage. print returns !
@@ -885,7 +886,7 @@ myvar = match tocheck{
 // these functions convert a string to a hex string , and back
 
 hexstring = stringtohex("hello world !")
-print(hextostring(hexstring)) 
+print(hextostring(hexstring))
 
 ```
 ## weeks_in_ms :nscript core function
@@ -914,7 +915,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## arraysort :nscript core function
@@ -930,7 +931,7 @@ array = arraysort(array) //<-- returns a new array with sorted order
 // this function returns a random number
 // ranndom(minimum,maximim,roundedDecimals)
 
-// returns a number 
+// returns a number
 number = random(1,100,0)
 
 // returns a float with 1 decimal
@@ -969,12 +970,12 @@ if instring(string,"hello") == 1 {
 // this example shows how to make a function wich takes arguments.
 // ! the arguments names you assign inside the function scopes are local
 // this ,means inside this scope those names only exist, as everything else in nscript is global by default.
-// take this in mind! 
+// take this in mind!
 
 func myfirstfunction(name){
     ret = combine "hello " name " how are you?"
     return ret
-} 
+}
 
 myreturnvar = myfirstfunction("Big John")
 print(myreturnvar)
@@ -985,7 +986,7 @@ print(myreturnvar)
 // these functions convert a string to a hex string , and back
 
 hexstring = stringtohex("hello world !")
-print(hextostring(hexstring)) 
+print(hextostring(hexstring))
 
 ```
 ## objtojson :nscript core function
@@ -1004,7 +1005,7 @@ class myclass{
 // convert a class to json string
 jsonstring = objtojson(myclass)
 
-// load a new class name (arg 1) with a jsonstring (arg2) 
+// load a new class name (arg 1) with a jsonstring (arg2)
 // and trow the objref back to the variable.
 copiedclass = objfromjson("newuniqueclassreferencestring",jsonstring)
 
@@ -1015,7 +1016,7 @@ print(copiedclass.name,"green")
 ```
 ## filesize :nscript core function
 ```swift
-// this function returns a fancy rounded format of the file size 
+// this function returns a fancy rounded format of the file size
 // related : filesizebytes(fname)
 
 size = filesize("./testfile.bin") // lets say its 2000 bytes then this returns "2 KB" if its 20000000 it returns "2 MB"
@@ -1034,9 +1035,9 @@ rounded = round(number,1) // returns 0.5
 ```
 ## else :nscript core function
 ```swift
-// else is a scope wich you can use to trigger when a if scope was false, 
+// else is a scope wich you can use to trigger when a if scope was false,
 //unlike elseif this else has no condition else then the previous if scope been false.
-// there can be lines between the 2 scopes they will be interpreted in between aswell. 
+// there can be lines between the 2 scopes they will be interpreted in between aswell.
 
 
 if 1 == 2 {
@@ -1111,7 +1112,7 @@ if timerdiff(timer) > weeks_in_ms(2) {
 if timerdiff(timer) > months_in_ms(2) {
 }
 
- 
+
 
 ```
 ## setobj :nscript core function
@@ -1131,7 +1132,7 @@ setobj("playerbase","BigJohn")
 ```
 ## inpool :nscript core function
 ```swift
-// pool system, this is the same format as a array! but using pooladd() and poolremove() 
+// pool system, this is the same format as a array! but using pooladd() and poolremove()
 // will make sure that each entree in this array is unique !
 // if an entree is pushed twice the array is unchanged
 // pooladd(array,entree) , poolremove(array,entree) < - both return the array as result
@@ -1142,7 +1143,7 @@ array = pooladd(array,"Kim")
 array = pooladd(array,"Alice")
 array = pooladd(array,"David") //<--- now this one is already in the pool and wont show
 
-array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool ! 
+array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool !
 
 // inpool returns 1 on found and 0 if not found! --! Added on v2.005
 if inpool(array,"Kim") == 1 {
@@ -1181,7 +1182,7 @@ data = load("#header","./mydata.db")
 ```
 ## poolremove :nscript core function
 ```swift
-// pool system, this is the same format as a array! but using pooladd() and poolremove() 
+// pool system, this is the same format as a array! but using pooladd() and poolremove()
 // will make sure that each entree in this array is unique !
 // if an entree is pushed twice the array is unchanged
 // pooladd(array,entree) , poolremove(array,entree) < - both return the array as result
@@ -1192,7 +1193,7 @@ array = pooladd(array,"Kim")
 array = pooladd(array,"Alice")
 array = pooladd(array,"David") //<--- now this one is already in the pool and wont show
 
-array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool ! 
+array = poolremove(array,"David") // <-- gues the ladies dont want David to be in the pool !
 
 ```
 ## trimright :nscript core function
@@ -1227,7 +1228,7 @@ status = filecopy("./beer.txt","./mybelly/beer.txt")
 ```swift
 class tcp{
     func client(ip,port){
-        
+
         tmr = timerinit()
         loop{
             self.serversocket = tcpconnect(ip,port)
@@ -1246,9 +1247,9 @@ class tcp{
     func server(ip,port){
         self.listenersocked = tcplistener(ip,port)
         coroutine self.listenersocked{
-            
+
             incsocket = tcpaccept(self)
-            
+
             if incsocket != ""{
 
                 print(cat("new socket connected:",incsocket),"p")
@@ -1257,7 +1258,7 @@ class tcp{
                     if res != ""{
                         print(cat("socketloop:",self,"inc:[",res,"]"),"y")
                         tcpsend(self,"alrighty")
-                    }                  
+                    }
                 }
             }
         }
@@ -1272,11 +1273,11 @@ thread "threadid1" [c:tcp]{
         if timerdiff(timer) > 999{
             tcpsend(tcp.serversocket,cat("t1=",@sec,",haii"))
             timer = timerinit()
-            
+
         }
 
     }
-}    
+}
 thread "threadid2" [c:tcp]{
     sleep(2)
     tcp.client("127.0.0.1",8888)
@@ -1285,11 +1286,11 @@ thread "threadid2" [c:tcp]{
         if timerdiff(timer) > 679{
             tcpsend(tcp.serversocket,cat("t2=",@sec,",oiii"))
             timer = timerinit()
-            
+
         }
 
     }
-}   
+}
 
 
 tcp.server("127.0.0.1",8888)
@@ -1319,7 +1320,7 @@ filedata = fileread("./file.txt")
 ```
 ## base64tostring :nscript core function
 ```swift
-// to encrypt or decrypt a file from binary to a string or from a string to binary 
+// to encrypt or decrypt a file from binary to a string or from a string to binary
 // you can use a system called base64, ive implemented 2 functions
 // base64tostring(base64satring) and stringtobase64(string)
 
@@ -1355,7 +1356,7 @@ if timerdiff(timer) > months_in_ms(2) {
 if timerdiff(timer) > years_in_ms(2) {
 }
 
- 
+
 
 ```
 ## zip :nscript core function

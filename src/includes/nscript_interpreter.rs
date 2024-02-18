@@ -44,8 +44,11 @@ pub struct Varmap {
 
     pub threadssenders: HashMap<String, mpsc::Sender<String>>,
     pub mainthread: HashMap<String, mpsc::Sender<String>>,
-
-
+    pub scopemap: HashMap<String,String>,
+    pub scopecounter: usize,
+    pub currentscriptname: String,
+    pub currentclassname: String,
+    pub currentfuncname: String,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -75,11 +78,14 @@ impl Varmap {
             ntcp: NscriptTcp::new(), //,
             envvar: Nc_os::envvarget("NSCRIPTPATH"),
             sound: Ncplayer::new(),
-
             threadsreceiver: HashMap::new(),
-
             threadssenders: HashMap::new(),
             mainthread: HashMap::new(),
+            scopemap: HashMap::new(),
+            scopecounter: 0,
+            currentscriptname: String::new(),
+            currentclassname: String::new(),
+            currentfuncname: String::new(),
         }
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {
@@ -402,14 +408,14 @@ impl Varmap {
         if self.codelevel == 0 {
             return;
         }
-        for r in 0..10 {
-            let paramx = r + 1;
-            let pname = "".to_owned()
-                + &self.codelevel.to_string()
-                + "__internalparam"
-                + &paramx.to_string();
-            self.setvar(pname, ""); // clear all param arguments
-        }
+        // for r in 0..10 {
+        //     let paramx = r + 1;
+        //     let pname = "".to_owned()
+        //         + &self.codelevel.to_string()
+        //         + "__internalparam"
+        //         + &paramx.to_string();
+        //     self.setvar(pname, ""); // clear all param arguments
+        // }
         self.codelevel = self.codelevel - 1
     }
     pub fn iscodelevel(&mut self) -> String {
@@ -445,7 +451,6 @@ pub fn nscript_execute_script(
 
     // this part sets a sheet-buffer wich is used to parse
     // it extracts classes and functions
-
     vmap.parsinglevel = vmap.parsinglevel + 1;
     let thisparsingsheet = "_".to_owned() + &vmap.parsinglevel.to_string() + "__interpretercode";
     let thisparsingsubsheet =
@@ -467,9 +472,13 @@ pub fn nscript_execute_script(
     let mut code:  String;
     if Nstring::fromleft(&file, 4) == "RAW>" {
         code = Nstring::trimleft(&file, 4);
+        vmap.currentscriptname = "raw".to_owned() + &vmap.scopecounter.to_string();
     } else {
+        vmap.currentscriptname = file.to_string();
+
         code = read_file_utf8(&file);
     }
+    println!("Scriptname:{}",vmap.currentscriptname);
     //code = nscript_formatsheet(&code);
     // vmap.setcode(
     //     &thisparsingsheet,
@@ -512,18 +521,28 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
     // this function does not extract classes or function scopes!
     // if you need to run a new script see nscript_exec_script() this is where it starts
     // -------------------------------------------------------------------------------
+
     let oldiflevel = vmap.iflevel;
     vmap.iflevel = 1; //reset the iflevel counter ( used for else.elseifs)
-    let argnew = "".to_owned() + &vmap.codelevel.to_string() + "__internalparam"; // form new varnames bkgrnd paramx
-    let levelbellow = vmap.codelevel - 1;
-    let argnewbroken = "".to_owned() + &levelbellow.to_string() + "__internalparam"; // form new varnames bkgrnd paramx
-    let argnewfix = "".to_owned()
-        + &levelbellow.to_string()
-        + "__"
-        + &vmap.codelevel.to_string()
-        + "__internalparam"; // form new varnames bkgrnd paramx
-    let code = kill_bill(&Nstring::replace(&coderaw, "internalparam", &argnew));
-    let code = Nstring::replace(&code, &argnewfix, &argnewbroken);
+    // let argnew = "".to_owned() +"internalparam"; // form new varnames bkgrnd paramx
+    // let levelbellow = vmap.codelevel - 1;
+    // let argnewbroken = "".to_owned() + &levelbellow.to_string() + "internalparam"; // form new varnames bkgrnd paramx
+    // let argnewfix = "".to_owned()
+    //     + &levelbellow.to_string()
+    //     + "__"
+    //     + &vmap.codelevel.to_string()
+    //     + "__internalparam"; // form new varnames bkgrnd paramx
+    let oldparam1 = vmap.getvar("internalparam1");
+    let oldparam2 = vmap.getvar("internalparam2");
+   let oldparam3 = vmap.getvar("internalparam3");
+   let oldparam4 = vmap.getvar("internalparam4");
+   let oldparam5 = vmap.getvar("internalparam5");
+   let oldparam6 = vmap.getvar("internalparam6");
+   let oldparam7 = vmap.getvar("internalparam7");
+   let oldparam8 = vmap.getvar("internalparam8");
+   let oldparam9 = vmap.getvar("internalparam9");
+    let code = kill_bill(coderaw); //kill_bill(&Nstring::replace(&coderaw, "internalparam", &argnew));
+    //let code = Nstring::replace(&code, &argnewfix, &argnewbroken);
     vmap.codelvlup();
 
     let fixedcode = code.to_owned(); // + NC_LINE_ENDING;
@@ -535,10 +554,13 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
     let fixedcode = nscript_formatargumentspaces(&fixedcode);
     let fixedcode = nscript_array_scopeextract(&fixedcode);
     let fixedcode = nscript_chains(&fixedcode);
-    let fixedcode = nscript_scopeextract(&fixedcode);
-
+    let fixedcode = nscript_scopeextract(&fixedcode,vmap);
+    let fixedcode = Nstring::replace(&fixedcode,"  "," ");
+    //let oldscopecounter = vmap.scopecounter;
+    //vmap.scopecounter = 0;
     //let fixedcode = nscript_compilesheet(&code);
-    //println!("code:{}",&fixedcode);
+    //w
+   //println!("lvl{} code:{}",&vmap.codelevel,&fixedcode);
     let mut toreturn: String;
     let lines = fixedcode.split("\n");
     for line in lines {
@@ -552,16 +574,100 @@ pub fn nscript_parsesheet(coderaw: &str, vmap: &mut Varmap) -> String {
             if Nstring::fromleft(&toreturn, 5) == "RET=>" {
                 vmap.codelvldown();
                 vmap.iflevel = oldiflevel;
+                vmap.setvar("internalparam1".to_owned(),&oldparam1);
+                vmap.setvar("internalparam2".to_owned(),&oldparam2);
+                vmap.setvar("internalparam3".to_owned(),&oldparam3);
+                vmap.setvar("internalparam4".to_owned(),&oldparam4);
+                vmap.setvar("internalparam5".to_owned(),&oldparam5);
+                vmap.setvar("internalparam6".to_owned(),&oldparam6);
+                vmap.setvar("internalparam7".to_owned(),&oldparam7);
+                vmap.setvar("internalparam8".to_owned(),&oldparam8);
+                vmap.setvar("internalparam9".to_owned(),&oldparam9);
+                //vmap.scopecounter = oldscopecounter.clone();
                 return Nstring::trimleft(&toreturn, 5);
             }
         }
     }
     vmap.iflevel = oldiflevel;
     vmap.codelvldown();
-
+    vmap.setvar("internalparam1".to_owned(),&oldparam1);
+    vmap.setvar("internalparam2".to_owned(),&oldparam2);
+    vmap.setvar("internalparam3".to_owned(),&oldparam3);
+    vmap.setvar("internalparam4".to_owned(),&oldparam4);
+    vmap.setvar("internalparam5".to_owned(),&oldparam5);
+    vmap.setvar("internalparam6".to_owned(),&oldparam6);
+    vmap.setvar("internalparam7".to_owned(),&oldparam7);
+    vmap.setvar("internalparam8".to_owned(),&oldparam8);
+    vmap.setvar("internalparam9".to_owned(),&oldparam9);
+    //vmap.scopecounter = oldscopecounter.clone();
     return "..".to_owned();
 }
+pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
+    // this is the interal function to parse a prepare and parse a block
+    // it is used on nscript_execute_script() / exec()
+    // this function does not extract classes or function scopes!
+    // if you need to run a new script see nscript_exec_script() this is where it starts
+    // -------------------------------------------------------------------------------
 
+    let oldiflevel = vmap.iflevel;
+    vmap.iflevel = 1; //reset the iflevel counter ( used for else.elseifs)
+
+    let oldparam1 = vmap.getvar("internalparam1");
+    let oldparam2 = vmap.getvar("internalparam2");
+   let oldparam3 = vmap.getvar("internalparam3");
+   let oldparam4 = vmap.getvar("internalparam4");
+   let oldparam5 = vmap.getvar("internalparam5");
+   let oldparam6 = vmap.getvar("internalparam6");
+   let oldparam7 = vmap.getvar("internalparam7");
+   let oldparam8 = vmap.getvar("internalparam8");
+   let oldparam9 = vmap.getvar("internalparam9");
+    //let code = kill_bill(coderaw); //kill_bill(&Nstring::replace(&coderaw, "internalparam", &argnew));
+    //let code = Nstring::replace(&code, &argnewfix, &argnewbroken);
+    vmap.codelvlup();
+
+    let fixedcode = code.to_owned(); // + NC_LINE_ENDING;
+
+    let mut toreturn: String;
+    let lines = fixedcode.split("\n");
+    for line in lines {
+        if line != "" {
+            //let fixedline = split(&line,"//")[0].trim();
+            //if line != ""{
+            toreturn = nscript_parseline(&line, vmap);
+            //}
+            //  when parse line sees return on word[0] it will add "RET=>"
+            // this will break this loop and return the value back to callfn/nscript_func
+            if Nstring::fromleft(&toreturn, 5) == "RET=>" {
+                vmap.codelvldown();
+                vmap.iflevel = oldiflevel;
+                vmap.setvar("internalparam1".to_owned(),&oldparam1);
+                vmap.setvar("internalparam2".to_owned(),&oldparam2);
+                vmap.setvar("internalparam3".to_owned(),&oldparam3);
+                vmap.setvar("internalparam4".to_owned(),&oldparam4);
+                vmap.setvar("internalparam5".to_owned(),&oldparam5);
+                vmap.setvar("internalparam6".to_owned(),&oldparam6);
+                vmap.setvar("internalparam7".to_owned(),&oldparam7);
+                vmap.setvar("internalparam8".to_owned(),&oldparam8);
+                vmap.setvar("internalparam9".to_owned(),&oldparam9);
+                //vmap.scopecounter = oldscopecounter.clone();
+                return Nstring::trimleft(&toreturn, 5);
+            }
+        }
+    }
+    vmap.iflevel = oldiflevel;
+    vmap.codelvldown();
+    vmap.setvar("internalparam1".to_owned(),&oldparam1);
+    vmap.setvar("internalparam2".to_owned(),&oldparam2);
+    vmap.setvar("internalparam3".to_owned(),&oldparam3);
+    vmap.setvar("internalparam4".to_owned(),&oldparam4);
+    vmap.setvar("internalparam5".to_owned(),&oldparam5);
+    vmap.setvar("internalparam6".to_owned(),&oldparam6);
+    vmap.setvar("internalparam7".to_owned(),&oldparam7);
+    vmap.setvar("internalparam8".to_owned(),&oldparam8);
+    vmap.setvar("internalparam9".to_owned(),&oldparam9);
+    //vmap.scopecounter = oldscopecounter.clone();
+    return "..".to_owned();
+}
 pub fn nscript_parseformattedsheet(coderaw: &str, vmap: &mut Varmap) -> String {
     // this function runs a block of scope without jumping up a codelvl
     // this is used for at spot runtime blocks like For,While loops.
@@ -571,6 +677,7 @@ pub fn nscript_parseformattedsheet(coderaw: &str, vmap: &mut Varmap) -> String {
     let oldiflevel = vmap.iflevel;
     vmap.iflevel = 1; //reset the iflevel counter ( used for else.elseifs)
     let mut toreturn: String;
+    //println!("Codeformatted: {}",coderaw);
     let lines = coderaw.split("\n");
     for line in lines {
         if line != "" {
@@ -718,7 +825,13 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
 
                         let scopeargs = Nstring::stringbetween(&words[0], "(", ")");
                         let splitscopearg = split(&scopeargs, ",");
-                        return nscript_unpackscope(&splitscopearg[1], &splitscopearg[0], vmap);
+                        if splitscopearg.len() > 1 {
+                            return nscript_unpackscope(&splitscopearg[1], &splitscopearg[0], vmap);
+                        }
+                        else{
+                            println!("internal error line:{}",&line);
+                            return "".to_string();
+                        }
                     } else {
                         if split(&words[0], "(").len() > 2 {
                             let unwrap = nscript_funcextract(&words[0], vmap);
@@ -780,8 +893,8 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     let splitscopearg = split(&scopeargs, ",");
                     let loopblock = nscript_formatsheet(&nscript_unpackscopereturnclean(
                         &splitscopearg[1],
-                        &splitscopearg[0],
-                    ));
+                        &splitscopearg[0],vmap
+                    ),vmap);
                     loop {
                         let ret = nscript_parseformattedsheet(&loopblock, vmap);
                         if ret == "break" {
@@ -822,7 +935,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     let loopref = nscript_checkvar(&words[1], vmap);
                     let loopscope = nscript_unpackscopereturnclean(
                         &splitscopearg[1],
-                        &splitscopearg[0],
+                        &splitscopearg[0],vmap
                     );
                     let loopscope = Nstring::replace(&loopscope,"self","coSelf");
                     // let loopscope = Nstring::replace(&loopscope,"self)","coSelf)");
@@ -833,7 +946,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                     // let loopscope = Nstring::replace(&loopscope,"*self.","*coSelf.");
                     // let loopscope = Nstring::replace(&loopscope,"**coSelf.","*coSelf.");
                     //println!("loopscope:{}",loopscope);
-                    let loopscope = nscript_formatsheet(&loopscope);
+                    let loopscope = nscript_formatsheet(&loopscope,vmap);
 
                     vmap.setvar(
                         "nscript_loops".to_owned() + "." + &loopref.trim(),
@@ -961,7 +1074,7 @@ pub fn nscript_parseline(line: &str, vmap: &mut Varmap) -> String {
                             let scopeargs = Nstring::stringbetween(&words[3], "(", ")");
                             let splitscopearg = split(&scopeargs, ",");
                             //println!("scope!!");
-                            let ret = nscript_unpackscopereturnclean(&splitscopearg[1], &splitscopearg[0]);
+                            let ret = nscript_unpackscopereturnclean(&splitscopearg[1], &splitscopearg[0],vmap);
                             vmap.setvar(words[0].to_owned(),&ret);
                             return ret.to_owned();
                         }
@@ -1132,7 +1245,8 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                     classname[0].trim().to_string().clone(),
                     &classname[0].trim(),
                 ); // assign classname = classname
-
+                let oldcurrentclass = vmap.currentclassname.clone();
+                vmap.currentclassname = classname[0].to_string();
                 let mut toobjname = nscript_checkvar(&classname[0].trim(), vmap);
                 if toobjname == "" {
                     toobjname = classname[0].trim().to_string();
@@ -1157,9 +1271,13 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                 vmap.stackpush("___self", &classname[0].trim());                                                          //println!("Subblock::{}",&blocknew);
                 vmap.setvar("self".to_owned(), &classname[0].trim()); // assigning self var self.
 
-                                                                            //println!("running class extraction assigning self:{}",&classname[0]);
+                //println!("running class extraction assigning self:{}",&classname[0]);
                 let blocknew = Nstring::replace(&blocknew, "self.", "*self."); // Reflect self!!!
-                nscript_parseformattedsheet(&nscript_formatsheet(&blocknew),vmap); // run the remaining as classblock.
+                let oldscopecounter = vmap.scopecounter;
+                vmap.scopecounter = 0;
+                nscript_parseformattedsheet(&nscript_formatsheet(&blocknew,vmap),vmap); // run the remaining as classblock.
+
+
                 //println!("Blc:{}",&blocknew);
                 let toreplace = "class".to_owned() + &classnamepart + &block;
                 if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {
@@ -1170,9 +1288,12 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                 }
                 let isconfn = "".to_owned() + &toobjname.trim() + ".construct()"; // should only execute if it exists.. else continue
 
-                nscript_func(&nscript_formatsheet(&isconfn),vmap);
-                //let oldself = vmap.stackpop("___self");                                                          //println!("Subblock::{}",&blocknew);
+
+                vmap.currentclassname = oldcurrentclass;
+                nscript_func(&nscript_formatsheet(&isconfn,vmap),vmap);
+
                 vmap.setvar("self".to_owned(), &oldself);
+                vmap.scopecounter = oldscopecounter;
             }
         }
         i += 1;
@@ -1295,21 +1416,29 @@ pub fn nscript_func_scopeextract(selfvar: &str, vmap: &mut Varmap) {
                     let functionregobj =
                         "nscript_classfuncs__".to_owned() + &selfvar.trim() + "." + &classname; //+ "." + &funcname; // internal obj
                     vmap.setvar(functionregobj.clone(), &selfvar.trim());
+                    let oldfuncname = vmap.currentfuncname.clone();
+                    vmap.currentfuncname = classnamefixed.clone();
                     let block = Nstring::trimleft(&block, 1);
                     let block = Nstring::trimright(&block, 1);
                     // let block = trim_lines(&block);
-                    let block = nscript_stringextract(&block);
-                    let block = nscript_scopeextract(&block);
-                    vmap.setcode(&classnamefixed, &nscript_formatsheet(&block));
+                    //let block = nscript_stringextract(&block);
+                    //let block = nscript_scopeextract(&block,vmap);
+                    let scopecode = nscript_formatsheet(&block,vmap);
+
+                    vmap.setcode(&classnamefixed, &scopecode);
+                    vmap.currentfuncname = oldfuncname.to_string();
                     //println!("Setting func: {} \n with block: \n{}",&functionregobj, &block);
                 } else {
                     // if not inside a classscope
                     //println!("new:{}",&block);
-                    let block = trim_lines(&block);
-                    let block = nscript_stringextract(&block);
+                    //let block = trim_lines(&block);
+                    //let block = nscript_stringextract(&block);
                     // let block  = nscript_scopeextract(&block);
-
-                    vmap.setcode(&classname, &nscript_formatsheet(&block));
+                    let oldfuncname = vmap.currentfuncname.clone();
+                    vmap.currentfuncname = classname.to_string();
+                    let scopecode = nscript_formatsheet(&block,vmap);
+                    vmap.currentfuncname = oldfuncname.to_string();
+                    vmap.setcode(&classname, &scopecode);
                 }
                 let toreplace = "func ".to_owned() + &split(&eachclass, "{")[0] + &cleanblock;
 
@@ -1439,32 +1568,6 @@ pub fn nscript_checkvar(key: &str, vmap: &mut Varmap) -> String {
     }
     checkvar_toreturn
 }
-
-pub fn nscript_scopeextract(text: &str) -> String {
-    // internal used in : class_scopeextract() func_scopeextr..
-    // this is used to extract scopes like classes, functions.
-    // it takes the full sheet of code, extract the scopes so that the internal interpreter doesnt
-    // run them after the cleaning is done.
-    // ------------------------------------------------------------------------------------
-    let mut parsingtext = text.to_string();
-    let mut toreturn = String::new();
-    loop {
-        let splitstr = split(&parsingtext, "{");
-
-        if splitstr.len() > 1 {
-            let isscope = split(&splitstr[splitstr.len() - 1], "}")[0];
-            let scopeid = "s".to_owned() + &splitstr.len().to_string();
-            let packed = nscript_packscope(&isscope, &scopeid);
-            let toreplace = "{".to_owned() + &isscope + "}";
-            parsingtext = Nstring::replace(&parsingtext, &toreplace, &packed)
-        } else {
-            toreturn = split(&splitstr[0], "}")[0].to_string();
-            break;
-        }
-    }
-    toreturn
-}
-
 pub fn nscript_stringextract(text: &str) -> String {
     // this will convert all static strings to a ^hexnumber
     // ive used this so that the spaces woulnd interfere with the syntax.
@@ -1487,24 +1590,49 @@ pub fn nscript_stringextract(text: &str) -> String {
     parsingtext
 }
 
-pub fn nscript_packscope(code: &str, scopeid: &str) -> String {
+
+pub fn nscript_scopeextract(text: &str,vmap:&mut Varmap) -> String {
+    // maps all the ifscopes / coroutines /for etc to the vmap and cleans the returned code (formatter)
+    // ------------------------------------------------------------------------------------
+    let mut parsingtext = text.to_string();
+    let  toreturn: String;
+    loop {
+        let splitstr = split(&parsingtext, "{");
+
+        if splitstr.len() > 1 {
+            let isscope = split(&splitstr[splitstr.len() - 1], "}")[0];
+            vmap.scopecounter +=1;
+            let scopeid = "%s".to_owned() +&vmap.currentscriptname + "_" + &vmap.currentclassname.trim() + "_" + &vmap.currentfuncname.trim() + "_"+ &vmap.scopecounter.to_string() ;
+            let packed = nscript_packscope(&isscope, &scopeid,vmap);
+            let toreplace = "{".to_owned() + &isscope + "}";
+            parsingtext = Nstring::replace(&parsingtext, &toreplace, &packed)
+        } else {
+            toreturn = split(&splitstr[0], "}")[0].to_string();
+            break;
+        }
+    }
+    toreturn
+}
+
+pub fn nscript_packscope(code: &str, scopeid: &str,vmap:&mut Varmap) -> String {
     // this is a internally used function to encapsulate scopes.
     // the scopes are being packed back into 1 line so its faster and easier to interpretate.
     // scopeid is a unique number wich is used to pack the scope, this way each scope can be
     // unpacked sepperatly.
     // --------------------------------------------------------------------------------------
+let mut scopecode = nscript_formatargumentspaces(&nscript_array_scopeextract(
+        &nscript_chains(&nscript_stringextract(&trim_lines(&kill_bill(
+            &nscript_stripcomments(&code),
+        )))),
+    ));
+scopecode = Nstring::replace(&scopecode,"self.","*self.");
 
-    let newid = "%".to_owned() + scopeid + "%";
-    let mut ifcodenew = Nstring::replace(&nscript_formatsheet(&code), " ", "%id%sp%");
-    ifcodenew = Nstring::replace(&ifcodenew, NC_LINE_ENDING, "%id%lf%");
-    ifcodenew = Nstring::replace(&ifcodenew, "(", "%id%bo%");
-    ifcodenew = Nstring::replace(&ifcodenew, ")", "%id%bc%");
-    ifcodenew = Nstring::replace(&ifcodenew, "{", "%id%cbo%");
-    ifcodenew = Nstring::replace(&ifcodenew, "}", "%id%cbc%");
-    ifcodenew = Nstring::replace(&ifcodenew, ",", "%id%c%");
-
-    let ret =
-        " scope(".to_owned() + &scopeid + "," + &Nstring::replace(&ifcodenew, "%id%", &newid) + ")";
+    scopecode = Nstring::replace(&scopecode,"**self.","*self.");
+    //nscript_formatsheet(&code,vmap);
+    //let newid = "%".to_owned()  + &vmap.codelevel.to_string() + "__" + scopeid + "%";
+    vmap.scopemap.insert(scopeid.to_string(),scopecode.clone());
+//println!("inserting scope map : [{}]    withcode:{}",scopeid, &scopecode);
+    let ret = " scope(".to_owned() + &scopeid + ",0)";
     ret
 }
 
@@ -1512,40 +1640,111 @@ pub fn nscript_unpackscope(code: &str, scopeid: &str, vmap: &mut Varmap) -> Stri
     // this unpacks a packed scope and runs it.
     // related: nscript_unpackscopereturnclean()
     // ---------------------------------------
-    let newid = "%".to_owned() + scopeid + "%";
-    let mut ifcodenew = Nstring::replace(&code, &newid, "%id%");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%bo%", "(");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%bc%", ")");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%c%", ",");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%cbo%", "{");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%cbc%", "}");
-    let res = nscript_parseformattedsheet(&ifcodenew, vmap);
+    //let newid = "%".to_owned()  + &vmap.codelevel.to_string().clone() + "__" + scopeid + "%";
+    // let ifcodenew = match &mut vmap.scopemap.get(scopeid){
+    //     Some(ret) => ret,
+    //     None => "",
+    // };
+    let ifcodenew = nscript_readscopemap(scopeid,vmap);
+    let res = nscript_parseformattedsheet(&ifcodenew.clone(), vmap);
     if res == ".." {
+
         res
     } else {
         "RET=>".to_owned() + &res
     }
 }
+fn nscript_readscopemap(scopeid:&str,vmap: &mut Varmap) -> String {
+    let ifcodenew = match &vmap.scopemap.get_key_value(scopeid){
+        Some((_i, k)) =>{
+            //println!("scope:[{}] -> {}",scopeid, k.to_owned());
+           k
+        },
+        None => {
+            //println!("error in map scope:[{}]",scopeid);
+            ""
+        },
+    };
+    ifcodenew.to_owned()
 
-pub fn nscript_unpackscopereturnclean(code: &str, scopeid: &str) -> String {
+}
+pub fn nscript_unpackscopereturnclean(code: &str, scopeid: &str,vmap:&mut Varmap) -> String {
     // this unpacks a scope and returns the scope's code instead.
     // --------------------------------------------------------
-    let newid = "%".to_owned() + &scopeid + "%";
-    let mut ifcodenew = Nstring::replace(&code, &newid, "%id%");
-    let pref = "scope(".to_owned() + &scopeid + ",";
-    ifcodenew = Nstring::replace(&ifcodenew, &pref, "");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%bo%", "(");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%bc%", ")");
-    ifcodenew = Nstring::replace(&ifcodenew, "%id%c%", ",");
-    //println!("BlockUnpack:{}",&ifcodenew);
-    ifcodenew
+    //let newid = "%".to_owned()  + &vmap.codelevel.to_string() + "__" + scopeid + "%";
+    let ifcodenew = match vmap.scopemap.get_key_value(scopeid){
+        Some((_i, k)) =>{
+            //println!("scope:[{}] -> {}",scopeid, k.to_owned());
+           k
+        },
+        None => {
+            //println!("error in map scope:[{}]",scopeid);
+            ""
+        },
+    };
+
+    ifcodenew.to_owned()
 }
 
-pub fn nscript_formatsheet(code: &str) -> String {
+// pub fn nscript_packscope(code: &str, scopeid: &str) -> String {
+//     // this is a internally used function to encapsulate scopes.
+//     // the scopes are being packed back into 1 line so its faster and easier to interpretate.
+//     // scopeid is a unique number wich is used to pack the scope, this way each scope can be
+//     // unpacked sepperatly.
+//     // --------------------------------------------------------------------------------------
+//
+//     let newid = "%".to_owned() + scopeid + "%";
+//     let mut ifcodenew = Nstring::replace(&nscript_formatsheet(&code), " ", "%id%sp%");
+//     ifcodenew = Nstring::replace(&ifcodenew, NC_LINE_ENDING, "%id%lf%");
+//     ifcodenew = Nstring::replace(&ifcodenew, "(", "%id%bo%");
+//     ifcodenew = Nstring::replace(&ifcodenew, ")", "%id%bc%");
+//     ifcodenew = Nstring::replace(&ifcodenew, "{", "%id%cbo%");
+//     ifcodenew = Nstring::replace(&ifcodenew, "}", "%id%cbc%");
+//     ifcodenew = Nstring::replace(&ifcodenew, ",", "%id%c%");
+//
+//     let ret =
+//         " scope(".to_owned() + &scopeid + "," + &Nstring::replace(&ifcodenew, "%id%", &newid) + ")";
+//     ret
+// }
+//
+// pub fn nscript_unpackscope(code: &str, scopeid: &str, vmap: &mut Varmap) -> String {
+//     // this unpacks a packed scope and runs it.
+//     // related: nscript_unpackscopereturnclean()
+//     // ---------------------------------------
+//     let newid = "%".to_owned() + scopeid + "%";
+//     let mut ifcodenew = Nstring::replace(&code, &newid, "%id%");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%bo%", "(");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%bc%", ")");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%c%", ",");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%cbo%", "{");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%cbc%", "}");
+//     let res = nscript_parseformattedsheet(&ifcodenew, vmap);
+//     if res == ".." {
+//         res
+//     } else {
+//         "RET=>".to_owned() + &res
+//     }
+// }
+//
+// pub fn nscript_unpackscopereturnclean(code: &str, scopeid: &str) -> String {
+//     // this unpacks a scope and returns the scope's code instead.
+//     // --------------------------------------------------------
+//     let newid = "%".to_owned() + &scopeid + "%";
+//     let mut ifcodenew = Nstring::replace(&code, &newid, "%id%");
+//     let pref = "scope(".to_owned() + &scopeid + ",";
+//     ifcodenew = Nstring::replace(&ifcodenew, &pref, "");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%sp%", " ");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%lf%", CODE_NC_LINE_ENDING);
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%bo%", "(");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%bc%", ")");
+//     ifcodenew = Nstring::replace(&ifcodenew, "%id%c%", ",");
+//     //println!("BlockUnpack:{}",&ifcodenew);
+//     ifcodenew
+// }
+
+pub fn nscript_formatsheet(code: &str,vmap:&mut Varmap) -> String {
     // this function preformats a sheet and these can be run with nscript_parsecompiledsheet()
     // used in : For / While / func
     // ------------------------------------------------------------------------------
@@ -1555,23 +1754,33 @@ pub fn nscript_formatsheet(code: &str) -> String {
     //     let fxline = split(&line,"//")[0];
     //     newcode = "".to_owned() + &newcode + &fxline + NC_LINE_ENDING;
     // }
-    nscript_scopeextract(&nscript_formatargumentspaces(&nscript_array_scopeextract(
+    Nstring::replace(&nscript_scopeextract(&nscript_formatargumentspaces(&nscript_array_scopeextract(
         &nscript_chains(&nscript_stringextract(&trim_lines(&kill_bill(
             &nscript_stripcomments(&code),
         )))),
-    )))
+    )),vmap),"  "," ")
 }
 
 pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     // this is the function wich executes a nscript user made function !
     // -----------------------------------------------------------------
+    let oldparam1 = vmap.getvar("internalparam1");
+    let oldparam2 = vmap.getvar("internalparam2");
+   let oldparam3 = vmap.getvar("internalparam3");
+   let oldparam4 = vmap.getvar("internalparam4");
+   let oldparam5 = vmap.getvar("internalparam5");
+   let oldparam6 = vmap.getvar("internalparam6");
+   let oldparam7 = vmap.getvar("internalparam7");
+   let oldparam8 = vmap.getvar("internalparam8");
+   let oldparam9 = vmap.getvar("internalparam9");
+//vmap.currentscriptname = func.to_string();
     let (args, id) = nscript_getarguments(&func, vmap); // get all argument params
     let func = func.trim();
     for r in 1..9 {
         //let paramx = &r + 1
 
         let pname =
-            "".to_owned() + &vmap.codelevel.to_string() + "__internalparam" + &r.to_string();
+            "".to_owned() + "internalparam" + &r.to_string();
         if r < id && r > 0 {
             vmap.setvar(pname.clone(), &args[r]); // set all param arguments
         }
@@ -1590,13 +1799,13 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
     // set self and classfunction registers
     let mut isclass: String;
    // set to make sure the while extract will parse this
-             let mut oldself = String::new();                                // block only
+    let mut oldself = String::new();                                // block only
+    let isfullfnname: String;
     if Nstring::instring(&func, ".") == true {
         let splitfn = split(&func, ".");
         if Nstring::fromleft(&splitfn[0], 1) == "_".to_owned() {
             //<-- this kinda is also from the
             //old syntax old nc begin with _ for udf.
-
             isclass = Nstring::trimleft(&splitfn[0].trim(), 1);
         }
         else {
@@ -1611,8 +1820,6 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
         if Nstring::fromleft(&fnname, 1) == "*" {
             fnname = nscript_checkvar(&Nstring::replace(&fnname, "*", ""), vmap);
             reg = "nscript_classfuncs__".to_owned() + &isclass + "." + &fnname;
-
-            //println!("going to check for fn:{}",&fnname);
         }
 
         if Nstring::fromleft(&isclass, 1) == "*" {
@@ -1622,20 +1829,38 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
 
         let rootfnobj = vmap.getvar(&reg); // get root obj where the func is located.
         let rootfnfullname = "".to_owned() + &rootfnobj + "__" + &fnname; //+ &rootfnobj + "__" + &fnname;
+
+        isfullfnname = rootfnfullname.clone();
         iscodebblock = vmap.getcode(&rootfnfullname); // load code
         oldself = vmap.getvar("self");
         vmap.stackpush("___self", &isclass);
         vmap.setvar("self".to_owned(), &isclass);
         iscodebblock = Nstring::replace(&iscodebblock, "self.", "*self."); // change all to the obj itself.
     } else {
+        isfullfnname = fname.clone();
         iscodebblock = vmap.getcode(&fname); // load code
     }
-    //let internalcoderef = vmap.getprop("__interpreter", "parsingsubsheet");
-    let get = nscript_parsesheet(&nscript_stringextract(&iscodebblock), vmap); // run code
-    let isclass = vmap.stackpop("___self");
-    vmap.setvar("self".to_owned(), &oldself);
 
-    //println!("setting self to:[{}]",&isclass);
+    let oldfuncname = vmap.currentfuncname.clone();
+    let oldscopecounter = vmap.scopecounter;
+
+    vmap.scopecounter = 0;
+    vmap.currentfuncname = isfullfnname.to_string();
+    let get = nscript_parsefuncsheet(&iscodebblock, vmap); // run code
+    vmap.scopecounter = oldscopecounter;
+    vmap.currentfuncname = oldfuncname;
+
+    vmap.setvar("self".to_owned(), &oldself);
+    vmap.setvar("internalparam1".to_owned(),&oldparam1);
+    vmap.setvar("internalparam2".to_owned(),&oldparam2);
+    vmap.setvar("internalparam3".to_owned(),&oldparam3);
+    vmap.setvar("internalparam4".to_owned(),&oldparam4);
+    vmap.setvar("internalparam5".to_owned(),&oldparam5);
+    vmap.setvar("internalparam6".to_owned(),&oldparam6);
+    vmap.setvar("internalparam7".to_owned(),&oldparam7);
+    vmap.setvar("internalparam8".to_owned(),&oldparam8);
+    vmap.setvar("internalparam9".to_owned(),&oldparam9);
+
     get
 }
 
@@ -1817,13 +2042,12 @@ pub fn nscript_setparams_exec(args: &Vec<String>, vmap: &mut Varmap) {
     let id = args.len();
     if id > 0 {
         //println!("codelevle = {}",&vmap.codelevel);
-        let codelevelabove = &vmap.codelevel + 0; // <- yeah seems neccesary for vmap.
+        //let codelevelabove = &vmap.codelevel + 0; // <- yeah seems neccesary for vmap.
         for r in 0..id {
             //let paramx = &r + 1;
             let paramid = r + 1;
             let pname = "".to_owned()
-                + &codelevelabove.to_string()
-                + "__internalparam"
+                + "internalparam"
                 + &paramid.to_string();
             vmap.setvar(pname, &args[r]); // set all param arguments
         }
@@ -2035,7 +2259,7 @@ pub fn nscript_clearparams_handleconnections(vmap: &mut Varmap) {
     for r in 0..10 {
         let paramx = r + 1;
         let pname =
-            "".to_owned() + &vmap.codelevel.to_string() + "__internalparam" + &paramx.to_string();
+            "".to_owned() + "internalparam" + &paramx.to_string();
         vmap.setvar(pname, ""); // clear all param arguments
     }
 }
@@ -2140,7 +2364,7 @@ pub fn nscript_match(entree: &str, scope: &str, vmap: &mut Varmap) -> String {
     let scopeargs = Nstring::stringbetween(&scope, "(", ")");
     let splitscopearg = split(&scopeargs, ",");
     let evalentree = nscript_checkvar(entree, vmap);
-    let switchscope = nscript_unpackscopereturnclean(&splitscopearg[1], &splitscopearg[0]);
+    let switchscope = nscript_unpackscopereturnclean(&splitscopearg[1], &splitscopearg[0],vmap);
     let splitcase = split(&switchscope, "\n");
     for thiscase in splitcase {
         // splitline[0] are checks /[1] return/(scope)
@@ -2268,9 +2492,10 @@ pub fn nscript_foreach(code: &str, invar: &str, inarray: &str, vmap: &mut Varmap
     let evalarray = nscript_checkvar(&inarray, vmap);
     let array = split(&evalarray, &NC_ARRAY_DELIM);
     let scopeid = &Nstring::stringbetween(&code, "scope(", ",");
-    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(
-        &code, scopeid,
-    )));
+    let cleancode = nscript_unpackscopereturnclean(
+        &code, scopeid,vmap
+    );
+    //println!("code forin {}",cleancode);
     for isin in array {
         vmap.setvar(invar.to_owned(), &isin);
         nscript_parseformattedsheet(&cleancode, vmap);
@@ -2283,9 +2508,9 @@ pub fn nscript_forto(code: &str, invar: &str, inarray: &str, vmap: &mut Varmap) 
     let evalarray = nscript_checkvar(&inarray, vmap);
     let scopeid = &Nstring::stringbetween(&code, "scope(", ",");
 
-    let cleancode = nscript_formatsheet(&nscript_stringextract(&nscript_unpackscopereturnclean(
-        &code, scopeid,
-    )));
+    let cleancode = nscript_unpackscopereturnclean(
+        &code, scopeid,vmap
+    );
     for isin in 1..nscript_i32(&evalarray) + 1 {
         vmap.setvar(invar.to_owned(), &isin.to_string());
         nscript_parseformattedsheet(&cleancode, vmap);

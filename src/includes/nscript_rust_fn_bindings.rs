@@ -37,8 +37,15 @@ pub fn nscript_callfn(
         //     return "RET=>".to_owned() + &nscript_unpackscope(param2,param1,vmap)
         // }
         "nearest_even" => {
-            return nearest_even_number(&param1);
+            return Ncmath::nearest_even_number(&param1);
         }
+        "square_root" => {
+            return Ncmath::square_root_str(&param1);
+        }
+        "percentage" => {
+            return Ncmath::percentage(&param1,&param2);
+        }
+
         "objtofile" => {
            return nscript_objecttofile(&param1,&param2, vmap);
         }
@@ -526,9 +533,9 @@ pub fn nscript_callfn(
                 Ok(r) => {
                     Ntimer::diff(r)
                 },
-                Err(e) => {
-                    println!("timererror:{}",e);
-                    println!("timer var:{}",param1);
+                Err(_) => {
+                    //println!("timererror:{}",e);
+                    //println!("timer var:{}",param1);
                     0
 
                 }

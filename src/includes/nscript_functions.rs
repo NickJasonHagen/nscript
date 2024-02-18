@@ -330,18 +330,57 @@ pub fn cwriteraw(m: &str, color: &str) {
     };
 }
 
-pub fn nearest_even_number(num: &str) ->String {
-    let num2 = match num.parse::<f32>(){
-        Ok(res) =>{
-            res
-        }
-        Err(_) =>{
-            0.0
-        }
-    };
-    let rounded_num = num2.round() as i32;
-let ret = rounded_num / 2 * 2;
-    ret.to_string()
+pub struct Ncmath{
+
+}
+impl Ncmath{
+    pub fn nearest_even_number(num: &str) ->String {
+        let num2 = match num.parse::<f32>(){
+            Ok(res) =>{
+                res
+            }
+            Err(_) =>{
+                0.0
+            }
+        };
+        let rounded_num = num2.round() as i32;
+        let ret = rounded_num / 2 * 2;
+        ret.to_string()
+    }
+
+    pub fn square_root_str(input: &str) -> String{
+        // Parse the input string to a number
+        let num = match input.parse::<f64>() {
+            Ok(num) => num,
+            Err(_) => return "NaN".to_owned(),
+        };
+
+        // Calculate the square root
+        let square_root = num.sqrt();
+
+        // Convert the square root to a string
+        let result = square_root.to_string();
+
+        result
+    }
+
+    pub fn percentage(max_str: &str, tocalc_str: &str) -> String {
+        // Parse the input strings to numbers
+        let max = match max_str.parse::<f64>(){
+            Ok(max) => max,
+            Err(_) => return String::from("NaN"),
+        };
+        let tocalc = match tocalc_str.parse::<f64>() {
+            Ok(tocalc) => tocalc,
+            Err(_) => return String::from("NaN"),
+        };
+
+        // Calculate the percentage
+        let percent = (tocalc / max) * 100.0;
+
+        // Convert the percentage to a string
+        percent.to_string()
+    }
 }
 // pub fn perform_sql_query_get_row(query: &str, getrow: &str,database: &str) -> String {
 //     let conn = Connection::open(database).unwrap();

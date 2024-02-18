@@ -290,7 +290,7 @@ let id = args.len();
         for r in 0..id {
             //let paramx = &r + 1;
             let paramid = r + 1;
-            let pname = "".to_owned() + &codelevelabove.to_string() + "__internalparam" + &paramid.to_string();
+            let pname = "".to_owned() + "internalparam" + &paramid.to_string();
             //let pname = "param".to_owned() + &paramid.to_string();
 
             vmap.setvar(pname, &args[r]); // set all param arguments
@@ -501,7 +501,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 // }
                 // nscript_setparams_handleconnections(&newparams,vmap);
                 let scriptcode = read_file_utf8(&file_path);
-                let compcode = nscript_formatsheet(&scriptcode);
+                let compcode = nscript_formatsheet(&scriptcode,vmap);
                 let response = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
@@ -534,7 +534,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                         let nc404file = NC_SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/404.nc";
                         println!("404={},",nc404file);
                         if Nfile::checkexists(&nc404file){
-                            let compcode = nscript_formatsheet(&read_file_utf8(&nc404file));
+                            let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
                             let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
                             nscript_clearparams_handleconnections(vmap);
                             response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
@@ -562,7 +562,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     }
                 };
             let scriptcode = read_file_utf8(&file_path);
-                let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode));
+                let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode),vmap);
                 let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
                 nscript_clearparams_handleconnections(vmap);
                 let response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
@@ -711,12 +711,19 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
         nscript_loops(vmap);
         match listener.accept() {
             Ok((stream, _)) => {
+                match stream.peer_addr(){
+                    Ok(res) =>{
+                        let remote_ip = res.ip();
+                        vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
+                        let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
+                        nscript_checkvar(&onconfunc,vmap);
+                        handle_connection(stream,vmap);
+                    }
+                    Err(err)=>{
+                        println!("Connection error{}",err);
+                    }
+                }
 
-                let remote_ip = stream.peer_addr().unwrap().ip();
-                vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
-                let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
-                nscript_checkvar(&onconfunc,vmap);
-                handle_connection(stream,vmap);
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connections yet,

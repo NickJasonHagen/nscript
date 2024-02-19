@@ -489,7 +489,7 @@ pub fn nscript_callfn(
         }
         "chain" => {
 
-            return nscript_runchains(split(param1," "), vmap);
+            return nscript_runchains(&split(param1," "), vmap);
         }
         "cwrite" | "print" => {
             cwrite(param1, param2);

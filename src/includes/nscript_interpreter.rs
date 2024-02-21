@@ -1041,11 +1041,12 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
                     );
                     let loopscope = Nstring::replace(&loopscope,"self","coSelf");
                     let loopscope = nscript_formatsheet(&loopscope,vmap);
-
+let blockname = "nscript_loops".to_owned() + "." + &loopref.trim();
                     vmap.setvar(
                         "nscript_loops".to_owned() + "." + &loopref.trim(),
                         &loopscope,
                     );
+                    vmap.setcodelines(&blockname, &loopscope);
                    return "".to_owned();
                 },
                 _ => {
@@ -1352,14 +1353,14 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
 
                 nscript_func_scopeextract(classname[0], vmap); // extract functions from class scope
                 let blocknew = vmap.getcode(&parsesubcode); // remaining when functions are removed
-                 oldself = vmap.getvar("self");// set self stack
+                oldself = vmap.getvar("self");// set self stack
                 //vmap.stackpush("___self", &classname[0].trim());                                                          //println!("Subblock::{}",&blocknew);
                 vmap.setvar("self".to_owned(), &classname[0].trim()); // assigning self var self.
 
                 let mut blocknew = Nstring::replace(&blocknew, "self.", "*self."); // Reflect self!!!
                 let oldscopecounter = vmap.scopecounter;
                 vmap.scopecounter = 0;
-                println!("remaining !!! : {}",&blocknew);
+                //println!("remaining !!! : {}",&blocknew);
                      blocknew = Nstring::trimleft(&blocknew, 1);
                      blocknew = Nstring::trimright(&blocknew, 1);
                 nscript_parseformattedsheet(&nscript_formatsheet(&blocknew,vmap),vmap); // run the remaining as classblock.
@@ -2906,11 +2907,13 @@ pub fn nscript_loops(vmap: &mut Varmap) {
 
         let subloops = split(&activeloops, "|");
         for x in subloops {
-            let d = vmap.getprop("nscript_loops", &x);
-            vmap.stackpush("___self", &x);
-            vmap.setvar("coSelf".to_owned(), &x);
-            nscript_parseformattedsheet(&d, vmap);
-            vmap.stackpop("___self");
+            // let d = vmap.getprop("nscript_loops", &x);
+            // //vmap.stackpush("___self", &x);
+            // vmap.setvar("coSelf".to_owned(), &x);
+            // nscript_parseformattedsheet(&d, vmap);
+            let blockname = "nscript_loops.".to_owned() + &x;
+            nscript_parsescopesheet(&blockname, vmap);
+            //vmap.stackpop("___self");
             //vmap.setvar("self".to_owned(), &x);
         }
         vmap.sound.runtimers();

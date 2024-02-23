@@ -562,9 +562,13 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     }
                 };
             let scriptcode = read_file_utf8(&file_path);
-                let compcode = nscript_formatsheet(&nscript_stringextract(&scriptcode),vmap);
+                let oldscriptname = vmap.currentscriptname.clone();
+                vmap.currentscriptname = file_path;
+                let compcode = nscript_stringextract(&scriptcode);
                 let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
-                nscript_clearparams_handleconnections(vmap);
+                //nscript_clearparams_handleconnections(vmap);
+vmap.currentscriptname = oldscriptname;
+
                 let response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {

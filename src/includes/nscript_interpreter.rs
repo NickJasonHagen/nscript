@@ -801,7 +801,7 @@ pub fn nscript_parseformattedsheet(coderaw: &str, vmap: &mut Varmap) -> String {
             toreturn = nscript_parseline(&words, vmap);
             if Nstring::instring(&toreturn, "RET=>") == true {
                 vmap.iflevel = oldiflevel;
-                return Nstring::replace(&toreturn, "RET=>", "");
+                return toreturn; // Nstring::replace(&toreturn, "RET=>", "");
             }
         }
     }

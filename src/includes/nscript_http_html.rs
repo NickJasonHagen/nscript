@@ -563,9 +563,10 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 };
             let scriptcode = read_file_utf8(&file_path);
                 let oldscriptname = vmap.currentscriptname.clone();
-                vmap.currentscriptname = file_path;
-                let compcode = nscript_stringextract(&scriptcode);
-                let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
+                vmap.currentscriptname = file_path.clone();
+                // let compcode = nscript_stringextract(&scriptcode);
+                // let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
+                let ret = nscript_execute_script(&file_path, &vmap.param1.clone(),&vmap.param2.clone(), &vmap.param3.clone(), &vmap.param4.clone(), &vmap.param5.clone(), &vmap.param6.clone(), &vmap.param7.clone(), &vmap.param8.clone(), &vmap.param9.clone(), vmap);
                 //nscript_clearparams_handleconnections(vmap);
 vmap.currentscriptname = oldscriptname;
 

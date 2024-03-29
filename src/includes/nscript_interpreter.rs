@@ -161,7 +161,7 @@ impl Varmap {
         let isobj = "obj_".to_owned() + &obj.trim();
         let g = self.varmap.get_key_value(&isobj);
         match g {
-            None => String::new(),
+            None => String::from(""),
             Some((_i, k)) => k.to_owned(),
         }
     }
@@ -186,11 +186,13 @@ impl Varmap {
         let objparenth = "nscript_classparents__".to_owned() + &obj;
         let parents = self.inobj(&objparenth);
         //println!("parents: {}",parents);
-        for eachparent in split(&parents, "|") {
-            if eachparent != "" {
-                // remove child from parent obj
-                let objchildh = "nscript_classchilds__".to_owned() + &eachparent.trim();
-                self.delprop(&objchildh, &obj.trim());
+        if parents != "" {
+            for eachparent in split(&parents, "|") {
+                if eachparent != "" {
+                    // remove child from parent obj
+                    let objchildh = "nscript_classchilds__".to_owned() + &eachparent.trim();
+                    self.delprop(&objchildh, &obj.trim());
+                }
             }
         }
     }
@@ -201,7 +203,7 @@ impl Varmap {
         let objname = &obj.trim();
         let propname = &key.trim();
         let fullkey = "obj_".to_owned() + &objname + "__" + &propname;
-        self.varmap.insert(fullkey.to_owned(), "".to_owned()); // clear vallue.. set none
+        self.varmap.remove(&fullkey); // clear vallue.. set none
 
         let objprops = "obj_".to_owned() + &objname; // index of all the properties - managed
         let g = self.varmap.get_key_value(&objprops);
@@ -307,7 +309,7 @@ impl Varmap {
                 None => {
                     let dbgmsg = "Undeclared property being called; ".to_owned() + &fullkey;
                     nscript_interpreterdebug(&dbgmsg, self.debugmode, self.strictness);
-                    String::new()
+                    String::from("")
                 }
                 Some((_i, k)) => k.to_owned(),
             }
@@ -330,7 +332,7 @@ impl Varmap {
         //println!("fullkeyobj:{}",&fullkey.red());
         let g = self.varmap.get_key_value(&fullkey);
         match g {
-            None => String::new(),
+            None => String::from(""),
             Some((_i, k)) => k.to_owned(),
         }
     }
@@ -420,7 +422,7 @@ impl Varmap {
         let result = match g {
             None => {
                 //println!("Result is None={}",&codename);
-                String::new()
+                String::from("")
             }
             Some((_i, k)) => {
                 let result = k.to_owned();
@@ -665,15 +667,7 @@ pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
     let oldiflevel = vmap.iflevel;
     vmap.iflevel = 1; //reset the iflevel counter ( used for else.elseifs)
 
-    let oldparam1 = vmap.getvar("internalparam1");
-    let oldparam2 = vmap.getvar("internalparam2");
-   let oldparam3 = vmap.getvar("internalparam3");
-   let oldparam4 = vmap.getvar("internalparam4");
-   let oldparam5 = vmap.getvar("internalparam5");
-   let oldparam6 = vmap.getvar("internalparam6");
-   let oldparam7 = vmap.getvar("internalparam7");
-   let oldparam8 = vmap.getvar("internalparam8");
-   let oldparam9 = vmap.getvar("internalparam9");
+
 
     vmap.codelvlup();
 
@@ -689,8 +683,7 @@ pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
         }
     };
     let codeblock = codeblock.clone();
-    //let lines = fixedcode.split("\n");
-//println!("lenght={}",codeblock.len());
+
     for lines in codeblock {
         //let mut words: Vec<&str> = Vec::new(); // Create a new Vec for each iteration
 
@@ -698,37 +691,20 @@ pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
         if str_refs.len() > 0 && str_refs[0] != "" {
 
             toreturn = nscript_parseline(&str_refs, vmap);
-//println!("res {} line::{:?}",toreturn,lines);
+
             //  when parse line sees return on word[0] it will add "RET=>"
             // this will break this loop and return the value back to callfn/nscript_func
             if Nstring::fromleft(&toreturn, 5) == "RET=>" {
                 vmap.codelvldown();
                 vmap.iflevel = oldiflevel;
-                vmap.setvar("internalparam1".to_owned(),&oldparam1);
-                vmap.setvar("internalparam2".to_owned(),&oldparam2);
-                vmap.setvar("internalparam3".to_owned(),&oldparam3);
-                vmap.setvar("internalparam4".to_owned(),&oldparam4);
-                vmap.setvar("internalparam5".to_owned(),&oldparam5);
-                vmap.setvar("internalparam6".to_owned(),&oldparam6);
-                vmap.setvar("internalparam7".to_owned(),&oldparam7);
-                vmap.setvar("internalparam8".to_owned(),&oldparam8);
-                vmap.setvar("internalparam9".to_owned(),&oldparam9);
-                //vmap.scopecounter = oldscopecounter.clone();
+
                 return Nstring::trimleft(&toreturn, 5);
             }
         }
     }
     vmap.iflevel = oldiflevel;
     vmap.codelvldown();
-    vmap.setvar("internalparam1".to_owned(),&oldparam1);
-    vmap.setvar("internalparam2".to_owned(),&oldparam2);
-    vmap.setvar("internalparam3".to_owned(),&oldparam3);
-    vmap.setvar("internalparam4".to_owned(),&oldparam4);
-    vmap.setvar("internalparam5".to_owned(),&oldparam5);
-    vmap.setvar("internalparam6".to_owned(),&oldparam6);
-    vmap.setvar("internalparam7".to_owned(),&oldparam7);
-    vmap.setvar("internalparam8".to_owned(),&oldparam8);
-    vmap.setvar("internalparam9".to_owned(),&oldparam9);
+
     //vmap.scopecounter = oldscopecounter.clone();
     return "..".to_owned();
 }
@@ -774,7 +750,9 @@ pub fn nscript_parsescopesheet(code: &str, vmap: &mut Varmap) -> String {
                 if toreturn == "RET=>break" {
                     return toreturn;
                 }
-                return Nstring::trimleft(&toreturn, 5);
+                return toreturn;
+
+                //return Nstring::trimleft(&toreturn, 5);
             }
         }
     }
@@ -1840,7 +1818,7 @@ pub fn nscript_func(func: &str, vmap: &mut Varmap) -> String {
 
     vmap.scopecounter = 0;
     vmap.currentfuncname = isfullfnname.to_string();
-    let get = nscript_parsescopesheet(&isfullfnname, vmap); // run code
+    let get = nscript_parsefuncsheet(&isfullfnname, vmap); // run code
     vmap.scopecounter = oldscopecounter;
     vmap.currentfuncname = oldfuncname;
 

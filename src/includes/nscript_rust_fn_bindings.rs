@@ -132,28 +132,43 @@ pub fn nscript_callfn(
 
         "download" =>{
             let mut port: u16 = 80;
-            if let Ok(port) = param2.to_owned().parse::<u16>() {
+            if let Ok(porta) = param2.to_owned().parse::<u16>() {
                 println!("Parsed port number: {}", port);
+                port = porta;
                 // Use the port number (port) here in your code
             } else {
                 port = 80;
                 println!("Failed to parse port number");
                 // Handle the case when parsing fails
             }
-            match get_http_file_content(param1, port,param3,param4) {
-                Ok(data) => println!("File content: {:?}", String::from_utf8_lossy(&data)),
-                Err(err) => eprintln!("Error: {}", err),
-            }
-            return "".to_string();
+            let toret = match get_http_file_content(param1, port,param3,param4) {
+                Ok(_) => format!("File download  @{}", param4),
+                Err(err) => format!("Error: {}", err),
+            };
+            return toret.to_string();
         }
-        "httpget" => {
-            let mut port: u16 = 80;
-            if let Ok(port) = param2.to_owned().parse::<u16>() {
-                println!("Parsed port number: {}", port);
+        "httppost" => {
+            let port: u16;
+            if let Ok(porta) = param2.to_owned().parse::<u16>() {
+                //println!("Parsed port number: {}", port);
                 // Use the port number (port) here in your code
+                port = porta;
             } else {
                 port = 80;
-                println!("Failed to parse port number");
+                //println!("Failed to parse port number");
+                // Handle the case when parsing fails
+            }
+            return httppost(param1,port,param3,param4);
+        }
+        "httpget" => {
+            let port: u16;
+            if let Ok(porta) = param2.to_owned().parse::<u16>() {
+                //println!("Parsed port number: {}", port);
+                // Use the port number (port) here in your code
+                port = porta;
+            } else {
+                port = 80;
+                //println!("Failed to parse port number");
                 // Handle the case when parsing fails
             }
 
@@ -165,7 +180,7 @@ pub fn nscript_callfn(
                         return "httpget: Failed to convert to string".to_string();
                     }
                 },
-                Err(_) => return "error".to_string(),
+                Err(err) => return err.to_string(),
             }
         }
         "ncwebserver" => {
@@ -175,18 +190,18 @@ pub fn nscript_callfn(
             }
 
         }
-        "rawget" => {
-            match raw_http_get(param1,param2) {
-                Ok(response) => return response ,
-                Err(_) => return String::new(),
-            }
-        }
-        "rawgetfile" => {
-            match raw_http_get_file(param1,param2,param3) {
-                Ok(response) => return response ,
-                Err(_) => return "rawgetfile fileerror".to_string(),
-            }
-        }
+        // "rawget" => {
+        //     match raw_http_get(param1,param2) {
+        //         Ok(response) => return response ,
+        //         Err(_) => return String::new(),
+        //     }
+        // }
+        // "rawgetfile" => {
+        //     match raw_http_get_file(param1,param2,param3) {
+        //         Ok(response) => return response ,
+        //         Err(_) => return "rawgetfile fileerror".to_string(),
+        //     }
+        // }
         "restrictionmode" => {
             nscript_setrestrictionmode(&param1,vmap);
             return "".to_owned() + &param1;
@@ -292,7 +307,7 @@ pub fn nscript_callfn(
             return Nstring::fromhexplus(param1);
         }
 
-        "threadtest" => {
+        "threadsend" => {
              match vmap.threadssenders.get(param1){
                 Some(sender) => {
                 match sender.send(param2.to_string()){
@@ -307,7 +322,8 @@ pub fn nscript_callfn(
                                     match msg.as_str(){
                                         _ =>{
                                             if msg.as_str() != ""{
-                                                println!("main received:{}",msg);
+                                                //println!("main received:{}",msg);
+                                                return msg;
 
                                             }
 
@@ -315,21 +331,21 @@ pub fn nscript_callfn(
                                     }
                                 },
                                 None => {
-                                    println!("no thread receiver channel found!")
+                                    println!("no thread [{}] receiver channel found!",&param1);
                                 }
                             }
 
                         },
                     Err(_)=>{
 
-                            println!("main send error!")
+                            println!("main[{}] send error!",&param1);
                         }
                 };
                     return "ok".to_owned();
                 }
                 None => {
                     println!("no threads found");
-                    return "error no threads".to_owned();
+                    return "".to_owned();
                 }
             };
         }
@@ -523,6 +539,9 @@ pub fn nscript_callfn(
         "terminalflush" => {
             Nterminal::flush();
             return "".to_owned();
+        }
+        "len" => {
+            return split(param1,NC_ARRAY_DELIM).len().to_string();
         }
         "timerinit" => {
             return Ntimer::init().to_string();

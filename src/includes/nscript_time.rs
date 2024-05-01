@@ -1,61 +1,24 @@
 
 use crate::*;
-
+use std::time::{SystemTime, UNIX_EPOCH};
 pub struct Ntimer {
 
 }
 
 impl Ntimer {
-    pub fn diff(timerhandle: i64) -> i64 {
-        let getnow = Ntimer::init();
-        let diff = getnow - timerhandle;
-        return diff;
-    }
     pub fn init() -> i64 {
-        let time = chrono::Utc::now();
-        let mut timerstring = String::from(&time.year().to_string());
-        if &time.month() < &10 {
-            timerstring = timerstring + "0" + &time.month().to_string();
-        } else {
-            timerstring = timerstring + &time.month().to_string();
-        }
-        // check day for 2 characters
-        if &time.day() < &10 {
-            timerstring = timerstring + "0" + &time.day().to_string();
-        } else {
-            timerstring = timerstring + &time.day().to_string();
-        }
-        // check hour for 2 characters
-        if &time.hour() < &10 {
-            timerstring = timerstring + "0" + &time.hour().to_string();
-        } else {
-            timerstring = timerstring + &time.hour().to_string();
-        }
-        // check minute for 2 characters
-        if &time.minute() < &10 {
-            timerstring = timerstring + "0" + &time.minute().to_string();
-        } else {
-            timerstring = timerstring + &time.minute().to_string();
-        }
-        // check second for 2 characters
-        if &time.second() < &10 {
-            timerstring = timerstring + "0" + &time.second().to_string();
-        } else {
-            timerstring = timerstring + &time.second().to_string();
-        }
-        // check milisecond for 3 characters
-        if &time.timestamp_subsec_millis() < &100 {
-            if &time.timestamp_subsec_millis() < &10 {
-                timerstring = timerstring + "00" + &time.timestamp_subsec_millis().to_string();
-            } else {
-                timerstring = timerstring + "0" + &time.timestamp_subsec_millis().to_string();
-            }
-        } else {
-            timerstring = timerstring + &time.timestamp_subsec_millis().to_string();
-        }
-        return timerstring.parse::<i64>().unwrap();
+        // sets a timestamp in a i64 (in nscript_fn_bindings converted to strings)
+        let now = SystemTime::now();
+        let duration = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
+        return duration.as_millis() as i64;
     }
 
+    pub fn diff(timerhandle: i64) -> i64 {
+        // given a timestamp from init() it will give the timedifference in MS
+        let now = SystemTime::now();
+        let duration = now.duration_since(UNIX_EPOCH).expect("Time went backwards");
+        return duration.as_millis() as i64 - timerhandle;
+    }
     pub fn hours_in_ms(time: &str) -> String {
         return "".to_owned() + &(nscript_f64(&time)* nscript_f64(&"3600000")).to_string() ;
     }

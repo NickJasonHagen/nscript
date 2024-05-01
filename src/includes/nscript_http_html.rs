@@ -4,6 +4,7 @@ use crate::*;
 //use reqwest;
 //use reqwest::blocking::get;
 use std::time::Duration;
+use std::time::Instant;
 
 
 // pub fn curl(url: &str) -> String {
@@ -18,176 +19,273 @@ use std::time::Duration;
 //     }
 //     String::new()
 // }
-
-pub fn raw_http_get(url: &str,fname: &str) -> Result<String, Box<dyn std::error::Error>> {
-
-    //format for TCP socket
-    let spliturl =  split(&url,":");
-    let host = &spliturl[0];
-    let mut port = "80";
-    if spliturl.len() > 1 {
-        port = spliturl[1];
-    }
-    let addr = format!("{}:{}", &host, &port)
-        .to_socket_addrs()?
-        .next()
-        .ok_or("Unable to resolve the hostname")?;
-
+//
+// pub fn raw_http_get(url: &str,fname: &str) -> Result<String, Box<dyn std::error::Error>> {
+//
+//     //format for TCP socket
+//     let spliturl =  split(&url,":");
+//     let host = &spliturl[0];
+//     let mut port = "80";
+//     if spliturl.len() > 1 {
+//         port = spliturl[1];
+//     }
+//     let addr = format!("{}:{}", &host, &port)
+//         .to_socket_addrs()?
+//         .next()
+//         .ok_or("Unable to resolve the hostname")?;
+//
+//     // Connect to the server
+//
+//     let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
+//     match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
+//
+//         Ok(_) => {},
+//         Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+//     }
+//
+//     // let err = result.unwrap_err();
+//     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+//     match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
+//
+//         Ok(_) => {},
+//         Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+//     }
+//     // create the GET header
+//     let msg = "GET /".to_owned() + &fname + " HTTP/1.1
+// Host:" + &format!("{}:{}", &host, &port) +"
+// User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+// Accept-Encoding: gzip, deflate
+// Accept-Language: en-US,en;q=0.9
+// Connection: keep-alive
+// ";
+//     // send the Get request to the server, the socket will send meta back
+//     // close and the next stream be the dataloop.
+//     let byte_slice: &[u8] = msg.as_bytes();
+//     stream.write_all(&byte_slice)?;
+//
+//     // Receive response from the server
+//     let mut buffer = [0; 1024];
+//     let bytes_read = stream.read(&mut buffer)?;
+//     let rawres = String::from_utf8_lossy(&buffer[0..buffer.len()]);
+//     // get the size of what we going to receive.
+//     let bytesize = Nstring::stringbetween(&rawres,"Content-Length: ","\n");
+//     let buffer_size: usize = bytesize.parse().unwrap_or(1024);
+//     // create a new bytebuffer with the size of the contents
+//     let mut buffer = vec![0; buffer_size];
+//     let mut receivedbytes = 0; // used as counter++
+//     // this string be filled with the data read as bytes.
+//     let mut receivedstring = String::new();
+//     let mut timerdc = Ntimer::init();
+//     loop {
+//         match stream.read(&mut buffer){
+//             Ok(e) => {
+//                 let bytes_read = e;
+//                 receivedbytes += bytes_read;
+//                 receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+//                 timerdc = Ntimer::init();
+//
+//             },
+//             Err(_) => {
+//                 println!("rawget Streamread error");
+//                 break;
+//             },
+//         };
+//
+//
+//         if Ntimer::diff(timerdc) >= 1999 {
+//             println!("rawget timedout 2seconds., exit loop proceed code.");
+//             return Ok("timedout".to_string());
+//         }
+//         if bytes_read == 0 {
+//             // this is a socket close / end of packet / error.
+//             break;
+//         }
+//     }
+//
+//     //Nfile::write("./testget.txt",&receivedstring);
+//     Ok(receivedstring.to_string())
+// }
+// pub fn raw_http_get_file(url: &str,fname: &str,saveas: &str) -> Result<String, Box<dyn std::error::Error>> {
+//
+//     //format for TCP socket
+//     let spliturl =  split(&url,":");
+//     let host = &spliturl[0];
+//     let mut port = "80";
+//     if spliturl.len() > 1 {
+//         port = spliturl[1];
+//     }
+//     let addr = format!("{}:{}", &host, &port)
+//         .to_socket_addrs()?
+//         .next()
+//         .ok_or("Unable to resolve the hostname")?;
+//
+//     // Connect to the server
+//     let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
+//     match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
+//
+//         Ok(_) => {},
+//         Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+//     }
+//
+//     // let err = result.unwrap_err();
+//     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+//     match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
+//
+//         Ok(_) => {},
+//         Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+//     }
+//     // create the GET header
+//     let msg = "GET /".to_owned() + &fname + " HTTP/1.1
+// Host:" + &format!("{}:{}", &host, &port) +"
+// User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+// Accept-Encoding: gzip, deflate
+// Accept-Language: en-US,en;q=0.9
+// Connection: keep-alive
+// ";
+//     // send the Get request to the server, the socket will send meta back
+//     // close and the next stream be the dataloop.
+//     let byte_slice: &[u8] = msg.as_bytes();
+//     stream.write_all(&byte_slice)?;
+//
+//     // Receive response from the server
+//     let mut buffer = [0; 1024];
+//     let bytes_read = stream.read(&mut buffer)?;
+//     let rawres = String::from_utf8_lossy(&buffer[0..buffer.len()]);
+//     // get the size of what we going to receive.
+//     let bytesize = Nstring::stringbetween(&rawres,"Content-Length: ","\n");
+//     let buffer_size: usize = bytesize.parse().unwrap_or(1024);
+//     // create a new bytebuffer with the size of the contents
+//     let mut buffer = vec![0; buffer_size];
+//     let mut receivedbytes = 0; // used as counter++
+//     // this string be filled with the data read as bytes.
+//     let mut receivedstring = String::new();
+//     let mut timerdc = Ntimer::init();
+//     loop {
+//         match stream.read(&mut buffer){
+//             Ok(e) => {
+//                 let bytes_read = e;
+//                 receivedbytes += bytes_read;
+//                 receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+//                 timerdc = Ntimer::init();
+//
+//             },
+//             Err(_) => {
+//                 println!("rawget Streamread error");
+//                 break;
+//             },
+//         };
+//
+//         if bytes_read == 0 {
+//             // this is a socket close / end of packet / error.
+//             break;
+//         }
+//         if Ntimer::diff(timerdc) >= 1999 {
+//             println!("rawget timedout 2seconds., exit loop proceed code.");
+//             break;
+//         }
+//
+//     }
+//     Nfile::write(saveas,&receivedstring);
+//     Ok("FiledownloadComplete".to_string())
+// }
+pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
     // Connect to the server
-
-    let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
-    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
-
-        Ok(_) => {},
-        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
-    }
-
-    // let err = result.unwrap_err();
-    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
-
-        Ok(_) => {},
-        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
-    }
-    // create the GET header
-    let msg = "GET /".to_owned() + &fname + " HTTP/1.1
-Host:" + &format!("{}:{}", &host, &port) +"
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-Accept-Encoding: gzip, deflate
-Accept-Language: en-US,en;q=0.9
-Connection: keep-alive
-";
-    // send the Get request to the server, the socket will send meta back
-    // close and the next stream be the dataloop.
-    let byte_slice: &[u8] = msg.as_bytes();
-    stream.write_all(&byte_slice)?;
-
-    // Receive response from the server
-    let mut buffer = [0; 1024];
-    let bytes_read = stream.read(&mut buffer)?;
-    let rawres = String::from_utf8_lossy(&buffer[0..buffer.len()]);
-    // get the size of what we going to receive.
-    let bytesize = Nstring::stringbetween(&rawres,"Content-Length: ","\n");
-    let buffer_size: usize = bytesize.parse().unwrap_or(1024);
-    // create a new bytebuffer with the size of the contents
-    let mut buffer = vec![0; buffer_size];
-    let mut receivedbytes = 0; // used as counter++
-    // this string be filled with the data read as bytes.
-    let mut receivedstring = String::new();
-    let mut timerdc = Ntimer::init();
-    loop {
-        match stream.read(&mut buffer){
-            Ok(e) => {
-                let bytes_read = e;
-                receivedbytes += bytes_read;
-                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                timerdc = Ntimer::init();
-
-            },
-            Err(_) => {
-                println!("rawget Streamread error");
-                break;
-            },
-        };
+    //
+    let mut stream = match TcpStream::connect((ipaddr, port)) {
+        Ok(stream) => stream,
+        Err(err) => return format!("Failed to connect: {}", err),
+    };
+                // match stream.set_read_timeout(Some(Duration::new(0, 1000000000))){
+                //
+                //     Ok(_) => {},
+                //     Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+                // }
+                //
+                // // let err = result.unwrap_err();
+                // // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                // match stream.set_write_timeout(Some(Duration::new(0, 1000000000))){
+                //
+                //     Ok(_) => {},
+                //     Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+                // }
 
 
-        if Ntimer::diff(timerdc) >= 1999 {
-            println!("rawget timedout 2seconds., exit loop proceed code.");
-            return Ok("timedout".to_string());
-        }
-        if bytes_read == 0 {
-            // this is a socket close / end of packet / error.
-            break;
+    let mut resultstring = String::new();
+    // Prepare the HTTP POST request
+    let request = format!("POST {} HTTP/1.1\r\n\
+        Host: {}:{}\r\n\
+        Content-Type: application/x-www-form-urlencoded\r\n\
+        Content-Length: {} Cache\r\n\
+        Connection: close\r\n\
+        \r\n\
+        {}\r\n", url, ipaddr, port, postdata.len(), postdata);
+//println!("{}",request);
+    // Send the request
+    if postdata.len() <= 198 {// check multiparts
+        if let Err(err) = stream.write_all(request.as_bytes()) {
+            //return Err(format!("Failed to send request: {}", err));
+            resultstring = format!("Failed to send request: {}", err);
+            return resultstring;
         }
     }
+    else{
 
-    //Nfile::write("./testget.txt",&receivedstring);
-    Ok(receivedstring.to_string())
-}
-pub fn raw_http_get_file(url: &str,fname: &str,saveas: &str) -> Result<String, Box<dyn std::error::Error>> {
-
-    //format for TCP socket
-    let spliturl =  split(&url,":");
-    let host = &spliturl[0];
-    let mut port = "80";
-    if spliturl.len() > 1 {
-        port = spliturl[1];
-    }
-    let addr = format!("{}:{}", &host, &port)
-        .to_socket_addrs()?
-        .next()
-        .ok_or("Unable to resolve the hostname")?;
-
-    // Connect to the server
-    let mut stream = TcpStream::connect_timeout(&addr,Duration::from_secs(4))?;
-    match stream.set_read_timeout(Some(Duration::new(0, 420000000))){
-
-        Ok(_) => {},
-        Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
-    }
-
-    // let err = result.unwrap_err();
-    // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-    match stream.set_write_timeout(Some(Duration::new(0, 420000000))){
-
-        Ok(_) => {},
-        Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
-    }
-    // create the GET header
-    let msg = "GET /".to_owned() + &fname + " HTTP/1.1
-Host:" + &format!("{}:{}", &host, &port) +"
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-Accept-Encoding: gzip, deflate
-Accept-Language: en-US,en;q=0.9
-Connection: keep-alive
-";
-    // send the Get request to the server, the socket will send meta back
-    // close and the next stream be the dataloop.
-    let byte_slice: &[u8] = msg.as_bytes();
-    stream.write_all(&byte_slice)?;
-
-    // Receive response from the server
-    let mut buffer = [0; 1024];
-    let bytes_read = stream.read(&mut buffer)?;
-    let rawres = String::from_utf8_lossy(&buffer[0..buffer.len()]);
-    // get the size of what we going to receive.
-    let bytesize = Nstring::stringbetween(&rawres,"Content-Length: ","\n");
-    let buffer_size: usize = bytesize.parse().unwrap_or(1024);
-    // create a new bytebuffer with the size of the contents
-    let mut buffer = vec![0; buffer_size];
-    let mut receivedbytes = 0; // used as counter++
-    // this string be filled with the data read as bytes.
-    let mut receivedstring = String::new();
-    let mut timerdc = Ntimer::init();
-    loop {
-        match stream.read(&mut buffer){
-            Ok(e) => {
-                let bytes_read = e;
-                receivedbytes += bytes_read;
-                receivedstring = receivedstring + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                timerdc = Ntimer::init();
-
-            },
-            Err(_) => {
-                println!("rawget Streamread error");
-                break;
-            },
-        };
-
-        if bytes_read == 0 {
-            // this is a socket close / end of packet / error.
-            break;
+        if let Err(err) = stream.write(&request.as_bytes()[0..1024]) {
+            //return Err(format!("Failed to send request: {}", err));
+            resultstring = format!("Failed to send request: {}", err);
+            return resultstring;
         }
-        if Ntimer::diff(timerdc) >= 1999 {
-            println!("rawget timedout 2seconds., exit loop proceed code.");
-            break;
-        }
+        // let mut response = String::new();
+        // if let Err(err) = stream.read_to_string(&mut response) {
+        //     resultstring = format!("Failed to recv request: {}", err);
+        //     return resultstring;
+        // }
+        // if Nstring::instring(&response, "200 OK"){
+            let mut bytefragment = 1024;
+            let mut addbytes:usize;
+        let lastbyte = request.len() -1;
+            loop {
+                // if bytefragment + 1024 > postdata.len(){
+                //
+                // }
+            addbytes = &bytefragment + 1024;
+            if  addbytes >= lastbyte{
+                addbytes = lastbyte.clone();
+            }
+                let newpart  = request[bytefragment..addbytes].to_string();
+                //println!("bytes[{}]/ {}",&bytefragment,&lastbyte);
+                if let Err(err) = stream.write(newpart.as_bytes()) {
+                    //return Err(format!("Failed to send request: {}", err));
+                    resultstring = format!("Failed to send request: {}", err);
+                    return resultstring;
+                }
+                if bytefragment >= lastbyte{
+                    break;
+                }
+
+                bytefragment = addbytes.clone();
+            }
+
+        //}
+        //println!("")
+
 
     }
-    Nfile::write(saveas,&receivedstring);
-    Ok("FiledownloadComplete".to_string())
+
+    // Read the response
+    let mut response = String::new();
+    if let Err(err) = stream.read_to_string(&mut response) {
+        resultstring = format!("Failed to recv request: {}", err);
+        return resultstring;
+    }
+
+    let res = split(&response,"\r\n\r\n");
+    if res.len() > 1 {
+        return res[1].to_string();
+    }
+    return res[0].to_string();
 }
 
 pub fn decode_html_url(url: &str) -> String {
@@ -316,11 +414,12 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
         }
         Err(_) => {
             // handle OS error on connection-reset
-            //println!("stream read error ! ");
+            println!("stream read error ! ");
             return;
         }
     }
     let request = String::from_utf8_lossy(&buffer[..]);
+    vmap.setvar("server.request".to_owned(),&request);
     if Nstring::instring(&request, "B blob data") {
         println!("(debug->returning) Blob data entering: {}",&request);
         return ; // prevent errors , return!
@@ -341,6 +440,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     let trimmedreq: String;
     if request_parts.len() > 1 {
         if request_parts[1].contains("B blob data") {
+            println!("blobdatafound returning");
             return ; // Ignore blob data and return without processing
         }
         trimmedreq = Nstring::trimleft(&request_parts[1],1);
@@ -372,13 +472,18 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     }
 
     nscript_setparams_handleconnections(&newparams,vmap);
+    let mut webroot = nscript_checkvar("server.serverroot", vmap);
+    if webroot == ""{
+        webroot = NC_SCRIPT_DIR.to_owned();
+    }
 
-    let mut file_path = Nstring::replace(&format!("{}{}", NC_SERVER_ROOT, &pathparts[0]),"/..","");
-        let checkthis = NC_SCRIPT_DIR.to_owned() + "domains/" + &domainname + "/http.nc";
-        if Nfile::checkexists(&checkthis){
-            file_path = NC_SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/"+ &pathparts[0];
+    let mut file_path = Nstring::replace(&format!("{}{}{}", &webroot,"/public/", &Nstring::stringbetween(&request, "T ", " HTTP")),"/..","");
+    let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
+    if Nfile::checkexists(&checkthis){
+        file_path = webroot.clone() + "domains/"  + &domainname + "/public/"+ &pathparts[0];
 
     }
+    //println!("entree:{}",&file_path);
     if request_parts[0] == "POST" {
         let mut postdata = String::new();
 
@@ -412,19 +517,19 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                             //return;
                         }
                     }
-                match stream.set_read_timeout(Some(Duration::new(0, 10000000))){
-
-                    Ok(_) => {},
-                    Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
-                }
-
-                // let err = result.unwrap_err();
-                // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                match stream.set_write_timeout(Some(Duration::new(0, 10000000))){
-
-                    Ok(_) => {},
-                    Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
-                }
+                // match stream.set_read_timeout(Some(Duration::new(0, 10000000))){
+                //
+                //     Ok(_) => {},
+                //     Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
+                // }
+                //
+                // // let err = result.unwrap_err();
+                // // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+                // match stream.set_write_timeout(Some(Duration::new(0, 10000000))){
+                //
+                //     Ok(_) => {},
+                //     Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
+                // }
 
 
                 if bsize > nscript_f64(&nscript_checkvar("server.POSTbytesmax",vmap)){
@@ -443,16 +548,18 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
 
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
-                    let mut  dctimer = Ntimer::init();
+                    //let mut  dctimer = Ntimer::init();
                     // set ensurances to break the connection if some hangs.
 
 
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-
+                    let mut start_time = Instant::now();
                     loop{
-                        if Ntimer::diff(dctimer) >= 20{
+                        let end = Instant::now();
+                        if (start_time - end).as_millis() >= 1000{
                             // dc timer for inactivity should break the loop.
+                            //
                             break;
                         }
 
@@ -462,13 +569,15 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                                 //println!("\nbytesRead!{}\n",bytes_read);
 
                                 postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                                if bytes_read <= 1023  {
+                                if bytes_read <=  1023 {
 
                                     break;
                                 }
 
                                 // reset the timer.
-                                dctimer = Ntimer::init();
+                                //dctimer = Ntimer::init();
+
+                                 start_time = Instant::now();
                                 // procceed the connection.
 
                             }
@@ -500,9 +609,11 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 //     }
                 // }
                 // nscript_setparams_handleconnections(&newparams,vmap);
+                //println!("filepath:{}",&file_path);
                 let scriptcode = read_file_utf8(&file_path);
-                let compcode = nscript_formatsheet(&scriptcode,vmap);
-                let response = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);
+                //println!("script:{}",scriptcode);
+                //let compcode = nscript_formatsheet(&scriptcode,vmap);
+                let response = nscript_parsesheet(&nscript_replaceparams(&nscript_stringextract(&scriptcode),"param"), vmap);
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
                         // Check if all bytes were successfully written.
@@ -531,7 +642,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                     Err(_) => {
 
                         let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                        let nc404file = NC_SCRIPT_DIR.to_owned() + "domains/"  + &domainname + "/public/404.nc";
+                        let nc404file = webroot.clone() + "domains/"  + &domainname + "/public/404.nc";
                         println!("404={},",nc404file);
                         if Nfile::checkexists(&nc404file){
                             let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
@@ -667,10 +778,13 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
 
     println!("Starting Nscript WebServer {}",NSCRIPT_VERSION);
     println!("____________________________________");
-
+    let mut webroot = nscript_checkvar("server.serverroot", vmap);
+    if webroot == ""{
+        webroot = NC_SCRIPT_DIR.to_owned();
+    }
     // run Nscript:server.nc ,define pre logic here, this runs before the stream starts.
     vmap.setvar("self".to_owned(),"server");//<- set self in nscript during scope
-    let serverscriptfilename = NC_SCRIPT_DIR.to_owned() +"system/webserver.nc";
+    let serverscriptfilename = webroot.clone() +"system/webserver.nc";
     nscript_execute_script(&serverscriptfilename,"","","","","","","","","",vmap);
     // retrieve the prop's set for class server in nscript:server.nc
     let server_addres_nc = nscript_checkvar("server.ip",vmap);
@@ -698,17 +812,20 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
     // this checks your /domains/ folder for subfolders
     // you can name a folder to your dns-domain
     // all http to this domain be rerouted to this folders
-    let domaindir = NC_SCRIPT_DIR.to_owned() +"domains/";
+
+    let domaindir = webroot.clone() +"domains/";
+    println!("domaindir={}",&domaindir);
     let domdir = Nfile::dirtolist(&domaindir,false);
     let domaindirarr = split(&domdir,NC_ARRAY_DELIM);
     for domainscript in domaindirarr {
         if domainscript != ""{
             vmap.setvar("___domainname".to_owned(),&domainscript);
-            let domainscript = NC_SCRIPT_DIR.to_owned() + "domains/"+domainscript.trim() + "/http.nc";
+            let domainscript = webroot.clone() + "domains/"+domainscript.trim() + "/http.nc";
             nscript_execute_script(&domainscript,"","","","","","","","","", vmap);
             println!("Loading domain script:[{}]",&domainscript);
         }
     }
+    println!("Domains loaded, starting listener");
 
 
     loop {
@@ -722,6 +839,7 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
                         let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
                         nscript_checkvar(&onconfunc,vmap);
                         handle_connection(stream,vmap);
+                        //println!("connection ok and closed");
                     }
                     Err(err)=>{
                         println!("Connection error{}",err);
@@ -765,7 +883,7 @@ pub fn get_http_file_content(host: &str, port: u16, path: &str, pathoutput: &str
 
 pub fn get_http_content(host: &str, port: u16, path: &str) -> Result<Vec<u8>, std::io::Error> {
     let mut stream = TcpStream::connect((host, port))?;
-    let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n", path, host);
+    let request = format!("GET {} HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\n\r\n", path,port, host);
 
     stream.write_all(request.as_bytes())?;
 

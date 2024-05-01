@@ -276,6 +276,96 @@ impl Nterminal{
                     ret = "space".to_owned();
                     break
                 },
+                Key::Char('.') =>{
+                    ret = ".".to_owned();
+                    break
+                },
+                Key::Char(',') =>{
+                    ret = ",".to_owned();
+                    break
+                },
+                Key::Char('(') =>{
+                    ret = "(".to_owned();
+                    break
+                },
+                Key::Char(')') =>{
+                    ret = ")".to_owned();
+                    break
+                },
+                Key::Char('"') =>{
+                    ret = "".to_owned();
+                    break
+                },
+                Key::Char('!') =>{
+                    ret = "!".to_owned();
+                    break
+                },
+                Key::Char('@') =>{
+                    ret = "@".to_owned();
+                    break
+                },
+                Key::Char('#') =>{
+                    ret = "#".to_owned();
+                    break
+                },
+                Key::Char('%') =>{
+                    ret = "%".to_owned();
+                    break
+                },
+                Key::Char('^') =>{
+                    ret = "^".to_owned();
+                    break
+                },
+                Key::Char('&') =>{
+                    ret = "&".to_owned();
+                    break
+                },
+                Key::Char('*') =>{
+                    ret = "*".to_owned();
+                    break
+                },
+
+                Key::Char('1') =>{
+                    ret = "1".to_owned();
+                    break
+                },
+                Key::Char('2') =>{
+                    ret = "2".to_owned();
+                    break
+                },
+                Key::Char('3') =>{
+                    ret = "3".to_owned();
+                    break
+                },
+                Key::Char('4') =>{
+                    ret = "4".to_owned();
+                    break
+                },
+                Key::Char('5') =>{
+                    ret = "5".to_owned();
+                    break
+                },
+                Key::Char('6') =>{
+                    ret = "6".to_owned();
+                    break
+                },
+                Key::Char('7') =>{
+                    ret = "7".to_owned();
+                    break
+                },
+                Key::Char('8') =>{
+                    ret = "8".to_owned();
+                    break
+                },
+                Key::Char('9') =>{
+                    ret = "9".to_owned();
+                    break
+                },
+                Key::Char('0') =>{
+                    ret = "0".to_owned();
+                    break
+                },
+
 
                 Key::Up =>{
                     ret =  "up".to_owned();
@@ -298,6 +388,63 @@ impl Nterminal{
                     ret =  "tab".to_owned();
                     break
                 },
+                Key::Ctrl('c')=>{
+                    ret =  "ctrlc".to_owned();
+                    break
+                },
+                Key::Alt('r')=>{
+                    ret =  "altr".to_owned();
+                    break
+                },
+                Key::F(1)=>{
+                    ret =  "F1".to_owned();
+                    break
+                },
+                Key::F(2)=>{
+                    ret =  "F2".to_owned();
+                    break
+                },
+                Key::F(3)=>{
+                    ret =  "F3".to_owned();
+                    break
+                },
+                Key::F(4)=>{
+                    ret =  "F4".to_owned();
+                    break
+                },
+                Key::F(5)=>{
+                    ret =  "F5".to_owned();
+                    break
+                },
+                Key::F(6)=>{
+                    ret =  "F6".to_owned();
+                    break
+                },
+                Key::F(7)=>{
+                    ret =  "F7".to_owned();
+                    break
+                },
+                Key::F(8)=>{
+                    ret =  "F8".to_owned();
+                    break
+                },
+                Key::F(9)=>{
+                    ret =  "F9".to_owned();
+                    break
+                },
+                Key::F(10)=>{
+                    ret =  "F10".to_owned();
+                    break
+                },
+                Key::F(11)=>{
+                    ret =  "F11".to_owned();
+                    break
+                },
+                Key::F(12)=>{
+                    ret =  "F12".to_owned();
+                    break
+                },
+
                 Key::Backspace =>{
                     ret =  "backspace".to_owned();
                     break
@@ -612,7 +759,7 @@ pub struct Nc_os{
         if let Ok(value) = env::var(var) {
             ret = value;
         } else {
-            ret = "~/nscript".to_owned();
+            ret = "~/.nscript".to_owned();
         }
         ret
     }
@@ -624,6 +771,20 @@ pub struct Nc_os{
             }
             ret
         }
+    pub fn envargs(vmap: &mut Varmap){
+        let args: Vec<String> = env::args().collect();
+        let mut i = 0;
+        for x in args{
+            if Nstring::instring(&x, "target/release/") == false{
+                i +=1;
+
+                //println!("arg {} = {}",&i,&x);
+                let nscriptvarname = "cmdarg".to_owned() + &i.to_string();
+                vmap.setvar(nscriptvarname,&x);
+            }
+
+        }
+    }
 }
 // fn convert_array<T: std::fmt::Display>(array: &[T]) -> String {
 //     let elements: Vec<String> = array.iter().map(|element| element.to_string()).collect();

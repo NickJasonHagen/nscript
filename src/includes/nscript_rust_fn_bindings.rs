@@ -322,7 +322,7 @@ pub fn nscript_callfn(
                                     match msg.as_str(){
                                         _ =>{
                                             if msg.as_str() != ""{
-                                                //println!("main received:{}",msg);
+                                                //println!("main sent{} received:{}",param2,msg);
                                                 return msg;
 
                                             }
@@ -330,6 +330,8 @@ pub fn nscript_callfn(
                                         }
                                     }
                                 },
+
+
                                 None => {
                                     println!("no thread [{}] receiver channel found!",&param1);
                                 }
@@ -338,7 +340,8 @@ pub fn nscript_callfn(
                         },
                     Err(_)=>{
 
-                            println!("main[{}] send error!",&param1);
+                            //println!("main[{}] send error! msg({})",&param1,&param2);
+                            return "error".to_string();
                         }
                 };
                     return "ok".to_owned();
@@ -363,7 +366,9 @@ pub fn nscript_callfn(
 
             return Nterminal::terminalkey();
         }
-
+        "codelevel" => {
+            return vmap.codelevel.to_string();
+        }
         // "discordmsg" => {
         //     send_message_to_discord_api(&param1, &param2);
         //     return String::new();

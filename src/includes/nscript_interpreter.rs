@@ -273,12 +273,41 @@ impl Varmap {
                 }
             }
         } else {
-            let keyname = "v_".to_string() + &key.trim();
+
 
             // if Nstring::instring(&keyname,"_internalparam") {
             //    println!("setvar() fullkeyobj:{} with value {}",&keyname.yellow(),&value.red());
             // }
-            self.varmap.insert(keyname, value.to_owned());
+            if Nstring::instring(&key, "[") && Nstring::instring(&key, "]"){
+                let keyvarname = split(&key,"[")[0].trim().to_owned();
+                let identiefiervar = Nstring::stringbetween(&key, "[", "]").trim().to_owned();
+                let arrayid:usize;
+                if is_number(&identiefiervar ){
+                     arrayid = nscript_i32(&identiefiervar) as usize;
+
+                }else{
+                     arrayid = nscript_i32(&self.getvar(&identiefiervar)) as usize;
+
+                }
+
+
+                let array = self.getvar(&keyvarname);
+                let mut tmp = split(&array,NC_ARRAY_DELIM);
+                if tmp.len() > arrayid{
+                    tmp[arrayid] = value;
+                }
+//println!("array  identifiervar={} id ={} keynam={} len={}",&identiefiervar,&arrayid,&keyvarname,tmp.len());
+                let keyname = "v_".to_string() + &keyvarname.trim();
+                self.varmap.insert(keyname, tmp.join(NC_ARRAY_DELIM));
+
+
+            }else{
+                let keyname = "v_".to_string() + &key.trim();
+
+                self.varmap.insert(keyname, value.to_owned());
+
+            }
+
         }
     }
     pub fn getvar(&mut self, key: &str) -> String {
@@ -952,6 +981,20 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
                 "return" | "Return" => {
                     return "RET=>".to_owned() + &nscript_checkvar(words[1], vmap);
                 }
+                "array" =>{
+                    let identifier = nscript_i32(&nscript_checkvar(&Nstring::stringbetween(words[1],"[","]"),vmap)) as usize;
+                    //println!("identifier array = {}",identifier);
+                    let varname = split(words[1],"[")[0];
+                    let mut newarraystring = "".to_owned();
+                    for _ in 0..identifier-1{
+                        newarraystring = newarraystring.to_owned() + &NC_ARRAY_DELIM;
+                    }
+                    vmap.setvar(varname.to_owned(),&newarraystring);
+                    return String::new();
+
+                }
+
+
                 "else" => {
                     let iflevel = "___if".to_owned() +&vmap.codelevel.to_string() + "_" + &vmap.iflevel.to_string();
                     if vmap.getvar(&iflevel) == "false" {
@@ -1470,7 +1513,7 @@ pub fn nscript_func_scopeextract(selfvar: &str, vmap: &mut Varmap) {
                     let scopecode = Nstring::replace(&scopecode, "self.","*self.");
                     vmap.setcodelines(&classnamefixed, &scopecode);
 //println!("setting normal func [{}] code==[{}]",classnamefixed.trim(),scopecode);
-                    vmap.setcode(&classnamefixed, "set");
+                    vmap.setcode(&classnamefixed, &scopecode);
                     vmap.currentfuncname = oldfuncname.to_string();
                 } else {
                     let oldfuncname = vmap.currentfuncname.clone();
@@ -3085,16 +3128,9 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
             let code = vmap.getcode(&parsecode);
             if eachclass != "" {
                 let classnamepart = split(&eachclass, "{")[0];
-                let classname = split(&classnamepart, ":");
-                vmap.setvar(
-                    classname[0].trim().to_string().clone(),
-                    &classname[0].trim(),
-                ); // assign classname = classname
+                let classname = split(&classnamepart, " : ");
 
-                if classname.len() > 1 {
-                    let toobjname = nscript_checkvar(&classname[0].trim(), vmap);
-                    vmap.setobj(&classname[1].trim(), &toobjname);
-                }
+
                 let block = extract_scope(&eachclass); // extract the class scope between { }
 
                 let toreplace = "thread ".to_owned() + &classnamepart + &block;
@@ -3120,7 +3156,6 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
     }
     pub fn nscript_threadscope(thisid:&str,args: &str, code: &str, vmap: &mut Varmap) {
     let thisid = nscript_checkvar(thisid, vmap);
-
         let mut threadvmap: Varmap;
         let codeclone = "RAW>".to_owned() + &hex_to_string(&code);
         if args == "[*]" || args == "[]" {
@@ -3132,6 +3167,7 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
 
             let mut implements = Nstring::trimright(&args.trim(), 1);
             implements = Nstring::trimleft(&implements, 1);
+        //println!("thread implements:{}",&implements);
             for each in split(&implements, ",") {
                 if each != "" {
                     let mut argsplit = split(&each, ":");
@@ -3150,7 +3186,7 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
                                 threadvmap.setvar(argsplit[1].to_owned(), &g);
                             }
                             "f" => {
-                                threadvmap.setcode(&argsplit[1], &vmap.getcode(&argsplit[1]));
+                                threadvmap.setcodelines(&argsplit[1], &vmap.getcode(&argsplit[1]));
                             }
                             "c" => {
                                 let getall = vmap.inobj(argsplit[1]);
@@ -3177,7 +3213,7 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
                                     let iscoderootprop =
                                     "nscript_classfuncs__".to_owned() + &argsplit[1] + "." + &x;
 
-                                threadvmap.setcode(&iscodeiregprop, &iscode);
+                                threadvmap.setcodelines(&iscodeiregprop, &iscode);
                                 threadvmap.setvar(iscoderootprop, &argsplit[1]);
                             }
                         }
@@ -3243,7 +3279,7 @@ pub fn nscript_thread_scopeextract(vmap: &mut Varmap) {
             if received_message != ""{
                 //println!("thread received:{}",received_message);
 
-                let ncfunc = "threadreceive(".to_owned() +&received_message + ")";
+                let ncfunc = "threadreceive(\"".to_owned() +&received_message + "\")";
                 let ncreturn = nscript_func(&ncfunc, &mut threadvmap);
                 match sender.send(ncreturn){
                     Ok(_)=>{},

@@ -169,3 +169,54 @@ pub fn arraylastout(array:&str) -> String{
     ret
 }
 
+pub fn arraystartwith(array: &str,tosearch: &str) -> String{
+    //println!("searching array:{} for {}",&array,&tosearch);
+    let mut ret = String::new();
+    let chrs = tosearch.len();
+    for entree in split(&array,&NC_ARRAY_DELIM){
+        if Nstring::instring(&entree[0..chrs], &tosearch){
+            ret = "".to_owned() + &ret + &entree+ NC_ARRAY_DELIM;
+        }
+    }
+    if Nstring::fromright(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimright(&ret, NC_ARRAY_DELIM.len());
+    }
+    else{
+        ret
+    }
+}
+
+pub fn arrayendwith(array: &str,tosearch: &str) -> String{
+    //println!("searching array:{} for {}",&array,&tosearch);
+    let mut ret = String::new();
+    let chrs = tosearch.len();
+        for entree in split(&array,&NC_ARRAY_DELIM){
+let end = entree.len();
+
+        if Nstring::instring(&entree[end-chrs..end], &tosearch){
+            ret = "".to_owned() + &ret + &entree+ NC_ARRAY_DELIM;
+        }
+    }
+    if Nstring::fromright(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimright(&ret, NC_ARRAY_DELIM.len());
+    }
+    else{
+        ret
+    }
+}
+pub fn identifierarray(name:&str,i:&str,fromi:&str) -> String{
+    let range = nscript_i32(i) as usize;
+
+    let mut rangefrom = nscript_i32(fromi) as usize;
+    let mut returnstring = String::new();
+    if rangefrom == 0 {
+        rangefrom = 1;
+    }
+    for x in rangefrom..range+1{
+        returnstring = returnstring + &name + &x.to_string() + NC_ARRAY_DELIM;
+    }
+    if Nstring::fromright(&returnstring, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
+        return Nstring::trimright(&returnstring, NC_ARRAY_DELIM.len());
+    }
+    returnstring
+}

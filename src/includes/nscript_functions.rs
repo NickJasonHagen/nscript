@@ -216,9 +216,14 @@ pub fn call_program(command: &str,arg1: &str,arg2: &str,arg3: &str,arg4: &str,ar
     }
 }
 pub fn split<'a>(s: &'a str, p: &str) -> Vec<&'a str> {
+    // returns a str array vector
     let r: Vec<&str> = s.split(p).collect();
-    //println!("{:?}", &r);
     return r;
+}
+pub fn splittostringvec(s:&str,p:&str) -> Vec<String>{
+    // returns a String array vector
+     let vec_string: Vec<String> = split(s,p).iter().map(|&s| s.to_string()).collect();
+    return vec_string;
 }
 
 pub fn cwrite(m: &str, color: &str) {
@@ -382,6 +387,19 @@ impl Ncmath{
         percent.to_string()
     }
 }
+pub fn nscript_quickmath(method:&str,a:&str,b:&str,c:&str,d:&str,e:&str,f:&str,g:&str,h:&str,i:&str,vmap:&mut varmap) -> String{
+    let mut res = nscript_math(a,"+",b,vmap);
+    let method = "+";
+    if c != "" {res = nscript_math(&res, &method, &c, vmap);}
+    if d != "" {res = nscript_math(&res, &method, &d, vmap);}
+    if e != "" {res = nscript_math(&res, &method, &e, vmap);}
+    if f != "" {res = nscript_math(&res, &method, &f, vmap);}
+    if g != "" {res = nscript_math(&res, &method, &g, vmap);}
+    if h != "" {res = nscript_math(&res, &method, &h, vmap);}
+    if i != "" {res = nscript_math(&res, &method, &i, vmap);}
+    res
+}
+
 // pub fn perform_sql_query_get_row(query: &str, getrow: &str,database: &str) -> String {
 //     let conn = Connection::open(database).unwrap();
 //     let mut stmt = conn.prepare(query).unwrap();

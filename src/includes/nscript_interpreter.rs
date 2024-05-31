@@ -51,6 +51,7 @@ pub struct Varmap {
     pub currentfuncname: String,
     pub currentrawscript: usize,
     pub codeblockmap: HashMap<String, Vec<Vec<String>>>,
+    pub stringarraymap: HashMap<String, Vec<String>>,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -91,12 +92,32 @@ impl Varmap {
             currentfuncname: String::new(),
             currentrawscript: 0,
             codeblockmap: HashMap::new(),
+            stringarraymap: HashMap::new(),
         };
         Nc_os::envargs(&mut thisobj);
         thisobj
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {
         self.fnextentions = func;
+    }
+    pub fn getstringarray(&mut self, obj: &str) -> Vec<String>{
+        let objsearch = obj.to_string();
+        let g = self.stringarraymap.get_key_value(&objsearch);
+        match g {
+            None => Vec::new(),
+            Some((_i, k)) => k.to_owned(),
+        }
+    }
+    pub fn pushstringarray(&mut self,obj:&str,entree:&str){
+        let mut get = self.getstringarray(&obj);
+        get.push(entree.to_string());
+        self.setstringarray(obj, get);
+    }
+    pub fn setstringarray(&mut self,obj:&str,array:Vec<String>){
+        self.stringarraymap.insert(obj.to_string(), array);
+    }
+    pub fn deletestringarray(&mut self,obj:&str){
+        self.stringarraymap.insert(obj.to_string(), Vec::new());
     }
     pub fn stackpush(&mut self, stackref: &str, data: &str) {
         // stack push, this is for nscript stacks, ( can also be used internally)
@@ -239,9 +260,9 @@ impl Varmap {
         if Nstring::instring(&key.trim(), ".") == true {
             // obj property
             let spl = split(&key.trim(), ".");
-            let mut objname = String::new();
+            let  objname: String;
 
-            let mut propname = String::new();
+            let  propname: String;
             if Nstring::instring(&spl[0], "*") {
                 objname = self.getvar(&Nstring::replace(&spl[0], "*", ""));
             } else {
@@ -263,7 +284,7 @@ impl Varmap {
                     self.varmap.insert(objprops, propname.to_owned());
                 }
                 Some((_i, k)) => {
-                    let tosearch = propname.to_string() + "|"; // make sure for search
+                    //let tosearch = propname.to_string() + "|"; // make sure for search
                     let makesurecheck = "|".to_owned() + &k + "|";
                     if Nstring::instring(&makesurecheck, &propname) == false {
                         let nexindex = k.to_owned() + "|" + &propname;
@@ -413,12 +434,12 @@ impl Varmap {
         // interally used to store codesheet/blocks
         // ----------------------------------------
         // try new cached vec parsing
-        let mut linenumber = 0;
+       // let mut linenumber = 0;
         let mut codearray: Vec<Vec<String>> = Vec::new();
         let linearray: Vec<String> = code.split("\n").map(|s| s.to_string()).collect();
         for line in &linearray{
-            linenumber +=1;
-            let savecodelinename = "".to_owned() + &line +"__"+ &linenumber.to_string();
+            //linenumber +=1;
+            //let savecodelinename = "".to_owned() + &line +"__"+ &linenumber.to_string();
             let wordvec = line.split(" ").map(|s| s.to_string()).collect();
             codearray.push(wordvec);
         }
@@ -474,7 +495,7 @@ impl Varmap {
                 //println!("Result is None={}",&codename);
                 Vec::new()            }
             Some((_i, k)) => {
-                let result = k.to_owned();
+                let _ = k.to_owned();
                 //println!("Result is Some: {}", result);
                k.to_owned()
             }
@@ -705,7 +726,7 @@ pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
     //let fixedcode = code.to_owned(); // + NC_LINE_ENDING;
     let  newvec:Vec<Vec<String>> = Vec::new();
     let mut toreturn: String;
-    let mut codeblock = match vmap.codeblockmap.get(code){
+    let  codeblock = match vmap.codeblockmap.get(code){
         Some(res) =>{
             res
         }
@@ -713,7 +734,7 @@ pub fn nscript_parsefuncsheet(code: &str, vmap: &mut Varmap) -> String {
             &newvec
         }
     };
-    let codeblock = codeblock.clone();
+    let codeblock = codeblock.to_owned();
 
     for lines in codeblock {
         //let mut words: Vec<&str> = Vec::new(); // Create a new Vec for each iteration
@@ -989,6 +1010,7 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
                     for _ in 0..identifier-1{
                         newarraystring = newarraystring.to_owned() + &NC_ARRAY_DELIM;
                     }
+
                     vmap.setvar(varname.to_owned(),&newarraystring);
                     return String::new();
 
@@ -2351,6 +2373,9 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
                 + &split(&vmap.getvar("___domainname"), ":")[0]
                 + "/"
         }
+        "@quote" => {
+            "\"".to_string()
+        }
         "@year" => time.year().to_string(),
         "@month" => time.month().to_string(),
         "@day" => time.day().to_string(),
@@ -2634,18 +2659,35 @@ pub fn nscript_f64(intasstr: &str) -> f64 {
     let onerr: f64 = 0.0;
     match intasstr.parse::<f64>() {
         Ok(n) => return n,
-        Err(e) => return onerr,
+        Err(_) => return onerr,
     }
 }
-
+pub fn nscript_f32(intasstr: &str) -> f32 {
+    // this is used on the nscript math system
+    let onerr: f32 = 0.0;
+    match intasstr.parse::<f32>() {
+        Ok(n) => return n,
+        Err(_) => return onerr,
+    }
+}
 pub fn nscript_i32(intasstr: &str) -> i32 {
     let onerr: i32 = 0;
     match intasstr.parse::<i32>() {
         Ok(n) => return n,
-        Err(e) => return onerr,
+        Err(_) => return onerr,
     }
 }
-
+pub fn nscript_usize(intasstr: &str)-> usize{
+    let selected = match intasstr.parse::<usize>(){
+        Ok(res) =>{
+            res
+        }
+        Err(_) =>{
+            0
+        }
+    };
+    return selected;
+}
 pub fn nscript_math(a: &str, method: &str, b: &str, vmap: &mut Varmap) -> String {
     // this handles math operations from nscript. this is being looped in nscript_runmath()
     // in case of variables or calls return vallues be used.

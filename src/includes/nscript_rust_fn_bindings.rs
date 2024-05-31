@@ -389,6 +389,9 @@ pub fn nscript_callfn(
         "random" => {
             return random_number_between(&param1,&param2,&param3);
         }
+        "identifierarray" => {
+            return identifierarray(&param1,&param2,&param3);
+        }
         "dircreate" => {
             return create_directory(&param1);
         }
@@ -509,7 +512,7 @@ pub fn nscript_callfn(
             return String::new();
         }
         "chain" => {
-
+            // internally used when chaining multiple functions of a object
             return nscript_runchains(&split(param1," "), vmap);
         }
         "cwrite" | "print" => {
@@ -664,6 +667,13 @@ pub fn nscript_callfn(
         "html_encode" => {
             return html_encode(&param1);
         }
+        "arraystartwith" =>{
+            return arraystartwith(&param1, &param2);
+        }
+        "arrayendwith" =>{
+            return arrayendwith(&param1, &param2);
+        }
+
         "int64" => {
             let res = match param1.parse::<i64>(){
                 Ok(_) => "true",
@@ -686,12 +696,30 @@ pub fn nscript_callfn(
             };
             return res.to_owned();
         }
+        "add" => {
+            return nscript_quickmath("+", &param1, &param2, &param3, &param4, &param5, &param6, &param7, &param8, &param9, vmap);
+        }
+        "subtract" => {
+            return nscript_quickmath("-", &param1, &param2, &param3, &param4, &param5, &param6, &param7, &param8, &param9, vmap);
+        }
+        "devide" => {
+            return nscript_quickmath("/", &param1, &param2, &param3, &param4, &param5, &param6, &param7, &param8, &param9, vmap);
+        }
+        "multiply" => {
+            return nscript_quickmath("*", &param1, &param2, &param3, &param4, &param5, &param6, &param7, &param8, &param9, vmap);
+        }
         "f32" => {
             let res = match param1.parse::<f32>(){
                 Ok(_) => "true",
                 Err(_) => "false",
             };
             return res.to_owned();
+        }
+        "tolowercase" =>{
+            return param1.to_string().to_lowercase();
+        }
+        "touppercase" =>{
+            return param1.to_string().to_lowercase();
         }
 
         "keytest" => {

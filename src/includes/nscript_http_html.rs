@@ -3,7 +3,7 @@
 use crate::*;
 //use reqwest;
 //use reqwest::blocking::get;
-use std::time::Duration;
+//use std::time::Duration;
 use std::time::Instant;
 
 
@@ -212,7 +212,7 @@ pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
                 // }
 
 
-    let mut resultstring = String::new();
+    let resultstring: String;
     // Prepare the HTTP POST request
     let request = format!("POST {} HTTP/1.1\r\n\
         Host: {}:{}\r\n\
@@ -748,7 +748,7 @@ match stream.write(response.as_bytes()) {
             // Handle the situation where not all data was written if needed.
         }
     }
-    Err(error) => {
+    Err(_) => {
         return;
     }
 }

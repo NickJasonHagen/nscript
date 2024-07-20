@@ -51,7 +51,9 @@ pub struct Varmap {
     pub currentfuncname: String,
     pub currentrawscript: usize,
     pub codeblockmap: HashMap<String, Vec<Vec<String>>>,
-    pub stringarraymap: HashMap<String, Vec<String>>,
+    pub stringarraymap: HashMap<String, Vec<String>>,// internal use for faster storage
+    pub objectpropertyindexmap: HashMap<String, bool>,
+    pub f32vectormap: HashMap<String, Vec<(f32, f32, f32)>>,// external used ( Bluenc)
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -60,11 +62,11 @@ impl Varmap {
     pub fn new() -> Varmap {
 
         let mut thisobj = Varmap {
-            varmap: HashMap::new(),
+            varmap: HashMap::new(), // internal usage stores all variables and object properties
             codelevel: 1,
             iflevel: 1,
             parsinglevel: 1,
-            debugmode: 0,
+            debugmode: 1,
             strictness: 0,
             activeloops: false,
             fnextentions: emptyfnbuffer,
@@ -93,12 +95,23 @@ impl Varmap {
             currentrawscript: 0,
             codeblockmap: HashMap::new(),
             stringarraymap: HashMap::new(),
+            objectpropertyindexmap: HashMap::new(),
+            f32vectormap: HashMap::new(),
+
         };
         Nc_os::envargs(&mut thisobj);
         thisobj
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {
         self.fnextentions = func;
+    }
+    pub fn getf32vectorarray(&mut self, obj: &str) -> Vec<(f32,f32,f32)>{
+        let objsearch = obj.to_string();
+        let g = self.f32vectormap.get_key_value(&objsearch);
+        match g {
+            None => Vec::new(),
+            Some((_i, k)) => k.to_owned(),
+        }
     }
     pub fn getstringarray(&mut self, obj: &str) -> Vec<String>{
         let objsearch = obj.to_string();
@@ -112,6 +125,22 @@ impl Varmap {
         let mut get = self.getstringarray(&obj);
         get.push(entree.to_string());
         self.setstringarray(obj, get);
+    }
+    pub fn pushuniquestringarray(&mut self,obj:&str,entree:&str){
+        let mut get = self.getstringarray(&obj);
+        if get.contains(&entree.to_string()) == false{
+            get.push(entree.to_string());
+            self.setstringarray(obj, get);
+        }
+   }
+    pub fn retainstringarray(&mut self,obj:&str,entree:&str){
+        let mut get = self.getstringarray(&obj);
+        get = array_retain(get,entree);
+        self.setstringarray(obj, get);
+    }
+    pub fn containsstringarray(&mut self,obj:&str,entree:&str) -> bool{
+        let  get = self.getstringarray(&obj);
+        get.contains(&entree.to_string())
     }
     pub fn setstringarray(&mut self,obj:&str,array:Vec<String>){
         self.stringarraymap.insert(obj.to_string(), array);
@@ -145,79 +174,144 @@ impl Varmap {
     pub fn setobj(&mut self, obj: &str, toobj: &str) {
         let trimmedobj = &obj.trim();
         let trimmedtoobj = &toobj.trim();
-        let getoldprops = self.inobj(&trimmedobj);
-        let splitprops = split(&getoldprops, "|");
-        for prop in splitprops {
+        //let getoldprops = self.inobj(&trimmedobj);
+        let splitprops = self.getobjectindex(&trimmedobj);//split(&getoldprops, "|");
+        //println!("split lenght = {}", splitprops.len());
+        for prop in &splitprops {
             if prop != "" {
-                let key = "".to_owned() + &trimmedobj + "." + &prop;
-                let get = self.getvar(&key);
-                let keynew = "".to_owned() + &trimmedtoobj + "." + prop;
-                //println!("setting prop:{} with vallue {}",&keynew.yellow(),&get.as_str().red());
-                self.setvar(keynew, get.as_str());
+                //let key = "".to_owned() + &trimmedobj + "." + &prop;
+                let get = self.getprop(&trimmedobj,&prop);
+                //let keynew = "".to_owned() + &trimmedtoobj + "." + &prop;
+                //println!("setting {} prop:{} with vallue {}",&trimmedtoobj,&key.yellow(),&get.as_str().red());
+                //self.setvar(keynew, get.as_str());
+                //self.setprop(&trimmedtoobj,&prop,  get.as_str());
+                let fullkey = "obj_".to_owned() + &trimmedtoobj + "__" + &prop.trim();
+                //let indexkey = "".to_owned() + &trimmedtoobj + "__" + &prop.trim();
+                self.varmap.insert(fullkey.to_string(), get.to_string());
+                self.pushobjectindex(trimmedtoobj, &prop);
+                self.objectpropertyindexmap.insert(fullkey, true);
             }
         }
+        //self.extentobjectindex(&obj, splitprops);
         // copy function register
 
         let functionregobj = "nscript_classfuncs__".to_owned() + &trimmedobj;
-        let getoldprops = self.inobj(&functionregobj);
-        let splitfn = split(&getoldprops, "|");
-        for prop in splitfn {
-            let functionregobj = "nscript_classfuncs__".to_owned() + &trimmedobj; //+ "__" + &prop;
-            let functionregobjnew = "nscript_classfuncs__".to_owned() + &trimmedtoobj; // + "__" + &prop;
+        //let getoldprops = self.inobj(&functionregobj);
+        let splitfn = self.getobjectindex(&functionregobj);//split(&getoldprops, "|");
+        let functionregobj = "nscript_classfuncs__".to_owned() + &trimmedobj; //+ "__" + &prop;
+        let functionregobjnew = "nscript_classfuncs__".to_owned() + &trimmedtoobj; // + "__" + &prop;
 
+
+        for prop in &splitfn {
             let get = self.getprop(&functionregobj, &prop);
-            self.setprop(&functionregobjnew, &prop, get.as_str());
+            //self.setprop(&functionregobjnew, &prop, get.as_str());
             //println!("Assigning function ( {} ) to obj: ( {} ) ",get,toobj)
+
+            let fullkey = "obj_".to_owned() + &functionregobjnew + "__" + &prop.trim();
+            //let indexkey = "".to_owned() + &functionregobjnew + "__" + &prop.trim();
+            self.varmap.insert(fullkey.to_string(), get.to_string());
+            self.objectpropertyindexmap.insert(fullkey, true);
+            self.pushobjectindex(&functionregobjnew, &prop);
         }
+
+        //self.extentobjectindex(&functionregobjnew, splitfn);
 
         // Parents and childs
         // add parent to new obj
-        let objparenth = "nscript_classparents__".to_owned() + &trimmedtoobj + "." + trimmedobj;
-        self.setvar(objparenth, ".");
-        // add child to parent obj
-        let objchildh = "nscript_classchilds__".to_owned() + &trimmedobj + "." + &trimmedtoobj;
-        self.setvar(objchildh, ".");
+        let objparentobj = "nscript_classparents__".to_owned() + &trimmedtoobj + "__" + trimmedobj;
+        //self.setvar(objparenth, ".");
+        self.varmap.insert("obj_".to_string()+&objparentobj, trimmedobj.to_string());
+        self.pushobjectindex(&objparentobj, &trimmedobj);
 
+        // add child to parent obj
+        let objchildh = "nscript_classchilds__".to_owned() + &trimmedobj + "__" + &trimmedtoobj;
+        //self.setvar(objchildh, ".");
+        self.varmap.insert("obj_".to_string() + &objchildh, trimmedtoobj.to_string());
+        self.pushobjectindex(&objchildh, &trimmedtoobj);
         //vmap.setvar(functionregobj, &funcname); // reg the function to obj
     }
-    pub fn inobj(&mut self, obj: &str) -> String {
+
+    pub fn getobjectindex(&mut self, obj: &str) -> Vec<String> {
         let isobj = "obj_".to_owned() + &obj.trim();
-        let g = self.varmap.get_key_value(&isobj);
+        self.getstringarray(&isobj)
+    }
+    pub fn pushobjectindex(&mut self, obj: &str,entree:&str) {
+        //println!("pushing:{} to obj {}",&entree,&obj);
+        let isobj = "obj_".to_owned() + &obj.trim();
+        self.pushstringarray(&isobj,entree);
+        let objsearch = "obj_".to_string() + &obj + "__"+ &entree;
+        self.objectpropertyindexmap.insert(objsearch, true);
+
+    }
+    pub fn extentobjectindex(&mut self, obj: &str,array: Vec<String>) {
+        let isobj = "obj_".to_owned() + &obj.trim();
+        let mut get = self.getstringarray(&isobj);
+        get.extend(array);
+        self.setstringarray(&isobj,get);
+
+    }
+    pub fn inobjectindex(&mut self, obj: &str,entree:&str) ->bool {
+        let objsearch = "obj_".to_string() + &obj + "__"+ &entree;
+        let g = self.objectpropertyindexmap.get_key_value(&objsearch);
         match g {
-            None => String::from(""),
-            Some((_i, k)) => k.to_owned(),
+            None => {
+                return false;
+            },
+            Some((_i, k)) => {
+                return k.to_owned();
+            }
         }
+    }
+    pub fn retainobjectindex(&mut self, obj: &str,entree:&str) {
+        let isobj = "obj_".to_owned() + &obj.trim();
+
+        self.retainstringarray(&isobj,entree);
+
+        let objsearch = "obj_".to_string() + &obj + "__"+ &entree;
+        self.objectpropertyindexmap.insert(objsearch, false);
+    }
+
+    pub fn inobj(&mut self, obj: &str) -> String {
+        return self.getobjectindex(obj).join("|");
+        //
+        // let isobj = "obj_".to_owned() + &obj.trim();
+        // let g = self.varmap.get_key_value(&isobj);
+        // match g {
+        //     None => String::from(""),
+        //     Some((_i, k)) => k.to_owned(),
+        // }
     }
 
     pub fn delobj(&mut self, obj: &str) {
         //delete properties
-        let getallprops = self.inobj(obj.trim());
-        let allprops = split(&getallprops, "|");
+        //let getallprops = self.inobj(obj.trim());
+        let allprops = self.getobjectindex(&obj);//split(&getallprops, "|");
         for prop in allprops {
             //println!("deleting prop {}",&prop);
             self.delprop(&obj, &prop);
         }
         //delete function register
         let functionregobj = "nscript_classfuncs__".to_owned() + &obj;
-        let getallfuncs = self.inobj(&functionregobj);
-        let allfuncs = split(&getallfuncs, "|");
+        //let getallfuncs = self.inobj(&functionregobj);
+        let allfuncs = self.getobjectindex(&functionregobj); //split(&getallfuncs, "|");
         for prop in allfuncs {
             self.delprop(&functionregobj, &prop);
             //println!("deleting func {}",&prop);
         }
         // delete children/parents register
-        let objparenth = "nscript_classparents__".to_owned() + &obj;
-        let parents = self.inobj(&objparenth);
+        let objparentsreg = "nscript_classparents__".to_owned() + &obj;
+        //let parents = self.inobj(&objparenth);
         //println!("parents: {}",parents);
-        if parents != "" {
-            for eachparent in split(&parents, "|") {
+        //if parents != "" {
+        let allparents = self.getobjectindex(&objparentsreg);
+            for eachparent in allparents{
                 if eachparent != "" {
                     // remove child from parent obj
                     let objchildh = "nscript_classchilds__".to_owned() + &eachparent.trim();
                     self.delprop(&objchildh, &obj.trim());
                 }
             }
-        }
+        //}
     }
     pub fn delprop(&mut self, obj: &str, key: &str) {
         if key == "" {
@@ -228,30 +322,35 @@ impl Varmap {
         let fullkey = "obj_".to_owned() + &objname + "__" + &propname;
         self.varmap.remove(&fullkey); // clear vallue.. set none
 
-        let objprops = "obj_".to_owned() + &objname; // index of all the properties - managed
-        let g = self.varmap.get_key_value(&objprops);
-        match g {
-            None => {
-                let dbgmsg = "A property is being deleted wich doesnt exist in the object; "
-                    .to_owned()
-                    + &fullkey;
-                nscript_interpreterdebug(&dbgmsg, self.debugmode, self.strictness)
-                // if it ever gets here then you messed up, exsisting objects&props have indexes.
-            }
-            Some((_i, k)) => {
-                let array = split(&k, "|");
-                let mut newindex = String::new();
-                for entree in array {
-                    if entree != key && entree != "" {
-                        newindex = "".to_owned() + &newindex + &entree + "|";
-                    }
-                }
-                if Nstring::fromright(&newindex, 1) == "|" {
-                    newindex = Nstring::trimright(&newindex, 1);
-                }
-                self.varmap.insert(objprops, newindex);
-            }
+
+        //new
+        if self.inobjectindex(&obj, &key) == true {
+            self.retainobjectindex(obj, key)
         }
+        // let objprops = "obj_".to_owned() + &objname; // index of all the properties - managed
+        // let g = self.varmap.get_key_value(&objprops);
+        // match g {
+        //     None => {
+        //         let dbgmsg = "A property is being deleted wich doesnt exist in the object; "
+        //             .to_owned()
+        //             + &fullkey;
+        //         nscript_interpreterdebug(&dbgmsg, self.debugmode, self.strictness)
+        //         // if it ever gets here then you messed up, exsisting objects&props have indexes.
+        //     }
+        //     Some((_i, k)) => {
+        //         let array = split(&k, "|");
+        //         let mut newindex = String::new();
+        //         for entree in array {
+        //             if entree != key && entree != "" {
+        //                 newindex = "".to_owned() + &newindex + &entree + "|";
+        //             }
+        //         }
+        //         if Nstring::fromright(&newindex, 1) == "|" {
+        //             newindex = Nstring::trimright(&newindex, 1);
+        //         }
+        //         self.varmap.insert(objprops, newindex);
+        //     }
+        // }
     }
     pub fn setvar(&mut self, key: String, value: &str) {
         // this is the core function for storing all the data of the nscript code syntax.
@@ -276,23 +375,26 @@ impl Varmap {
             }
             let fullkey = "obj_".to_owned() + &objname.to_string() + "__" + &propname.to_string();
             self.varmap.insert(fullkey, value.to_owned());
-            let objprops = "obj_".to_owned() + &objname.to_string(); // index of all the properties - managed
-            let g = self.varmap.get_key_value(&objprops);
-            match g {
-                None => {
-                    // add new prop as first index to obj's properties index
-                    self.varmap.insert(objprops, propname.to_owned());
-                }
-                Some((_i, k)) => {
-                    //let tosearch = propname.to_string() + "|"; // make sure for search
-                    let makesurecheck = "|".to_owned() + &k + "|";
-                    if Nstring::instring(&makesurecheck, &propname) == false {
-                        let nexindex = k.to_owned() + "|" + &propname;
-                        self.varmap.insert(objprops, nexindex.to_owned());
-                        //println!("Setvar: index= {}",&nexindex);
-                    }
-                }
+            //let objprops = "obj_".to_owned() + &objname.to_string(); // index of all the properties - managed
+            if self.inobjectindex(&objname, &propname) != true{
+                self.pushobjectindex(&objname, &propname);
             }
+            // let g = self.varmap.get_key_value(&objprops);
+            // match g {
+            //     None => {
+            //         // add new prop as first index to obj's properties index
+            //         self.varmap.insert(objprops, propname.to_owned());
+            //     }
+            //     Some((_i, k)) => {
+            //         //let tosearch = propname.to_string() + "|"; // make sure for search
+            //         let makesurecheck = "|".to_owned() + &k + "|";
+            //         if Nstring::instring(&makesurecheck, &propname) == false {
+            //             let nexindex = k.to_owned() + "|" + &propname;
+            //             self.varmap.insert(objprops, nexindex.to_owned());
+            //             //println!("Setvar: index= {}",&nexindex);
+            //         }
+            //     }
+            // }
         } else {
 
 
@@ -380,6 +482,7 @@ impl Varmap {
         }
     }
     pub fn getprop(&mut self, obj: &str, prop: &str) -> String {
+
         let fullkey = "obj_".to_owned() + &obj.to_string().trim() + "__" + &prop.to_string().trim();
         //println!("fullkeyobj:{}",&fullkey.red());
         let g = self.varmap.get_key_value(&fullkey);
@@ -394,24 +497,29 @@ impl Varmap {
         let fullkey = "obj_".to_owned() + &obj.trim() + "__" + &prop.trim();
         self.varmap.insert(fullkey, value.trim().to_owned());
 
-        // set obj index !!
-        let objprops = "obj_".to_owned() + &obj.trim(); // index of all the properties - managed
-        let g = self.varmap.get_key_value(prop.trim());
-        match g {
-            None => {
-                // add new prop as first index to obj's properties index
-                self.varmap.insert(objprops, prop.trim().to_owned());
-            }
-            Some((_i, k)) => {
-                //let isind = k.to_owned() + "|"; // make sure for search
-                //let tosearch = prop.to_string() + "|";
-                if Nstring::instring(&k, &prop.trim()) == false {
-                    let nexindex = k.trim().to_owned() + "|" + &prop.trim();
-                    self.varmap
-                        .insert((&prop.trim()).to_string(), nexindex.to_owned());
-                }
-            }
+        //update index register
+        if self.inobjectindex(&obj.trim(), &prop) != true {
+            //println!("pushing {} to {}",&prop,&obj);
+            self.pushobjectindex(obj, prop);
         }
+        // // set obj index !!
+        // let objprops = "obj_".to_owned() + &obj.trim(); // index of all the properties - managed
+        // let g = self.varmap.get_key_value(prop.trim());
+        // match g {
+        //     None => {
+        //         // add new prop as first index to obj's properties index
+        //         self.varmap.insert(objprops, prop.trim().to_owned());
+        //     }
+        //     Some((_i, k)) => {
+        //         //let isind = k.to_owned() + "|"; // make sure for search
+        //         //let tosearch = prop.to_string() + "|";
+        //         if Nstring::instring(&k, &prop.trim()) == false {
+        //             let nexindex = k.trim().to_owned() + "|" + &prop.trim();
+        //             self.varmap
+        //                 .insert((&prop.trim()).to_string(), nexindex.to_owned());
+        //         }
+        //     }
+        // }
     }
     pub fn objparents(&mut self, obj: &str) -> String {
         let key = "nscript_classparents__".to_owned() + obj;
@@ -495,7 +603,7 @@ impl Varmap {
                 //println!("Result is None={}",&codename);
                 Vec::new()            }
             Some((_i, k)) => {
-                let _ = k.to_owned();
+                //let _ = k.to_owned();
                 //println!("Result is Some: {}", result);
                k.to_owned()
             }
@@ -2381,6 +2489,10 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
         "@day" => time.day().to_string(),
         "@hour" => time.hour().to_string(),
         "@min" => time.minute().to_string(),
+        "@now" => time.day().to_string() + "/" + &time.month().to_string() + "/" + &time.year().to_string() + " "+ &time.hour().to_string() + ":" + &time.minute().to_string() + ":" + &time.second().to_string() + "." + &time.timestamp_millis().to_string(),
+        "@date" => time.day().to_string() + "/" + &time.month().to_string() + "/" + &time.year().to_string(),
+        "@exacttime" => time.hour().to_string() + ":" + &time.minute().to_string() + ":" + &time.second().to_string() + "." + &time.timestamp_millis().to_string(),
+        "@time" => time.hour().to_string() + ":" + &time.minute().to_string(),
         "@OS" => MACRO_OS.to_string(),
         "@scriptdir" => NC_SCRIPT_DIR.to_string(),
         "@programdir" => NC_PROGRAM_DIR.to_string(),

@@ -220,3 +220,16 @@ pub fn identifierarray(name:&str,i:&str,fromi:&str) -> String{
     }
     returnstring
 }
+
+pub fn array_retain(array: Vec<String>, to_remove: &str) -> Vec<String> {
+    let mut ret = array;
+    ret.retain(|x| x != to_remove);
+    ret
+}
+
+pub fn array_contains(array: &[String], to_check: &str) -> bool {
+    array.contains(&to_check.to_string())
+}
+pub fn array_contains_all(main_array: &[String], sub_array: &[String]) -> bool {
+    sub_array.iter().all(|item| main_array.contains(item))
+}

@@ -192,23 +192,99 @@ pub fn random_number_between(min: &str, max: &str, decimals: &str) -> String {
 }
 
 
-
-pub fn call_program(command: &str,arg1: &str,arg2: &str,arg3: &str,arg4: &str,arg5: &str,arg6: &str,arg7: &str,arg8: &str) -> String {
+pub fn call_program(
+    command:&str,
+    arg1: &str,
+    arg2: &str,
+    arg3: &str,
+    arg4: &str,
+    arg5: &str,
+    arg6: &str,
+    arg7: &str,
+    arg8: &str,
+) {
     // let mut parts = command.split_whitespace();
     // let program = parts.next().expect("No program provided");
     // let args: Vec<_> = parts.collect();
     //
-    let output = Command::new(arg1).arg(arg2).arg(arg3).arg(arg4).arg(arg5).arg(arg6).arg(arg7).arg(arg8).output();
+
+    // only non empty args
+    let non_empty_args = vec![command, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8]
+        .into_iter()
+        .map(|s| s.to_string())
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<String>>();
+
+    let mut output = if cfg!(target_os = "windows") {
+        let mut output = Command::new("cmd");
+        output.arg("/C");
+
+        output
+    } else {
+        let mut output = Command::new("sh");
+        output.arg("-c");
+
+        output
+    };
+
+    for arg in non_empty_args {
+        output.arg(arg);
+    }
+
+    output.spawn();
+}
+
+
+pub fn call_programwait(
+    command:&str,
+    arg1: &str,
+    arg2: &str,
+    arg3: &str,
+    arg4: &str,
+    arg5: &str,
+    arg6: &str,
+    arg7: &str,
+    arg8: &str,
+) -> String {
+    // let mut parts = command.split_whitespace();
+    // let program = parts.next().expect("No program provided");
+    // let args: Vec<_> = parts.collect();
+    //
+
+    // only non empty args
+    let non_empty_args = vec![command, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8]
+        .into_iter()
+        .map(|s| s.to_string())
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<String>>();
+
+    let mut output = if cfg!(target_os = "windows") {
+        let mut output = Command::new("cmd");
+        output.arg("/C");
+
+        output
+    } else {
+        let mut output = Command::new("sh");
+        output.arg("-c");
+
+        output
+    };
+
+    for arg in non_empty_args {
+        output.arg(arg);
+    }
+
+    let output = output.output();
 
     match output {
         Ok(output) => {
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                format!("Program executed successfully.\nStdout: {}\nStderr: {}", stdout, stderr)
-            } else {
-                format!("Program execution failed with exit code: {:?}", output.status.code())
-            }
+            let stdout = String::from_utf8(output.stdout);
+            let stderr = String::from_utf8(output.stderr);
+            format!(
+                "Program executed successfully.\nStdout: {}\nStderr: {}",
+                stdout.unwrap(),
+                stderr.unwrap()
+            )
         }
         Err(err) => {
             format!("Failed to execute program: {}", err)
@@ -387,7 +463,7 @@ impl Ncmath{
         percent.to_string()
     }
 }
-pub fn nscript_quickmath(method:&str,a:&str,b:&str,c:&str,d:&str,e:&str,f:&str,g:&str,h:&str,i:&str,vmap:&mut varmap) -> String{
+pub fn nscript_quickmath(method:&str,a:&str,b:&str,c:&str,d:&str,e:&str,f:&str,g:&str,h:&str,i:&str,vmap:&mut Varmap) -> String{
     let mut res = nscript_math(a,"+",b,vmap);
     let method = "+";
     if c != "" {res = nscript_math(&res, &method, &c, vmap);}

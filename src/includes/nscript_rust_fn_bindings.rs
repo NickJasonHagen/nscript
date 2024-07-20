@@ -28,7 +28,7 @@ pub fn nscript_callfn(
     // }
     let  custom_behavior: NscriptCustomFunctions = vmap.fnextentions;
     let customret = custom_behavior(vmap);
-    if customret != ""{
+    if customret != ".."{
         return customret.to_owned();
     }
 
@@ -215,7 +215,11 @@ pub fn nscript_callfn(
             return res;
         }
         "run" => {
-            return call_program(&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9);
+             call_program(&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9);
+            return "ran".to_owned();
+        }
+        "runwait" => {
+            return call_programwait(&param1,&param2,&param3,&param4,&param5,&param6,&param7,&param8,&param9);
         }
         // "sqlgetrow" => {
         //     return perform_sql_query_get_row(&param1,&param2,param3);

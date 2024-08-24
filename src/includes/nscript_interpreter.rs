@@ -11,11 +11,24 @@ pub const NC_ARRAY_DELIM: &str = "  }~{ ";
 pub const NC_ASYNC_LOOPS_KEY: &str = "coroutine"; // async loops scopes keyword
 use dirs;
 pub type NscriptCustomFunctions = fn(&mut Varmap) -> String;
+pub struct Emptystruct {
 
-pub fn emptyfnbuffer(_: &mut Varmap) -> String {
-    // Default behavior
-    "".to_string()
 }
+impl Emptystruct{
+    pub fn new() ->Emptystruct{
+        let toret = Emptystruct{};
+
+        return toret;
+    }
+    pub fn emptyfnbuffer(&mut self,_: &mut Varmap) -> String {
+        // Default behavior
+        "..".to_string()
+    }
+}
+    pub fn emptyfnbuffer(_: &mut Varmap) -> String {
+        // Default behavior
+        "..".to_string()
+    }
 //#[derive(Clone)]
 pub struct Varmap {
     //global values of the vmap system
@@ -54,11 +67,16 @@ pub struct Varmap {
     pub stringarraymap: HashMap<String, Vec<String>>,// internal use for faster storage
     pub objectpropertyindexmap: HashMap<String, bool>,
     pub f32vectormap: HashMap<String, Vec<(f32, f32, f32)>>,// external used ( Bluenc)
+    pub staticstringarrays:Vec<Vec<String>>,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
     // and stuff are inside this impl
     // ------------------------------
+pub fn emptyfnbuffer(&mut self,_: &mut Varmap) -> String {
+    // Default behavior
+    "..".to_string()
+}
     pub fn new() -> Varmap {
 
         let mut thisobj = Varmap {
@@ -97,6 +115,7 @@ impl Varmap {
             stringarraymap: HashMap::new(),
             objectpropertyindexmap: HashMap::new(),
             f32vectormap: HashMap::new(),
+            staticstringarrays:Vec::new(),
 
         };
         Nc_os::envargs(&mut thisobj);
@@ -111,6 +130,18 @@ impl Varmap {
         match g {
             None => Vec::new(),
             Some((_i, k)) => k.to_owned(),
+        }
+    }
+    pub fn pushstaticarray(&mut self,id:usize,stringarray: String){
+        self.staticstringarrays[id].push(stringarray);
+    }
+    pub fn clearstaticarray(&mut self,id:usize ){
+        self.staticstringarrays[id] = Vec::new();
+    }
+    pub fn initstaticarrays(&mut self,count:usize ){
+        for counting in 0..count{
+            self.staticstringarrays.insert(counting,Vec::new());// = Vec::new();
+
         }
     }
     pub fn getstringarray(&mut self, obj: &str) -> Vec<String>{
@@ -174,19 +205,13 @@ impl Varmap {
     pub fn setobj(&mut self, obj: &str, toobj: &str) {
         let trimmedobj = &obj.trim();
         let trimmedtoobj = &toobj.trim();
-        //let getoldprops = self.inobj(&trimmedobj);
-        let splitprops = self.getobjectindex(&trimmedobj);//split(&getoldprops, "|");
-        //println!("split lenght = {}", splitprops.len());
+        let splitprops = self.getobjectindex(&trimmedobj);
         for prop in &splitprops {
             if prop != "" {
                 //let key = "".to_owned() + &trimmedobj + "." + &prop;
                 let get = self.getprop(&trimmedobj,&prop);
-                //let keynew = "".to_owned() + &trimmedtoobj + "." + &prop;
-                //println!("setting {} prop:{} with vallue {}",&trimmedtoobj,&key.yellow(),&get.as_str().red());
-                //self.setvar(keynew, get.as_str());
-                //self.setprop(&trimmedtoobj,&prop,  get.as_str());
+
                 let fullkey = "obj_".to_owned() + &trimmedtoobj + "__" + &prop.trim();
-                //let indexkey = "".to_owned() + &trimmedtoobj + "__" + &prop.trim();
                 self.varmap.insert(fullkey.to_string(), get.to_string());
                 self.pushobjectindex(trimmedtoobj, &prop);
                 self.objectpropertyindexmap.insert(fullkey, true);
@@ -196,38 +221,32 @@ impl Varmap {
         // copy function register
 
         let functionregobj = "nscript_classfuncs__".to_owned() + &trimmedobj;
-        //let getoldprops = self.inobj(&functionregobj);
         let splitfn = self.getobjectindex(&functionregobj);//split(&getoldprops, "|");
         let functionregobj = "nscript_classfuncs__".to_owned() + &trimmedobj; //+ "__" + &prop;
         let functionregobjnew = "nscript_classfuncs__".to_owned() + &trimmedtoobj; // + "__" + &prop;
 
-
         for prop in &splitfn {
             let get = self.getprop(&functionregobj, &prop);
-            //self.setprop(&functionregobjnew, &prop, get.as_str());
-            //println!("Assigning function ( {} ) to obj: ( {} ) ",get,toobj)
-
-            let fullkey = "obj_".to_owned() + &functionregobjnew + "__" + &prop.trim();
+              let fullkey = "obj_".to_owned() + &functionregobjnew + "__" + &prop.trim();
             //let indexkey = "".to_owned() + &functionregobjnew + "__" + &prop.trim();
             self.varmap.insert(fullkey.to_string(), get.to_string());
             self.objectpropertyindexmap.insert(fullkey, true);
             self.pushobjectindex(&functionregobjnew, &prop);
         }
-
-        //self.extentobjectindex(&functionregobjnew, splitfn);
-
         // Parents and childs
         // add parent to new obj
-        let objparentobj = "nscript_classparents__".to_owned() + &trimmedtoobj + "__" + trimmedobj;
+        let objparentobj = "nscript_classparents__".to_owned() + &trimmedtoobj ;//+ "__" + trimmedobj;
         //self.setvar(objparenth, ".");
-        self.varmap.insert("obj_".to_string()+&objparentobj, trimmedobj.to_string());
-        self.pushobjectindex(&objparentobj, &trimmedobj);
-
+        //self.varmap.insert("obj_".to_string()+&objparentobj, trimmedobj.to_string());
+        //self.pushobjectindex(&objparentobj, &trimmedobj);
+self.pushuniquestringarray(&objparentobj, &trimmedobj);
         // add child to parent obj
-        let objchildh = "nscript_classchilds__".to_owned() + &trimmedobj + "__" + &trimmedtoobj;
+        let objchildh = "nscript_classchilds__".to_owned() + &trimmedobj ;//+ "__" + &trimmedtoobj;
+
+        self.pushuniquestringarray(&objchildh, &trimmedtoobj);
         //self.setvar(objchildh, ".");
-        self.varmap.insert("obj_".to_string() + &objchildh, trimmedtoobj.to_string());
-        self.pushobjectindex(&objchildh, &trimmedtoobj);
+        //self.varmap.insert("obj_".to_string() + &objchildh, trimmedtoobj.to_string());
+        //self.pushobjectindex(&objchildh, &trimmedtoobj);
         //vmap.setvar(functionregobj, &funcname); // reg the function to obj
     }
 
@@ -238,7 +257,7 @@ impl Varmap {
     pub fn pushobjectindex(&mut self, obj: &str,entree:&str) {
         //println!("pushing:{} to obj {}",&entree,&obj);
         let isobj = "obj_".to_owned() + &obj.trim();
-        self.pushstringarray(&isobj,entree);
+        self.pushuniquestringarray(&isobj,entree);
         let objsearch = "obj_".to_string() + &obj + "__"+ &entree;
         self.objectpropertyindexmap.insert(objsearch, true);
 
@@ -481,6 +500,54 @@ impl Varmap {
             }
         }
     }
+    pub fn undeclaredvar(&mut self, key: &str) -> String {
+        // this is the core function of nscript to get data
+        // it will check for variables or class.properties
+        // ----------------------------------------------------
+        if key == "" {return "".to_string();}
+        if Nstring::instring(&key, ".") == true {
+            // obj property
+            let spl = split(&key, ".");
+            let  objname:  String;
+
+            let  propname: String;
+            if Nstring::instring(&spl[0], "*") {
+                objname = self.getvar(&Nstring::replace(&spl[0], "*", ""));
+            } else {
+                objname = "".to_owned() + &spl[0];
+            }
+            if Nstring::instring(&spl[1], "*") {
+                propname = self.getvar(&Nstring::replace(&spl[1], "*", ""));
+            } else {
+                propname = "".to_owned() + &spl[1];
+            }
+
+            //let propname = self.checkvar(&spl[1]);
+            let fullkey = "obj_".to_owned() + &objname.to_string() + "__" + &propname.to_string();
+            //println!(" getvar() fullkeyobj:{}",&fullkey.red());
+            let g = self.varmap.get_key_value(&fullkey);
+            match g {
+                None => {
+                    //let dbgmsg = "Undeclared property being called; ".to_owned() + &fullkey;
+                    //nscript_interpreterdebug(&dbgmsg, self.debugmode, self.strictness);
+                    String::from("")
+                }
+                Some((_i, k)) => k.to_owned(),
+            }
+        } else {
+            // else normal var
+            let keyname = "v_".to_string() + &key;
+            let g = self.varmap.get_key_value(&keyname);
+            match g {
+                None => {
+                    //let dbgmsg = "Undeclared variable being called; ".to_owned() + &keyname;
+                    //nscript_interpreterdebug(&dbgmsg, self.debugmode, self.strictness);
+                    String::from("")
+                }
+                Some((_i, k)) => k.to_owned(),
+            }
+        }
+    }
     pub fn getprop(&mut self, obj: &str, prop: &str) -> String {
 
         let fullkey = "obj_".to_owned() + &obj.to_string().trim() + "__" + &prop.to_string().trim();
@@ -521,14 +588,14 @@ impl Varmap {
         //     }
         // }
     }
-    pub fn objparents(&mut self, obj: &str) -> String {
+    pub fn objparents(&mut self, obj: &str) ->  Vec<String>{
         let key = "nscript_classparents__".to_owned() + obj;
-        let g = self.inobj(&key);
+        let g = self.getstringarray(&key);
         return g;
     }
-    pub fn objchildren(&mut self, obj: &str) -> String {
+    pub fn objchildren(&mut self, obj: &str) ->  Vec<String>{
         let key = "nscript_classchilds__".to_owned() + obj;
-        let g = self.inobj(&key);
+        let g = self.getstringarray(&key);
         return g;
     }
 
@@ -1028,21 +1095,11 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
     //     return nscript_runchains(words, vmap);
     // }
     match words[0]{
+
         "chain" => {
            return nscript_runchains(words, vmap);
         }
-        "import" =>{
-           let importfile = vmap.envvar.to_string() +"/imports/"+ &words[1] +".nc";
-            if Nfile::checkexists(&importfile){
-                //println!("Import:{}",&importfile);
-                return nscript_execute_script(&importfile, "", "", "", "", "", "", "", "", "", vmap);
 
-            }
-            else{
-                println!("Nscript fatal error, cannot import file:{} \n be sure to have set the NSCRIPTPATH global variable (default: home/nscript) the imports shoud be in the imports dir",importfile);
-                process::exit(1);
-            }
-        }
         _ =>{}
     }
     match words.len() {
@@ -1102,9 +1159,55 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
         2 => {
             // 2 word lines
             match words[0] {
+                "init" => {
+                    let includefile = nscript_checkvar(&words[1],vmap);
+                    if includefile != ""{
+                        if Nfile::checkexists(&includefile) {
+                            //println!("include file:{}",&includefile);
+                            return nscript_execute_script(&includefile, "","","","","","","","","", vmap);
+                        }
+                        else{
+                            println!("Nscript fatal error, cannot include initfile:{}",includefile);
+                            process::exit(1);
+                        }
+                    }
+                }
+
+                "import" =>{
+                    let mut obj1 = nscript_checkvar(&words[1], vmap);
+                    let  obj2 = nscript_checkvar("self", vmap);
+                    if obj1 == ""{
+                        obj1 = words[3].to_string();
+                    }
+                    if obj2 != ""{
+                        //when used only inside class scope
+                        vmap.setobj(&obj1, &obj2);
+                        //constructor check and run
+                        let reg = "nscript_classfuncs__".to_owned() + &obj1 + ".construct";
+                        let hasconstructor = vmap.getvar(&reg);
+                        if hasconstructor != ""{
+                            // constructor function if inherented, be triggered after instantiation
+                            let isconfn = "".to_owned() + &obj2 + ".construct()"; // should only execute if it exists.. else continue
+
+                            nscript_func(&isconfn, vmap); // if empty returns else exec
+                        }
+                    }
+
+
+                    return String::new();
+
+                }
                 "break" | "Break" => {
                     let loopid = nscript_checkvar(&words[1], vmap);
-                    vmap.delprop("nscript_loops", &loopid);
+                    let loopobject = "nscript_loops_".to_string() + &loopid;
+                    let looptype = vmap.getprop(&loopobject,"type");
+                    if looptype == "timed" {
+                        vmap.delprop("nscript_timedroutines", &loopid);
+                    }
+                    else if looptype == "coroutine" {
+                        vmap.delprop("nscript_coroutines", &loopid);
+                    }
+
                     return String::new();
                 }
                 "return" | "Return" => {
@@ -1194,13 +1297,15 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
                     );
                     let loopscope = Nstring::replace(&loopscope,"self","coSelf");
                     let loopscope = nscript_formatsheet(&loopscope,vmap);
-let blockname = "nscript_loops".to_owned() + "." + &loopref.trim();
+                    let blockname = "nscript_coroutines".to_owned() + "." + &loopref.trim();
                     vmap.setvar(
-                        "nscript_loops".to_owned() + "." + &loopref.trim(),
+                        "nscript_coroutines".to_owned() + "." + &loopref.trim(),
                         &loopscope,
                     );
                     vmap.setcodelines(&blockname, &loopscope);
-                   return "".to_owned();
+                    let timedid = "nscript_loops_".to_string() + &loopref;
+                    vmap.setprop(&timedid,"type","coroutine");
+                    return "".to_owned();
                 },
                 _ => {
                     //..
@@ -1356,37 +1461,90 @@ let blockname = "nscript_loops".to_owned() + "." + &loopref.trim();
             if words.len() > 3 {
                 // syntax for object spawning1,
 
-                if words[0] == "THREADCALL"{
 
 
-                    nscript_threadscope(words[1],words[2], words[3], vmap);
 
-                    return String::new();
-                }
-                if words[0] == "obj" && words[2] == ":" {
-                    let mut obj1 = nscript_checkvar(&words[3], vmap);
-                    let mut obj2 = nscript_checkvar(&words[1], vmap);
+                match words[0] {
+                    "THREADCALL" => {
+                        nscript_threadscope(words[1],words[2], words[3], vmap);
 
-                    if obj2 == "" {
-                        obj2 = words[1].to_string();
-                        vmap.setvar(words[1].to_owned(),words[1]);// set var to self
+                        return String::new();
+
+                    },
+                    "obj" => {
+                        if words[2] == ":" {
+                            let mut obj1 = nscript_checkvar(&words[3], vmap);
+                            let mut obj2 = nscript_checkvar(&words[1], vmap);
+
+                            if obj2 == "" {
+                                obj2 = words[1].to_string();
+                                vmap.setvar(words[1].to_owned(),words[1]);// set var to self
+                            }
+                            if obj1 == ""{
+                                obj1 = words[3].to_string();
+                            }
+
+                            vmap.setobj(&obj1, &obj2);
+                            //constructor check and run
+                            let reg = "nscript_classfuncs__".to_owned() + &obj1 + ".construct";
+                            let hasconstructor = vmap.getvar(&reg);
+                            if hasconstructor != ""{
+                                // constructor function if inherented, be triggered after instantiation
+                                let isconfn = "".to_owned() + &obj2 + ".construct()"; // should only execute if it exists.. else continue
+
+                                nscript_func(&isconfn, vmap); // if empty returns else exec
+                            }
+                        }
+                        return String::new();
+
                     }
-                    if obj1 == ""{
-                        obj1 = words[3].to_string();
+
+                    _ => {
+                        //well not sure yet.
                     }
-
-                    vmap.setobj(&obj1, &obj2);
-
-                    // constructor function if inherented, be triggered after instantiation
-                    let isconfn = "".to_owned() + &obj2 + ".construct()"; // should only execute if it exists.. else continue
-
-                    nscript_func(&isconfn, vmap); // if empty returns else exec
-                    return String::new();
                 }
             }
             if words.len() > 4 {
                 // lines that are of 5 words or more
                 match words[0] {
+                    "timedroutine" => {
+                        if words[2] == ":"{
+                            let scopeargs = Nstring::stringbetween(&words[words.len() - 1], "(", ")");
+                            let splitscopearg = split(&scopeargs, ",");
+                            let loopref = nscript_checkvar(&words[1], vmap);
+                            //println!("loopref={}",&loopref);
+                            let loopscope = nscript_unpackscopereturnclean(
+                                &splitscopearg[1],
+                                &splitscopearg[0],vmap
+                            );
+                            let loopscope = Nstring::replace(&loopscope,"self","coSelf");
+                            let loopscope = nscript_formatsheet(&loopscope,vmap);
+                            let blockname = "nscript_timedroutines".to_owned() + "." + &loopref.trim();
+                            vmap.setvar(
+                                "nscript_timedroutines".to_owned() + "." + &loopref.trim(),
+                                &loopscope,
+                            );
+                            let settime = nscript_checkvar(&words[3], vmap);
+                            //println!("settime{}",&settime);
+                            vmap.setvar(
+                                "nscript_timedroutinestime".to_owned() + "." + &loopref.trim(),
+                                &settime,
+                            );
+                            vmap.setvar(
+                                "nscript_timedroutinestimer".to_owned() + "." + &loopref.trim(),
+                                &Ntimer::init().to_string(),
+                            );
+                            vmap.setcodelines(&blockname, &loopscope);
+                            let timedid = "nscript_loops_".to_string() + &loopref;
+                            vmap.setprop(&timedid,"type","timed");
+
+                        }
+                        else{
+                            nscript_interpreterdebug("timedloop syntax error, use timedroutine id each time", vmap.debugmode,vmap.strictness);
+                        }
+                        return "".to_owned();
+
+                    },
                     // for loops
                     "elseif" => {
                         let iflevel = "___if".to_owned() +&vmap.codelevel.to_string() + "_" + &vmap.iflevel.to_string();
@@ -1521,9 +1679,11 @@ pub fn nscript_class_scopeextract(vmap: &mut Varmap) {
                 if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {
                     vmap.setcode(&parsecode, &Nstring::replace(&code, &toreplace, ""));
                 }
-                let isconfn = "".to_owned() + &toobjname.trim() + ".construct()"; // should only execute if it exists.. else continue
                 vmap.currentclassname = oldcurrentclass;
-                nscript_func(&isconfn,vmap);
+                if classname.len() > 1 {
+                    let isconfn = "".to_owned() + &toobjname.trim() + ".construct()"; // should only execute if it exists.. else continue
+                    nscript_func(&isconfn,vmap);
+                }
                 vmap.setvar("self".to_owned(), &oldself);
                 vmap.scopecounter = oldscopecounter;
             }
@@ -2789,6 +2949,13 @@ pub fn nscript_i32(intasstr: &str) -> i32 {
         Err(_) => return onerr,
     }
 }
+pub fn nscript_i64(intasstr: &str) -> i64 {
+    let onerr: i64 = 0;
+    match intasstr.parse::<i64>() {
+        Ok(n) => return n,
+        Err(_) => return onerr,
+    }
+}
 pub fn nscript_usize(intasstr: &str)-> usize{
     let selected = match intasstr.parse::<usize>(){
         Ok(res) =>{
@@ -3089,28 +3256,46 @@ pub fn trim_lines(input: &str) -> String {
 }
 
 pub fn nscript_loops(vmap: &mut Varmap) {
-    let activeloops = vmap.inobj("nscript_loops");
+    let activeloops = vmap.inobj("nscript_coroutines");
+    let activetimedroutines = vmap.inobj("nscript_timedroutines");
 
-    if activeloops != "" {
+    if activeloops == "" && activetimedroutines == "" {
+        vmap.activeloops = false;
+        process::exit(1);
+    }
+    if activeloops != ""{
         vmap.activeloops = true;
         //println!("running loop:[{}]",&activeloops);
 
         let subloops = split(&activeloops, "|");
         for x in subloops {
             // let d = vmap.getprop("nscript_loops", &x);
-            // //vmap.stackpush("___self", &x);
-            // vmap.setvar("coSelf".to_owned(), &x);
+           //vmap.stackpush("___self", &x);
+            vmap.setvar("coSelf".to_owned(), &x);
             // nscript_parseformattedsheet(&d, vmap);
-            let blockname = "nscript_loops.".to_owned() + &x;
+            let blockname = "nscript_coroutines.".to_owned() + &x;
             nscript_parsescopesheet(&blockname, vmap);
             //vmap.stackpop("___self");
             //vmap.setvar("self".to_owned(), &x);
         }
-        vmap.sound.runtimers();
-    } else {
-        vmap.activeloops = false;
-        process::exit(1);
+
     }
+    if activetimedroutines != ""{
+        let subtimed = split(&activetimedroutines,"|");
+        for xtimed in subtimed{
+            vmap.setvar("coSelf".to_string(),&xtimed);
+            let time = vmap.getvar(&("nscript_timedroutinestime.".to_string() + &xtimed));
+            let timerref = "nscript_timedroutinestimer.".to_string() + &xtimed;
+            let timer = Ntimer::diff(nscript_i64(&vmap.getvar(&timerref)));
+
+            if timer > nscript_i64(&time){
+                let blockname = "nscript_timedroutines.".to_owned() + &xtimed;
+                nscript_parsescopesheet(&blockname, vmap);
+                vmap.setvar(timerref,&Ntimer::init().to_string());
+            }
+        }
+    }
+    vmap.sound.runtimers();
 }
 pub fn nscript_threadloops(vmap: &mut Varmap) {
     let activeloops = vmap.inobj("nscript_loops");

@@ -560,6 +560,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                         if (start_time - end).as_millis() >= 1000{
                             // dc timer for inactivity should break the loop.
                             //
+                            cwrite("closed by timeout","r");
                             break;
                         }
 

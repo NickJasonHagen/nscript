@@ -460,10 +460,10 @@ pub fn nscript_callfn(
             return String::new();
         }
         "objparents" => {
-            return vmap.objparents(param1);
+            return vmap.objparents(param1).join(NC_ARRAY_DELIM);
         }
         "objchildren" | "getobjchildren"=> {
-            return vmap.objchildren(param1);
+            return vmap.objchildren(param1).join(NC_ARRAY_DELIM);
         }
         "setobjprop" => {
             vmap.setprop(param1, param2, param3);

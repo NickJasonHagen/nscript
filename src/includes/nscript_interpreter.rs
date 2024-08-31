@@ -68,6 +68,7 @@ pub struct Varmap {
     pub objectpropertyindexmap: HashMap<String, bool>,
     pub f32vectormap: HashMap<String, Vec<(f32, f32, f32)>>,// external used ( Bluenc)
     pub staticstringarrays:Vec<Vec<String>>,
+    pub nscript3d:Nscript3d,
 }
 impl Varmap {
     // this is the variable /class storage and manage structure all the functions to save load copy
@@ -116,6 +117,7 @@ pub fn emptyfnbuffer(&mut self,_: &mut Varmap) -> String {
             objectpropertyindexmap: HashMap::new(),
             f32vectormap: HashMap::new(),
             staticstringarrays:Vec::new(),
+            nscript3d:Nscript3d::new(),
 
         };
         Nc_os::envargs(&mut thisobj);

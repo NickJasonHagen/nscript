@@ -241,6 +241,34 @@ impl Njh {
         }
         return "@error".to_owned();
     }
+    pub fn fromobject(objectname:&str, vmap: &mut Varmap) -> String{
+        let allprops = vmap.inobj(&objectname);
+        let mut njhoutput = String::new();
+        for xprop in split(&allprops,"|"){
+            njhoutput = njhoutput.to_string() + "#" + &xprop + "\n" + &vmap.getprop(&objectname, &xprop) + "\n";
+        }
+        njhoutput.to_string()
+    }
+    pub fn objecttofile(objectname:&str,filepath:&str, vmap: &mut Varmap) -> String{
+        let allprops = vmap.inobj(&objectname);
+        let mut njhoutput = String::new();
+        for xprop in split(&allprops,"|"){
+            njhoutput = njhoutput.to_string() + "#" + &xprop + "\n" + &vmap.getprop(&objectname, &xprop) + "\n";
+        }
+        Nfile::write(&filepath,&njhoutput)
+    }
+    pub fn filetoobject(filepath:&str,objectname:&str,vmap: &mut Varmap){
+        let mut filedata = Nfile::read(&filepath);
+        filedata = Nstring::replace(&filedata, "\n#", "||==>");
+        filedata = Nstring::trimleft(&Nstring::replace(&filedata, "\n", "|=>"),1);//strip off #;
+        let lines = split(&filedata,"||==>");
+        for xline in lines{
+            let propdata = split(&xline,"|=>");
+            if propdata.len() > 0 {
+                vmap.setprop(&objectname, &propdata[0], &propdata[1]);
+            }
+        }
+    }
 }
 
 pub fn string_to_eval(string_: &str) -> String {

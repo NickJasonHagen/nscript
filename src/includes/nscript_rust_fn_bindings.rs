@@ -52,6 +52,16 @@ pub fn nscript_callfn(
         "filetoobj" => {
            return nscript_filetoobject(&param1,&param2, vmap);
         }
+        "njh_fromobject" => {
+            return Njh::fromobject(&param1, vmap);
+        }
+        "njh_objecttofile" => {
+            return Njh::objecttofile(&param1,&param2, vmap);
+        }
+        "njh_filetoobject" => {
+             Njh::filetoobject(&param1,&param2, vmap);
+            return "".to_owned();
+        }
         "soundvolume" =>{
             match param2.parse::<f32>(){
                 Ok(res) => {
@@ -730,6 +740,35 @@ pub fn nscript_callfn(
 
             keytest("w");
             return  "".to_owned();
+        }
+        "nscript3d_addbox" => {
+            return vmap.nscript3d.newbox(&param1);
+        }
+        "nscript3d_addtogroup" => {
+             vmap.nscript3d.addtogroup(&param1,&param2);
+            return "".to_string();
+        }
+        "nscript3d_removefromgroup" => {
+             vmap.nscript3d.removefromgroup(&param1,&param2);
+            return "".to_string();
+        }
+        "nscript3d_getgroup" => {
+            return vmap.nscript3d.getgroup(&param1).join(NC_ARRAY_DELIM);
+        }
+        "nscript3d_getcollisions" => {
+            return vmap.nscript3d.checkcollisions(&param1,&param2).join(NC_ARRAY_DELIM);
+        }
+         "nscript3d_setposition" => {
+             vmap.nscript3d.setposition(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+            return "".to_string();
+        }
+         "nscript3d_setrotation" => {
+             vmap.nscript3d.setrotation(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+            return "".to_string();
+        }
+         "nscript3d_setscale" => {
+             vmap.nscript3d.setscale(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+            return "".to_string();
         }
         "stringbetween" => return Nstring::stringbetween(param1, param2, param3),
         "combine" | "cat"=> {

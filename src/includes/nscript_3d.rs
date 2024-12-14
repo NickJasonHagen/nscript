@@ -6,7 +6,7 @@ use cgmath::{Matrix4, Vector3,Transform, Quaternion, Euler, Deg, Rad, InnerSpace
 use std::collections::HashMap;
 // Assuming Vertex struct
 #[derive(Debug, Clone, Copy)]
-struct Vertex {
+pub struct Vertex {
     position: [f32; 3],
     uv: [f32; 2],
     normal: [f32; 3],
@@ -173,24 +173,31 @@ impl Nscript3d {
         };
         this
     }
-    pub fn newbox(&mut self,objectname:&str) -> String{
+    pub fn collisionbox_newbox(&mut self,objectname:&str) -> String{
         self.vertex.insert(objectname.to_string(),Vertex::new3dbox());
         self.positions.insert(objectname.to_string(), vec![0.0,0.0,0.0]);
         self.rotations.insert(objectname.to_string(), vec![0.0,0.0,0.0]);
-        self.scale.insert(objectname.to_string(), vec![1.0,1.0,1.0]);
+        self.scale.insert(objectname.to_string(), vec![0.25,0.25,0.25]);
         objectname.to_string()
     }
-    pub fn addtogroup(&mut self, objectname:&str,group:&str){
-        let mut getgroup = self.getgroup(group);
+    pub fn collisionbox_sizedbox(&mut self,objectname:&str,x:f32,y:f32,z:f32) -> String{
+        self.vertex.insert(objectname.to_string(),Vertex::new3dbox());
+        self.positions.insert(objectname.to_string(), vec![0.0,0.0,0.0]);
+        self.rotations.insert(objectname.to_string(), vec![0.0,0.0,0.0]);
+        self.scale.insert(objectname.to_string(), vec![x,y,z]);
+        objectname.to_string()
+    }
+    pub fn collisionbox_addtogroup(&mut self, objectname:&str,group:&str){
+        let mut getgroup = self.collisionbox_getgroup(group);
         getgroup.push(objectname.to_string());
         self.colliongroups.insert(group.to_string(), getgroup);
     }
-    pub fn removefromgroup(&mut self,objectname:&str,group:&str){
-        let mut getgroup = self.getgroup(group);
+    pub fn collisionbox_removefromgroup(&mut self,objectname:&str,group:&str){
+        let mut getgroup = self.collisionbox_getgroup(group);
         getgroup.retain(|x| x != objectname);
         self.colliongroups.insert(group.to_string(), getgroup);
     }
-    pub fn getgroup(&mut self,group:&str) -> Vec<String>{
+    pub fn collisionbox_getgroup(&mut self,group:&str) -> Vec<String>{
         match self.colliongroups.get_key_value(group) {
             None => {
                 Vec::new()
@@ -200,17 +207,18 @@ impl Nscript3d {
             }
         }
     }
-    pub fn checkcollisions(&mut self,objectname:&str,group:&str) -> Vec<String>{
-        let object_aabb = self.get_aabb(objectname);
+    pub fn collisionbox_checkcollisions(&mut self,objectname:&str,group:&str) -> Vec<String>{
+        let object_aabb = self.collisionbox_get_aabb(objectname);
         let mut collisionsvec:Vec<String> = Vec::new();
-        for xunit in self.getgroup(group){
-            let x_aabb = self.get_aabb(&xunit);
+        for xunit in self.collisionbox_getgroup(group){
+            let x_aabb = self.collisionbox_get_aabb(&xunit);
             if object_aabb.intersects(&x_aabb){
                 collisionsvec.push(xunit)
             }
         }
         collisionsvec
     }
+
     fn getoffsets(&mut self ,objectname:&str)-> (Vec<f32> , Vec<f32>,Vec<f32>,Vec<Vertex>){
         //let getid = self.positions.get_key_value(objectname);
         let posvec = match self.positions.get_key_value(objectname) {
@@ -258,7 +266,7 @@ impl Nscript3d {
             }
         }
     }
-    fn get_aabb(&mut self,objectname:&str) -> AABB{
+    fn collisionbox_get_aabb(&mut self,objectname:&str) -> AABB{
         match self.aabb.get_key_value(objectname) {
             None => {
                 let vertex = self.get_vertex(&objectname);
@@ -271,17 +279,17 @@ impl Nscript3d {
             }
         }
     }
-    pub fn setposition(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
+    pub fn collisionbox_setposition(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
         let newpos = vec![posx,posy,posz];
         self.positions.insert(objectname.to_string(), newpos);
         self.updatevertex(objectname);
     }
-    pub fn setrotation(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
+    pub fn collisionbox_setrotation(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
         let newpos = vec![posx,posy,posz];
         self.rotations.insert(objectname.to_string(), newpos);
         self.updatevertex(objectname);
     }
-    pub fn setscale(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
+    pub fn collisionbox_setscale(&mut self, objectname:&str,posx: f32,posy:f32,posz:f32){
         let newpos = vec![posx,posy,posz];
         self.scale.insert(objectname.to_string(), newpos);
         self.updatevertex(objectname);
@@ -338,6 +346,26 @@ impl Nscript3d {
     }
 
 }
+
+//#[derive(Debug, Clone, Copy)]
+type Vec3 = [f32; 3];
+
+#[derive(Debug, Clone, Copy)]
+struct Triangle {
+    v0: Vertex,
+    v1: Vertex,
+    v2: Vertex,
+}
+
+// Assume `vertices` is a `Vec<Vec3>` and `indices` is a `Vec<u32>`
+// representing your mesh.
+fn get_triangle_from_indices(vertices: &Vec<Vertex>, indices: &[u16]) -> Triangle {
+    Triangle {
+        v0: vertices[indices[0] as usize],
+        v1: vertices[indices[1] as usize],
+        v2: vertices[indices[2] as usize],
+    }
+}
 #[derive(Debug, Clone)]
 struct AABB {
     min: [f32; 3],
@@ -373,7 +401,7 @@ impl AABB {
         }
         true
     }
-}
+  }
 
 
 // // Example usage

@@ -2367,6 +2367,7 @@ pub fn nscript_runfncall(fnword: &str, vmap: &mut Varmap) -> String {
     // yeah i know right this is pretty funny, first day of rust lol
     // yeah i gotta remake this i know !
     // ----------------------------------------------------------
+    vmap.varmap.insert("nscript_error".to_string(),"0".to_string());
     let mut fnname = fnword.to_string();
     if Nstring::instring(&split(&fnname, "(")[0], "*") {
         let fnsplit = split(split(&fnname, "(")[0], ".");
@@ -2605,9 +2606,6 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
         "@boxcorner2" => "┐".to_string(),
         "@boxcorner3" => "└".to_string(),
         "@boxcorner4" => "┘".to_string(),
-        "@error" => {
-        vmap.getvar("___error")
-        }
         "@array" => {
             NC_ARRAY_DELIM.to_string()
         }
@@ -2664,6 +2662,7 @@ pub fn nscript_getmacro(mac: &str, vmap: &mut Varmap) -> String {
         "@nscriptversion" => String::from(NSCRIPT_VERSION),
         "@crlf" => String::from("\r\n"),
         "@lf" => String::from("\n"),
+        "@error" => vmap.getvar("nscript_error"),
         //"@pid" => get_own_pid().to_string(),
         "@emptystring" => String::new(), //<- internal-parser used!!
 

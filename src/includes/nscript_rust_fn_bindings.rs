@@ -702,7 +702,43 @@ pub fn nscript_callfn(
             };
             return res.to_owned();
         }
-
+        "int32_or" => {
+            let res = match param1.parse::<i32>(){
+                Ok(_) => param1.to_string(),
+                Err(_) => param2.to_string(),
+            };
+            return res.to_owned();
+        }
+        "int64_or" => {
+            let res = match param1.parse::<i64>(){
+                Ok(_) => param1.to_string(),
+                Err(_) => param2.to_string(),
+            };
+            return res.to_owned();
+        }
+        "f32_or" => {
+            let res = match param1.parse::<f32>(){
+                Ok(_) => param1.to_string(),
+                Err(_) => param2.to_string(),
+            };
+            return res.to_owned();
+        }
+        "f64_or" => {
+            let res = match param1.parse::<f64>(){
+                Ok(_) => param1.to_string(),
+                Err(_) => param2.to_string(),
+            };
+            return res.to_owned();
+        }
+        "string_or" => {
+            let  ret: String;
+            if param1 != "" {
+                ret = param1.to_string();
+            }else{
+                ret = param2.to_string();
+            }
+            return ret;
+        }
         "f64" => {
             let res = match param1.parse::<f64>(){
                 Ok(_) => "true",
@@ -741,33 +777,36 @@ pub fn nscript_callfn(
             keytest("w");
             return  "".to_owned();
         }
-        "nscript3d_addbox" => {
-            return vmap.nscript3d.newbox(&param1);
+        "collisionbox_addbox" => {
+            return vmap.nscript3d.collisionbox_newbox(&param1);
         }
-        "nscript3d_addtogroup" => {
-             vmap.nscript3d.addtogroup(&param1,&param2);
+        "collisionbox_sizedbox" => {
+            return vmap.nscript3d.collisionbox_sizedbox(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+        }
+        "collisionbox_addtogroup" => {
+             vmap.nscript3d.collisionbox_addtogroup(&param1,&param2);
             return "".to_string();
         }
-        "nscript3d_removefromgroup" => {
-             vmap.nscript3d.removefromgroup(&param1,&param2);
+        "collisionbox_removefromgroup" => {
+             vmap.nscript3d.collisionbox_removefromgroup(&param1,&param2);
             return "".to_string();
         }
-        "nscript3d_getgroup" => {
-            return vmap.nscript3d.getgroup(&param1).join(NC_ARRAY_DELIM);
+        "collisionbox_getgroup" => {
+            return vmap.nscript3d.collisionbox_getgroup(&param1).join(NC_ARRAY_DELIM);
         }
-        "nscript3d_getcollisions" => {
-            return vmap.nscript3d.checkcollisions(&param1,&param2).join(NC_ARRAY_DELIM);
+        "collisionbox_getcollisions" => {
+            return vmap.nscript3d.collisionbox_checkcollisions(&param1,&param2).join(NC_ARRAY_DELIM);
         }
-         "nscript3d_setposition" => {
-             vmap.nscript3d.setposition(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+         "collisionbox_setposition" => {
+             vmap.nscript3d.collisionbox_setposition(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
             return "".to_string();
         }
-         "nscript3d_setrotation" => {
-             vmap.nscript3d.setrotation(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+         "collisionbox_setrotation" => {
+             vmap.nscript3d.collisionbox_setrotation(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
             return "".to_string();
         }
-         "nscript3d_setscale" => {
-             vmap.nscript3d.setscale(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
+         "collisionbox_setscale" => {
+             vmap.nscript3d.collisionbox_setscale(&param1,nscript_f32(&param2),nscript_f32(&param3),nscript_f32(&param4));
             return "".to_string();
         }
         "stringbetween" => return Nstring::stringbetween(param1, param2, param3),

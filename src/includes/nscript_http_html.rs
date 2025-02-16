@@ -1,11 +1,8 @@
-
-
 use crate::*;
 //use reqwest;
 //use reqwest::blocking::get;
 //use std::time::Duration;
 use std::time::Instant;
-
 
 // pub fn curl(url: &str) -> String {
 //     match get(url) {
@@ -287,7 +284,6 @@ pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
     }
     return res[0].to_string();
 }
-
 pub fn decode_html_url(url: &str) -> String {
     let entities = [
         ("&amp;", "&"),
@@ -298,8 +294,8 @@ pub fn decode_html_url(url: &str) -> String {
     ];
 
     let mut decoded = String::new();
-    let mut  xurl = Nstring::replace(&url,"+"," ");
-        xurl = Nstring::replace(&xurl,"%0D","\n");
+    let mut xurl = Nstring::replace(&url, "+", " ");
+    xurl = Nstring::replace(&xurl, "%0D", "\n");
 
     let mut iter = xurl.chars().peekable();
 
@@ -327,41 +323,252 @@ pub fn decode_html_url(url: &str) -> String {
 }
 pub fn html_encode(s_txt: &str) -> String {
     let entities: [(u32, &str); 246] = [
-        (34, "quot"), (38, "amp"), (39, "apos"), (60, "lt"), (62, "gt"), (160, "nbsp"), (161, "iexcl"),
-        (162, "cent"), (163, "pound"), (164, "curren"), (165, "yen"), (166, "brvbar"), (167, "sect"), (168, "uml"),
-        (169, "copy"), (170, "ordf"), (171, "laquo"), (172, "not"), (173, "shy"), (174, "reg"), (175, "macr"),
-        (176, "deg"), (177, "plusmn"), (180, "acute"), (181, "micro"), (182, "para"), (183, "middot"), (184, "cedil"),
-        (186, "ordm"), (187, "raquo"), (191, "iquest"), (192, "Agrave"), (193, "Aacute"), (194, "Acirc"), (195, "Atilde"),
-        (196, "Auml"), (197, "Aring"), (198, "AElig"), (199, "Ccedil"), (200, "Egrave"), (201, "Eacute"), (202, "Ecirc"),
-        (203, "Euml"), (204, "Igrave"), (205, "Iacute"), (206, "Icirc"), (207, "Iuml"), (208, "ETH"), (209, "Ntilde"),
-        (210, "Ograve"), (211, "Oacute"), (212, "Ocirc"), (213, "Otilde"), (214, "Ouml"), (215, "times"), (216, "Oslash"),
-        (217, "Ugrave"), (218, "Uacute"), (219, "Ucirc"), (220, "Uuml"), (221, "Yacute"), (222, "THORN"), (223, "szlig"),
-        (224, "agrave"), (225, "aacute"), (226, "acirc"), (227, "atilde"), (228, "auml"), (229, "aring"), (230, "aelig"),
-        (231, "ccedil"), (232, "egrave"), (233, "eacute"), (234, "ecirc"), (235, "euml"), (236, "igrave"), (237, "iacute"),
-        (238, "icirc"), (239, "iuml"), (240, "eth"), (241, "ntilde"), (242, "ograve"), (243, "oacute"), (244, "ocirc"),
-        (245, "otilde"), (246, "ouml"), (247, "divide"), (248, "oslash"), (249, "ugrave"), (250, "uacute"), (251, "ucirc"),
-        (252, "uuml"), (253, "yacute"), (254, "thorn"), (255, "yuml"), (338, "OElig"), (339, "oelig"), (352, "Scaron"),
-        (353, "scaron"), (376, "Yuml"), (402, "fnof"), (710, "circ"), (732, "tilde"), (913, "Alpha"), (914, "Beta"),
-        (915, "Gamma"), (916, "Delta"), (917, "Epsilon"), (918, "Zeta"), (919, "Eta"), (920, "Theta"), (921, "Iota"),
-        (922, "Kappa"), (923, "Lambda"), (924, "Mu"), (925, "Nu"), (926, "Xi"), (927, "Omicron"), (928, "Pi"), (929, "Rho"),
-        (931, "Sigma"), (932, "Tau"), (933, "Upsilon"), (934, "Phi"), (935, "Chi"), (936, "Psi"), (937, "Omega"), (945, "alpha"),
-        (946, "beta"), (947, "gamma"), (948, "delta"), (949, "epsilon"), (950, "zeta"), (951, "eta"), (952, "theta"), (953, "iota"),
-        (954, "kappa"), (955, "lambda"), (956, "mu"), (957, "nu"), (958, "xi"), (959, "omicron"), (960, "pi"), (961, "rho"),
-        (962, "sigmaf"), (963, "sigma"), (964, "tau"), (965, "upsilon"), (966, "phi"), (967, "chi"), (968, "psi"), (969, "omega"),
-        (977, "thetasym"), (978, "upsih"), (982, "piv"), (8194, "ensp"), (8195, "emsp"), (8201, "thinsp"), (8204, "zwnj"),
-        (8205, "zwj"), (8206, "lrm"), (8207, "rlm"), (8211, "ndash"), (8212, "mdash"), (8216, "lsquo"), (8217, "rsquo"),
-        (8218, "sbquo"), (8220, "ldquo"), (8221, "rdquo"), (8222, "bdquo"), (8224, "dagger"), (8225, "Dagger"), (8226, "bull"),
-        (8230, "hellip"), (8240, "permil"), (8242, "prime"), (8243, "Prime"), (8249, "lsaquo"), (8250, "rsaquo"), (8254, "oline"),
-        (8260, "frasl"), (8364, "euro"), (8465, "image"), (8472, "weierp"), (8476, "real"), (8482, "trade"), (8501, "alefsym"),
-        (8592, "larr"), (8593, "uarr"), (8594, "rarr"), (8595, "darr"), (8596, "harr"), (8629, "crarr"), (8656, "lArr"),
-        (8657, "uArr"), (8658, "rArr"), (8659, "dArr"), (8660, "hArr"), (8704, "forall"), (8706, "part"), (8707, "exist"),
-        (8709, "empty"), (8711, "nabla"), (8712, "isin"), (8713, "notin"), (8715, "ni"), (8719, "prod"), (8721, "sum"),
-        (8722, "minus"), (8727, "lowast"), (8730, "radic"), (8733, "prop"), (8734, "infin"), (8736, "ang"), (8743, "and"),
-        (8744, "or"), (8745, "cap"), (8746, "cup"), (8747, "int"), (8764, "sim"), (8773, "cong"), (8776, "asymp"), (8800, "ne"),
-        (8801, "equiv"), (8804, "le"), (8805, "ge"), (8834, "sub"), (8835, "sup"), (8836, "nsub"), (8838, "sube"), (8839, "supe"),
-        (8853, "oplus"), (8855, "otimes"), (8869, "perp"), (8901, "sdot"), (8968, "lceil"), (8969, "rceil"), (8970, "lfloor"),
-        (8971, "rfloor"), (9001, "lang"), (9002, "rang"), (9674, "loz"), (9824, "spades"), (9827, "clubs"), (9829, "hearts"),
-        (9830, "diams")
+        (34, "quot"),
+        (38, "amp"),
+        (39, "apos"),
+        (60, "lt"),
+        (62, "gt"),
+        (160, "nbsp"),
+        (161, "iexcl"),
+        (162, "cent"),
+        (163, "pound"),
+        (164, "curren"),
+        (165, "yen"),
+        (166, "brvbar"),
+        (167, "sect"),
+        (168, "uml"),
+        (169, "copy"),
+        (170, "ordf"),
+        (171, "laquo"),
+        (172, "not"),
+        (173, "shy"),
+        (174, "reg"),
+        (175, "macr"),
+        (176, "deg"),
+        (177, "plusmn"),
+        (180, "acute"),
+        (181, "micro"),
+        (182, "para"),
+        (183, "middot"),
+        (184, "cedil"),
+        (186, "ordm"),
+        (187, "raquo"),
+        (191, "iquest"),
+        (192, "Agrave"),
+        (193, "Aacute"),
+        (194, "Acirc"),
+        (195, "Atilde"),
+        (196, "Auml"),
+        (197, "Aring"),
+        (198, "AElig"),
+        (199, "Ccedil"),
+        (200, "Egrave"),
+        (201, "Eacute"),
+        (202, "Ecirc"),
+        (203, "Euml"),
+        (204, "Igrave"),
+        (205, "Iacute"),
+        (206, "Icirc"),
+        (207, "Iuml"),
+        (208, "ETH"),
+        (209, "Ntilde"),
+        (210, "Ograve"),
+        (211, "Oacute"),
+        (212, "Ocirc"),
+        (213, "Otilde"),
+        (214, "Ouml"),
+        (215, "times"),
+        (216, "Oslash"),
+        (217, "Ugrave"),
+        (218, "Uacute"),
+        (219, "Ucirc"),
+        (220, "Uuml"),
+        (221, "Yacute"),
+        (222, "THORN"),
+        (223, "szlig"),
+        (224, "agrave"),
+        (225, "aacute"),
+        (226, "acirc"),
+        (227, "atilde"),
+        (228, "auml"),
+        (229, "aring"),
+        (230, "aelig"),
+        (231, "ccedil"),
+        (232, "egrave"),
+        (233, "eacute"),
+        (234, "ecirc"),
+        (235, "euml"),
+        (236, "igrave"),
+        (237, "iacute"),
+        (238, "icirc"),
+        (239, "iuml"),
+        (240, "eth"),
+        (241, "ntilde"),
+        (242, "ograve"),
+        (243, "oacute"),
+        (244, "ocirc"),
+        (245, "otilde"),
+        (246, "ouml"),
+        (247, "divide"),
+        (248, "oslash"),
+        (249, "ugrave"),
+        (250, "uacute"),
+        (251, "ucirc"),
+        (252, "uuml"),
+        (253, "yacute"),
+        (254, "thorn"),
+        (255, "yuml"),
+        (338, "OElig"),
+        (339, "oelig"),
+        (352, "Scaron"),
+        (353, "scaron"),
+        (376, "Yuml"),
+        (402, "fnof"),
+        (710, "circ"),
+        (732, "tilde"),
+        (913, "Alpha"),
+        (914, "Beta"),
+        (915, "Gamma"),
+        (916, "Delta"),
+        (917, "Epsilon"),
+        (918, "Zeta"),
+        (919, "Eta"),
+        (920, "Theta"),
+        (921, "Iota"),
+        (922, "Kappa"),
+        (923, "Lambda"),
+        (924, "Mu"),
+        (925, "Nu"),
+        (926, "Xi"),
+        (927, "Omicron"),
+        (928, "Pi"),
+        (929, "Rho"),
+        (931, "Sigma"),
+        (932, "Tau"),
+        (933, "Upsilon"),
+        (934, "Phi"),
+        (935, "Chi"),
+        (936, "Psi"),
+        (937, "Omega"),
+        (945, "alpha"),
+        (946, "beta"),
+        (947, "gamma"),
+        (948, "delta"),
+        (949, "epsilon"),
+        (950, "zeta"),
+        (951, "eta"),
+        (952, "theta"),
+        (953, "iota"),
+        (954, "kappa"),
+        (955, "lambda"),
+        (956, "mu"),
+        (957, "nu"),
+        (958, "xi"),
+        (959, "omicron"),
+        (960, "pi"),
+        (961, "rho"),
+        (962, "sigmaf"),
+        (963, "sigma"),
+        (964, "tau"),
+        (965, "upsilon"),
+        (966, "phi"),
+        (967, "chi"),
+        (968, "psi"),
+        (969, "omega"),
+        (977, "thetasym"),
+        (978, "upsih"),
+        (982, "piv"),
+        (8194, "ensp"),
+        (8195, "emsp"),
+        (8201, "thinsp"),
+        (8204, "zwnj"),
+        (8205, "zwj"),
+        (8206, "lrm"),
+        (8207, "rlm"),
+        (8211, "ndash"),
+        (8212, "mdash"),
+        (8216, "lsquo"),
+        (8217, "rsquo"),
+        (8218, "sbquo"),
+        (8220, "ldquo"),
+        (8221, "rdquo"),
+        (8222, "bdquo"),
+        (8224, "dagger"),
+        (8225, "Dagger"),
+        (8226, "bull"),
+        (8230, "hellip"),
+        (8240, "permil"),
+        (8242, "prime"),
+        (8243, "Prime"),
+        (8249, "lsaquo"),
+        (8250, "rsaquo"),
+        (8254, "oline"),
+        (8260, "frasl"),
+        (8364, "euro"),
+        (8465, "image"),
+        (8472, "weierp"),
+        (8476, "real"),
+        (8482, "trade"),
+        (8501, "alefsym"),
+        (8592, "larr"),
+        (8593, "uarr"),
+        (8594, "rarr"),
+        (8595, "darr"),
+        (8596, "harr"),
+        (8629, "crarr"),
+        (8656, "lArr"),
+        (8657, "uArr"),
+        (8658, "rArr"),
+        (8659, "dArr"),
+        (8660, "hArr"),
+        (8704, "forall"),
+        (8706, "part"),
+        (8707, "exist"),
+        (8709, "empty"),
+        (8711, "nabla"),
+        (8712, "isin"),
+        (8713, "notin"),
+        (8715, "ni"),
+        (8719, "prod"),
+        (8721, "sum"),
+        (8722, "minus"),
+        (8727, "lowast"),
+        (8730, "radic"),
+        (8733, "prop"),
+        (8734, "infin"),
+        (8736, "ang"),
+        (8743, "and"),
+        (8744, "or"),
+        (8745, "cap"),
+        (8746, "cup"),
+        (8747, "int"),
+        (8764, "sim"),
+        (8773, "cong"),
+        (8776, "asymp"),
+        (8800, "ne"),
+        (8801, "equiv"),
+        (8804, "le"),
+        (8805, "ge"),
+        (8834, "sub"),
+        (8835, "sup"),
+        (8836, "nsub"),
+        (8838, "sube"),
+        (8839, "supe"),
+        (8853, "oplus"),
+        (8855, "otimes"),
+        (8869, "perp"),
+        (8901, "sdot"),
+        (8968, "lceil"),
+        (8969, "rceil"),
+        (8970, "lfloor"),
+        (8971, "rfloor"),
+        (9001, "lang"),
+        (9002, "rang"),
+        (9674, "loz"),
+        (9824, "spades"),
+        (9827, "clubs"),
+        (9829, "hearts"),
+        (9830, "diams"),
     ];
 
     let mut s_txt_encoded = String::new();
@@ -376,15 +583,13 @@ pub fn html_encode(s_txt: &str) -> String {
     s_txt_encoded
 }
 
-
-
-pub fn nscript_setparams_handleconnections(args: &Vec<String>,vmap: &mut Varmap){
-// this function sets parameters when jumping functions. used on htmlserver
-// because of the code level these params are differently set then functions.
-let id = args.len();
+pub fn nscript_setparams_handleconnections(args: &Vec<String>, vmap: &mut Varmap) {
+    // this function sets parameters when jumping functions. used on htmlserver
+    // because of the code level these params are differently set then functions.
+    let id = args.len();
     if id > 0 {
         //println!("codelevle = {}",&vmap.codelevel);
-        let codelevelabove = &vmap.codelevel +0;// <- yeah seems neccesary for vmap.
+        let codelevelabove = &vmap.codelevel + 0; // <- yeah seems neccesary for vmap.
         for r in 0..id {
             //let paramx = &r + 1;
             let paramid = r + 1;
@@ -394,11 +599,9 @@ let id = args.len();
             vmap.setvar(pname, &args[r]); // set all param arguments
         }
     }
-
 }
 
-
-pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
+pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
     // this is the webserver part it will take a GET request and handle it.
     // text files are on the main thread for other downloads it goes to a other thread
     // .nc files are being regonised and they will return their return results to the user browser.
@@ -406,11 +609,9 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     let mut buffer = [0; 1024];
     //stream.read(&mut buffer).unwrap();
 
-
     match stream.read(&mut buffer) {
         Ok(_) => {
             // procceed the connection.
-
         }
         Err(_) => {
             // handle OS error on connection-reset
@@ -419,41 +620,41 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
         }
     }
     let request = String::from_utf8_lossy(&buffer[..]);
-    vmap.setvar("server.request".to_owned(),&request);
+    vmap.setvar("server.request".to_owned(), &request);
     if Nstring::instring(&request, "B blob data") {
-        println!("(debug->returning) Blob data entering: {}",&request);
-        return ; // prevent errors , return!
+        println!("(debug->returning) Blob data entering: {}", &request);
+        return; // prevent errors , return!
     }
-    if Nstring::instring(&request, "POST") == false && Nstring::instring(&request, "GET") == false{
-        println!("A non POST nor GET packet entered: \n {}",&request);
+    if Nstring::instring(&request, "POST") == false && Nstring::instring(&request, "GET") == false {
+        println!("A non POST nor GET packet entered: \n {}", &request);
         return; // clearly we aint gonna handle this (yet)
-
     }
     //println!("req:{}",&request);
     //let request_clone = request.clone();
-    let domainname = Nstring::replace(&Nstring::stringbetween(&request,"Host: ","\r\n"),"www.","");
-    let domainname = split(&domainname,":")[0];
-    vmap.setvar("___domainname".to_owned(),&domainname);
+    let domainname = Nstring::replace(
+        &Nstring::stringbetween(&request, "Host: ", "\r\n"),
+        "www.",
+        "",
+    );
+    let domainname = split(&domainname, ":")[0];
+    vmap.setvar("___domainname".to_owned(), &domainname);
     let request_parts: Vec<&str> = request.split(" ").collect();
-//if request_parts[0] != "GET" {return;} // debugger to find that damn crash on b blobdata.
+    //if request_parts[0] != "GET" {return;} // debugger to find that damn crash on b blobdata.
     let mut pathparts = Vec::new();
     let trimmedreq: String;
     if request_parts.len() > 1 {
         if request_parts[1].contains("B blob data") {
             println!("blobdatafound returning");
-            return ; // Ignore blob data and return without processing
+            return; // Ignore blob data and return without processing
         }
-        trimmedreq = Nstring::trimleft(&request_parts[1],1);
-        pathparts = split(&trimmedreq,"?");
-    }
-    else{
-
+        trimmedreq = Nstring::trimleft(&request_parts[1], 1);
+        pathparts = split(&trimmedreq, "?");
+    } else {
         pathparts.push("");
     }
-    if pathparts[0] == ""{
+    if pathparts[0] == "" {
         pathparts[0] = "index.nc";
     }
-
 
     let mut url_args = Vec::new();
     if pathparts.len() > 1 {
@@ -463,60 +664,64 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
     let mut newparams: Vec<String> = Vec::new();
 
     for i in 1..10 {
-       if url_args.len()  > i - 1 {
-            newparams.push(decode_html_url(&url_args[i-1].to_owned()));
-        }
-        else {
+        if url_args.len() > i - 1 {
+            newparams.push(decode_html_url(&url_args[i - 1].to_owned()));
+        } else {
             newparams.push(String::from(""));
         }
     }
 
-    nscript_setparams_handleconnections(&newparams,vmap);
+    nscript_setparams_handleconnections(&newparams, vmap);
     let mut webroot = nscript_checkvar("server.serverroot", vmap);
-    if webroot == ""{
+    if webroot == "" {
         webroot = NC_SCRIPT_DIR.to_owned();
     }
 
-    let mut file_path = Nstring::replace(&format!("{}{}{}", &webroot,"/public/", &Nstring::stringbetween(&request, "T ", " HTTP")),"/..","");
+    let mut file_path = Nstring::replace(
+        &format!("{}{}{}", &webroot, "/public/", &pathparts[0]),
+        "/..",
+        "",
+    );
     let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
-    if Nfile::checkexists(&checkthis){
-        file_path = webroot.clone() + "domains/"  + &domainname + "/public/"+ &pathparts[0];
-
+    if Nfile::checkexists(&checkthis) {
+        file_path = webroot.clone() + "domains/" + &domainname + "/public/" + &pathparts[0];
     }
     //println!("entree:{}",&file_path);
     if request_parts[0] == "POST" {
         let mut postdata = String::new();
 
-        let strippostdata = split(&request,"\r\n\r\n");
+        let strippostdata = split(&request, "\r\n\r\n");
         if strippostdata.len() > 1 {
-            postdata = "".to_owned() +strippostdata[1] ;// used for post buffer data
-            //println!("strippedpostdata:{}",&postdata);
-        }
-        else {
+            postdata = "".to_owned() + strippostdata[1]; // used for post buffer data
+                                                         //println!("strippedpostdata:{}",&postdata);
+        } else {
             //println!("somejacked up stuff");
-            return;//some jacked up post request being done.
+            return; //some jacked up post request being done.
         }
 
-
-        if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {
+        if let Some(extension) = Path::new(&file_path)
+            .extension()
+            .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
+        {
             if ["nc"].contains(&extension.as_str()) {
                 //println!("Its a Post to Nc");
-                let bsize = nscript_f64(&Nstring::stringbetween(&request,"Content-Length: ","Cache").trim());
+                let bsize = nscript_f64(
+                    &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
+                );
 
                 //println!("receiving:{}",&bsize);
-                let response =  "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-
-                        }
-                        Err(_) => {
-                            //return;
+                let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+                match stream.write(response.as_bytes()) {
+                    Ok(bytes_written) => {
+                        // Check if all bytes were successfully written.
+                        if bytes_written < response.len() {
+                            // Handle the situation where not all data was written if needed.
                         }
                     }
+                    Err(_) => {
+                        //return;
+                    }
+                }
                 // match stream.set_read_timeout(Some(Duration::new(0, 10000000))){
                 //
                 //     Ok(_) => {},
@@ -531,8 +736,7 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 //     Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
                 // }
 
-
-                if bsize > nscript_f64(&nscript_checkvar("server.POSTbytesmax",vmap)){
+                if bsize > nscript_f64(&nscript_checkvar("server.POSTbytesmax", vmap)) {
                     let response = "SERVERERROR:PostSizeExceedsLimit";
                     match stream.write(response.as_bytes()) {
                         Ok(_) => {
@@ -545,59 +749,56 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 }
                 //println!("bytesize:{}",&bsize);
                 if bsize > 198.0 {
-
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
                     //let mut  dctimer = Ntimer::init();
                     // set ensurances to break the connection if some hangs.
 
-
                     // let err = result.unwrap_err();
                     // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
                     let mut start_time = Instant::now();
-                    loop{
+                    loop {
                         let end = Instant::now();
-                        if (start_time - end).as_millis() >= 1000{
+                        if (start_time - end).as_millis() >= 1000 {
                             // dc timer for inactivity should break the loop.
                             //
-                            cwrite("closed by timeout","r");
+                            cwrite("closed by timeout", "r");
                             break;
                         }
 
                         match stream.read(&mut buffer) {
                             Ok(bytes_read) => {
-
                                 //println!("\nbytesRead!{}\n",bytes_read);
 
-                                postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                                if bytes_read <=  1023 {
-
+                                postdata =
+                                    postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                                if bytes_read <= 1023 {
                                     break;
                                 }
 
                                 // reset the timer.
                                 //dctimer = Ntimer::init();
 
-                                 start_time = Instant::now();
+                                start_time = Instant::now();
                                 // procceed the connection.
-
                             }
                             Err(e) => {
-                                print!("error nchttp {}",e);// handle OS error on connection-reset)
+                                print!("error nchttp {}", e); // handle OS error on connection-reset)
                                 break;
-
-
                             }
                         }
                     }
                 }
-        let strippostdata = split(&postdata,"\r\n\r\n");
-        if strippostdata.len() > 1 {
-
-            postdata = "".to_owned() + &Nstring::replace(&strippostdata[1],"\0","") ;// used for post buffer data
-            //println!("strippedpostdata:{}",&postdata);
-        }
-                vmap.setvar("POSTDATA".to_owned() ,&Nstring::replace(&postdata,"\0",""));
+                let strippostdata = split(&postdata, "\r\n\r\n");
+                if strippostdata.len() > 1 {
+                    postdata = "".to_owned() + &Nstring::replace(&strippostdata[1], "\0", "");
+                    // used for post buffer data
+                    //println!("strippedpostdata:{}",&postdata);
+                }
+                vmap.setvar(
+                    "POSTDATA".to_owned(),
+                    &Nstring::replace(&postdata, "\0", ""),
+                );
                 // let url_args = split(&postdata, "&");
                 // let mut newparams: Vec<String> = Vec::new();
                 //
@@ -614,7 +815,10 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                 let scriptcode = read_file_utf8(&file_path);
                 //println!("script:{}",scriptcode);
                 //let compcode = nscript_formatsheet(&scriptcode,vmap);
-                let response = nscript_parsesheet(&nscript_replaceparams(&nscript_stringextract(&scriptcode),"param"), vmap);
+                let response = nscript_parsesheet(
+                    &nscript_replaceparams(&nscript_stringextract(&scriptcode), "param"),
+                    vmap,
+                );
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
                         // Check if all bytes were successfully written.
@@ -622,34 +826,42 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                         if bytes_written < response.len() {
                             // Handle the situation where not all data was written if needed.
                         }
-
                     }
                     Err(_) => {
                         //return;
                     }
                 }
                 //println!("post: {}",postdata);
-
             }
-
         }
         return;
     }
     if request_parts[0] == "GET" {
-        if let Some(extension) = Path::new(&file_path).extension().and_then(|os_str| os_str.to_str().map(|s| s.to_owned())) {
+        if let Some(extension) = Path::new(&file_path)
+            .extension()
+            .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
+        {
             if ["nc"].contains(&extension.as_str()) {
                 let _ = match File::open(&file_path) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(_) => {
-
                         let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                        let nc404file = webroot.clone() + "domains/"  + &domainname + "/public/404.nc";
-                        println!("404={},",nc404file);
-                        if Nfile::checkexists(&nc404file){
-                            let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
-                            let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
+                        let nc404file =
+                            webroot.clone() + "domains/" + &domainname + "/public/404.nc";
+                        println!("404={},", nc404file);
+                        if Nfile::checkexists(&nc404file) {
+                            //let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
+                            let compcode = read_file_utf8(&nc404file);
+                            let ret = nscript_parsesheet(
+                                &nscript_replaceparams(&compcode, "param"),
+                                vmap,
+                            ); // <-- enables param usage param1 param2 etc.
                             nscript_clearparams_handleconnections(vmap);
-                            response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
+                            response = format!(
+                                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                                "text/html",
+                                &ret.len()
+                            );
                             stream.write(response.as_bytes()).unwrap();
                             match stream.write(ret.as_bytes()) {
                                 Ok(bytes_written) => {
@@ -663,25 +875,30 @@ pub fn handle_connection(mut stream: TcpStream,  vmap: &mut Varmap) {
                                 }
                             }
                             return;
-
-                        }else{
+                        } else {
                             stream.write(response.as_bytes()).unwrap();
                             return;
-
                         }
-
-
                     }
                 };
-            let scriptcode = read_file_utf8(&file_path);
+               let scriptcode = read_file_utf8(&file_path);
                 let oldscriptname = vmap.currentscriptname.clone();
-                vmap.currentscriptname = file_path;
+                //            vmap.currentscriptname = file_path.clone();
+
+                //              vmap.parsinglevel = vmap.parsinglevel + 1;
+                //vmap.scopecounter = 0;
                 let compcode = nscript_stringextract(&scriptcode);
                 let ret = nscript_parsesheet(&nscript_replaceparams(&compcode,"param"), vmap);// <-- enables param usage param1 param2 etc.
-                //nscript_clearparams_handleconnections(vmap);
-vmap.currentscriptname = oldscriptname;
-
-                let response = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", "text/html", &ret.len());
+                //let ret =
+                  //  nscript_execute_script(&file_path, "", "", "", "", "", "", "", "", "", vmap);
+                nscript_clearparams_handleconnections(vmap);
+                vmap.currentscriptname = oldscriptname;
+                //vmap.parsinglevel = vmap.parsinglevel - 1;
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                    "text/html",
+                    &ret.len()
+                );
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
                         // Check if all bytes were successfully written.
@@ -705,64 +922,64 @@ vmap.currentscriptname = oldscriptname;
                     }
                 }
                 return;
-
-        }
-        let file_path_clone = file_path.clone(); // clone file_path
-        thread::spawn(move || {
-            let mut file = match File::open(&file_path_clone) {
-                Ok(file) => file,
-                Err(_) => {
-                    let response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                    stream.write(response.as_bytes()).unwrap();
-                    return;
+            }
+            let file_path_clone = file_path.clone(); // clone file_path
+            thread::spawn(move || {
+                let mut file = match File::open(&file_path_clone) {
+                    Ok(file) => file,
+                    Err(_) => {
+                        let response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                        stream.write(response.as_bytes()).unwrap();
+                        return;
+                    }
+                };
+                let mut contents = Vec::new();
+                file.read_to_end(&mut contents).unwrap();
+                let content_type = match extension.as_str() {
+                    "jpg" | "jpeg" => "image/jpeg",
+                    "png" => "image/png",
+                    "gif" => "image/gif",
+                    "js" => "application/javascript",
+                    "txt" => "text/plain",
+                    "html" => "text/html",
+                    "css" => "text/css",
+                    _ => "application/octet-stream",
+                };
+                let response = format!(
+                    "HTTP/2.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                    content_type,
+                    contents.len()
+                );
+                match stream.write(response.as_bytes()) {
+                    Ok(bytes_written) => {
+                        // Check if all bytes were successfully written.
+                        if bytes_written < response.len() {
+                            eprintln!("Not all data was written to the stream.");
+                            // Handle the situation where not all data was written if needed.
+                        }
+                    }
+                    Err(error) => {
+                        return;
+                    }
                 }
-            };
-            let mut contents = Vec::new();
-            file.read_to_end(&mut contents).unwrap();
-            let content_type = match extension.as_str() {
-                "jpg" | "jpeg" => "image/jpeg",
-                "png" => "image/png",
-                "gif" => "image/gif",
-                "js" => "application/javascript",
-                "txt" => "text/plain",
-                "html" => "text/html",
-                "css" => "text/css",
-                _ => "application/octet-stream"
-            };
-            let response = format!("HTTP/2.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n", content_type, contents.len());
-match stream.write(response.as_bytes()) {
-    Ok(bytes_written) => {
-        // Check if all bytes were successfully written.
-        if bytes_written < response.len() {
-            eprintln!("Not all data was written to the stream.");
-            // Handle the situation where not all data was written if needed.
+                match stream.write(&contents) {
+                    Ok(bytes_written) => {
+                        // Check if all bytes were successfully written.
+                        if bytes_written < contents.len() {
+                            // Handle the situation where not all data was written if needed.
+                        }
+                    }
+                    Err(_) => {
+                        return;
+                    }
+                }
+            });
+            return;
         }
     }
-    Err(error) => {
-        return;
-    }
 }
-            match stream.write(&contents) {
-    Ok(bytes_written) => {
-        // Check if all bytes were successfully written.
-        if bytes_written < contents.len() {
-            // Handle the situation where not all data was written if needed.
-        }
-    }
-    Err(_) => {
-        return;
-    }
-}
-        });
-        return;
-    }
-}
-
-
-}
-pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
-
-       //let args: Vec<String> = env::args().collect();
+pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()> {
+    //let args: Vec<String> = env::args().collect();
 
     // The first argument (index 0) is the name of the binary itself.
     // The actual command-line arguments start from index 1.
@@ -777,76 +994,93 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
 
     //let mut vmap = Varmap::new(); // global
 
-    println!("Starting Nscript WebServer {}",NSCRIPT_VERSION);
+    println!("Starting Nscript WebServer {}", NSCRIPT_VERSION);
     println!("____________________________________");
     let mut webroot = nscript_checkvar("server.serverroot", vmap);
-    if webroot == ""{
+    if webroot == "" {
         webroot = NC_SCRIPT_DIR.to_owned();
     }
     // run Nscript:server.nc ,define pre logic here, this runs before the stream starts.
-    vmap.setvar("self".to_owned(),"server");//<- set self in nscript during scope
-    let serverscriptfilename = webroot.clone() +"system/webserver.nc";
-    nscript_execute_script(&serverscriptfilename,"","","","","","","","","",vmap);
+    vmap.setvar("self".to_owned(), "server"); //<- set self in nscript during scope
+    let serverscriptfilename = webroot.clone() + "system/webserver.nc";
+    nscript_execute_script(
+        &serverscriptfilename,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        vmap,
+    );
     // retrieve the prop's set for class server in nscript:server.nc
-    let server_addres_nc = nscript_checkvar("server.ip",vmap);
-    let server_port_nc = nscript_checkvar("server.port",vmap);
+    let server_addres_nc = nscript_checkvar("server.ip", vmap);
+    let server_port_nc = nscript_checkvar("server.port", vmap);
 
-    let  listener: TcpListener;
-    if server_port_nc != "" && server_addres_nc != ""{
+    let listener: TcpListener;
+    if server_port_nc != "" && server_addres_nc != "" {
         // when the server.nc is run class server.ip and server.port be checked!
         listener = TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)).unwrap();
-        println!("Server started at http://{}:{}", &server_addres_nc, &server_port_nc);
-    }
-    else{
+        println!(
+            "Server started at http://{}:{}",
+            &server_addres_nc, &server_port_nc
+        );
+    } else {
         // if missing serverclass or something, use the constants
         listener = TcpListener::bind(format!("{}:{}", NC_SERVER_ADDRESS, NC_SERVER_PORT)).unwrap();
-        println!("Server started at http://{}:{}", NC_SERVER_ADDRESS, NC_SERVER_PORT);
+        println!(
+            "Server started at http://{}:{}",
+            NC_SERVER_ADDRESS, NC_SERVER_PORT
+        );
     }
     // sets the
     // acceptsocketlisterns to continue and not hold on the script
     #[cfg(windows)]
-    listener.set_nonblocking(true).expect("Cannot set non-blocking");
+    listener
+        .set_nonblocking(true)
+        .expect("Cannot set non-blocking");
     #[cfg(not(windows))]
     listener.set_nonblocking(true)?;
-
 
     // this checks your /domains/ folder for subfolders
     // you can name a folder to your dns-domain
     // all http to this domain be rerouted to this folders
 
-    let domaindir = webroot.clone() +"domains/";
-    println!("domaindir={}",&domaindir);
-    let domdir = Nfile::dirtolist(&domaindir,false);
-    let domaindirarr = split(&domdir,NC_ARRAY_DELIM);
+    let domaindir = webroot.clone() + "domains/";
+    println!("domaindir={}", &domaindir);
+    let domdir = Nfile::dirtolist(&domaindir, false);
+    let domaindirarr = split(&domdir, NC_ARRAY_DELIM);
     for domainscript in domaindirarr {
-        if domainscript != ""{
-            vmap.setvar("___domainname".to_owned(),&domainscript);
-            let domainscript = webroot.clone() + "domains/"+domainscript.trim() + "/http.nc";
-            nscript_execute_script(&domainscript,"","","","","","","","","", vmap);
-            println!("Loading domain script:[{}]",&domainscript);
+        if domainscript != "" {
+            vmap.setvar("___domainname".to_owned(), &domainscript);
+            let domainscript = webroot.clone() + "domains/" + domainscript.trim() + "/http.nc";
+            nscript_execute_script(&domainscript, "", "", "", "", "", "", "", "", "", vmap);
+            println!("Loading domain script:[{}]", &domainscript);
         }
     }
     println!("Domains loaded, starting listener");
-
 
     loop {
         nscript_loops(vmap);
         match listener.accept() {
             Ok((stream, _)) => {
-                match stream.peer_addr(){
-                    Ok(res) =>{
+                match stream.peer_addr() {
+                    Ok(res) => {
                         let remote_ip = res.ip();
-                        vmap.setvar("___thissocketip".to_owned(),&remote_ip.to_string());
-                        let onconfunc = "server.onconnect(\"".to_owned() + &remote_ip.to_string()+ "\")";
-                        nscript_checkvar(&onconfunc,vmap);
-                        handle_connection(stream,vmap);
+                        vmap.setvar("___thissocketip".to_owned(), &remote_ip.to_string());
+                        let onconfunc =
+                            "server.onconnect(\"".to_owned() + &remote_ip.to_string() + "\")";
+                        nscript_checkvar(&onconfunc, vmap);
+                        handle_connection(stream, vmap);
                         //println!("connection ok and closed");
                     }
-                    Err(err)=>{
-                        println!("Connection error{}",err);
+                    Err(err) => {
+                        println!("Connection error{}", err);
                     }
                 }
-
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connections yet,
@@ -858,9 +1092,17 @@ pub fn ncwebserver(vmap: &mut Varmap) -> std::io::Result<()>  {
     }
 }
 
-pub fn get_http_file_content(host: &str, port: u16, path: &str, pathoutput: &str) -> Result<Vec<u8>, std::io::Error> {
+pub fn get_http_file_content(
+    host: &str,
+    port: u16,
+    path: &str,
+    pathoutput: &str,
+) -> Result<Vec<u8>, std::io::Error> {
     let mut stream = TcpStream::connect((host, port))?;
-    let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n", path, host);
+    let request = format!(
+        "GET {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
+        path, host
+    );
 
     stream.write_all(request.as_bytes())?;
 
@@ -884,7 +1126,10 @@ pub fn get_http_file_content(host: &str, port: u16, path: &str, pathoutput: &str
 
 pub fn get_http_content(host: &str, port: u16, path: &str) -> Result<Vec<u8>, std::io::Error> {
     let mut stream = TcpStream::connect((host, port))?;
-    let request = format!("GET {} HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\n\r\n", path,port, host);
+    let request = format!(
+        "GET {} HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\n\r\n",
+        path, port, host
+    );
 
     stream.write_all(request.as_bytes())?;
 

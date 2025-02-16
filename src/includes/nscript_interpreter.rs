@@ -7,7 +7,7 @@ use std::thread;
 //use super::nscript_sound;
 //use std::path::PathBuf;
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
-pub const NC_ARRAY_DELIM: &str = "  }~{ ";
+pub const NC_ARRAY_DELIM: &str = "[]nc\n";
 pub const NC_ASYNC_LOOPS_KEY: &str = "coroutine"; // async loops scopes keyword
 use dirs;
 pub type NscriptCustomFunctions = fn(&mut Varmap) -> String;
@@ -1443,6 +1443,12 @@ pub fn nscript_parseline( words: &Vec<&str>, vmap: &mut Varmap) -> String {
                         vmap.setvar(words[0].to_string(), &res);
                         return res;
                     }
+                    "combine[]" | "cat[]" => {
+                        let res = nscript_combinearray(&words, vmap);
+                        //println!("Combine:{}", res);
+                        vmap.setvar(words[0].to_string(), &res);
+                        return res;
+                    }
                     "space" => {
                         let res = nscript_space(&words, vmap);
                         //println!("Combine:{}", res);
@@ -2693,15 +2699,20 @@ pub fn nscript_match(entree: &str, scope: &str, vmap: &mut Varmap) -> String {
                     if Nstring::instring(&splitline[1], "scope(") {
                         // prep and run nest
                         let casescopeargs = Nstring::stringbetween(&splitline[1], "(", ")");
-                        let splitcasescopearg = split(&casescopeargs, ",");
-                        let ret =
-                        nscript_unpackscope(&splitcasescopearg[1], &splitcasescopearg[0], vmap);
-                        // check for return (if nests could have em.)
-                        if Nstring::fromleft(&ret, 5) == "RET=>" {
-                            return ret;
+                        if casescopeargs.len() > 1 {
+                            let splitcasescopearg = split(&casescopeargs, ",");
+                            let ret = nscript_unpackscope(&splitcasescopearg[1], &splitcasescopearg[0], vmap);
+                            // check for return (if nests could have em.)
+                            if Nstring::fromleft(&ret, 5) == "RET=>" {
+                                return ret;
+                            }
+                            // return the last line's result as return
+                            return "".to_owned() + &ret;
                         }
-                        // return the last line's result as return
-                        return "".to_owned() + &ret; // ensure last return as result
+                        else{
+                            println!("Error on parsing match,line= {} ",&switchscope);
+                            return "".to_owned();
+                        }
                     } else {
                         // if no scope, 1 word can return
                         return "".to_owned() + &nscript_checkvar(&splitline[1].trim(), vmap);
@@ -2905,7 +2916,15 @@ pub fn nscript_combine(a: &Vec<&str>, vmap: &mut Varmap) -> String {
     }
     return makestring;
 }
-
+pub fn nscript_combinearray(a: &Vec<&str>, vmap: &mut Varmap) -> String {
+    // this is a function wich comes strings concetinate.
+    // -------------------------------------------------
+    let mut makestring = String::new();
+    for r in 3..a.len() {
+        makestring = makestring + &nscript_checkvar(&a[r], vmap) + NC_ARRAY_DELIM;
+    }
+    return Nstring::trimright(&makestring,NC_ARRAY_DELIM.len());
+}
 pub fn nscript_space(a: &Vec<&str>, vmap: &mut Varmap) -> String {
     // everything is combined with a additional whitespace between them,
     // ---------------------------------------------------
@@ -3362,14 +3381,24 @@ pub fn objfromjson(obj: &str, json: &str, vmap: &mut Varmap) {
     for each in split(&json, "\",") {
         let splitprop = split(&each, "\": \"");
         if splitprop.len() > 1 {
-            let nscriptprop =
-            "".to_owned() + &obj.trim() + "." + &Nstring::trimleft(&splitprop[0], 1);
-            println!("setting [{}] with data[{}]", &nscriptprop, &splitprop[1]);
-            vmap.setprop(
-                &obj.trim(),
-                &Nstring::trimleft(&splitprop[0], 1),
-                &splitprop[1],
-            );
+            //let nscriptprop = "".to_owned() + &obj.trim() + "." + &Nstring::trimleft(&splitprop[0], 1);
+            if Nstring::fromright(splitprop[1],1) == "\"" {
+                //println!("setting [{}] with data[{}]", &nscriptprop, &splitprop[1]);
+                vmap.setprop(
+                    &obj.trim(),
+                    &Nstring::trimleft(&splitprop[0], 1),
+                    &Nstring::trimright(splitprop[1],1),
+                );
+            }
+            else{
+               //println!("setting [{}] with data[{}]", &nscriptprop, &splitprop[1]);
+                vmap.setprop(
+                    &obj.trim(),
+                    &Nstring::trimleft(&splitprop[0], 1),
+                    &splitprop[1],
+                );
+            }
+
         }
     }
 }
@@ -3437,9 +3466,11 @@ pub fn nscript_array_scopeextract(code: &str) -> String {
             if eachclass != "" {
                 let blockend = split(&eachclass, "\n]")[0];
                 let isblockorigin = "= [\n".to_owned() + blockend + "\n]";
-                let replacement = Nstring::replace(blockend, "\n", "");
-                let replacement = Nstring::replace(&replacement, " ", "");
-                let replacement = "= [".to_owned() + &replacement + "]";
+                let replacement = Nstring::replace(blockend, ",\n", "\n");
+                let replacement = Nstring::replace(&replacement, "\n", " ");
+                //let replacement = Nstring::replace(&replacement, " ", "");
+                let replacement = "= cat[] ".to_owned() + &replacement + "";
+                //println!("array:{}",&replacement);
                 let replacement = Nstring::replace(&replacement, ",]", "]");
                 fixedcode = fixedcode.replace(&isblockorigin, &replacement);
             }

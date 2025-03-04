@@ -121,6 +121,7 @@ pub fn emptyfnbuffer(&mut self,_: &mut Varmap) -> String {
 
         };
         Nc_os::envargs(&mut thisobj);
+        thisobj.setvar("self".to_string(), "");
         thisobj
     }
     pub fn setextentionfunctions(&mut self, func: NscriptCustomFunctions) {

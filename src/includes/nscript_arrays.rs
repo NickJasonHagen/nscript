@@ -113,8 +113,9 @@ pub fn arraysearch(array: &str,tosearch: &str) -> String{
 pub fn arrayreverse(array: &str) -> String{
     //println!("searching array:{} for {}",&array,&tosearch);
     let mut ret = String::new();
-    for entree in split(&array.reverse(),&NC_ARRAY_DELIM){
-            ret = "".to_owned() + &ret + &entree+ NC_ARRAY_DELIM;
+let isarray = split(array,&NC_ARRAY_DELIM);
+    for entree in 0..isarray.len(){
+            ret = "".to_owned() + &isarray[entree]+ NC_ARRAY_DELIM + &ret;
      }
     if Nstring::fromleft(&ret, NC_ARRAY_DELIM.len()) == NC_ARRAY_DELIM {
         return Nstring::trimleft(&ret, NC_ARRAY_DELIM.len());

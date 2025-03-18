@@ -1,3 +1,5 @@
+use num::ToPrimitive;
+
 use crate::*;
 //use reqwest;
 //use reqwest::blocking::get;
@@ -214,13 +216,13 @@ pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
     let request = format!("POST {} HTTP/1.1\r\n\
         Host: {}:{}\r\n\
         Content-Type: application/x-www-form-urlencoded\r\n\
-        Content-Length: {} Cache\r\n\
-        Connection: close\r\n\
+        Content-Length: {}\r\n\
+        Connection: keep-alive\r\n\
         \r\n\
         {}\r\n", url, ipaddr, port, postdata.len(), postdata);
 //println!("{}",request);
     // Send the request
-    if postdata.len() <= 198 {// check multiparts
+    if postdata.len() <= 142 {// check multiparts
         if let Err(err) = stream.write_all(request.as_bytes()) {
             //return Err(format!("Failed to send request: {}", err));
             resultstring = format!("Failed to send request: {}", err);
@@ -228,8 +230,12 @@ pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
         }
     }
     else{
+        let mut packetlen = 1024;
+        if postdata.len() < 1024 {
+            packetlen = postdata.len();
+        }
 
-        if let Err(err) = stream.write(&request.as_bytes()[0..1024]) {
+        if let Err(err) = stream.write(&request.as_bytes()[0..packetlen]) {
             //return Err(format!("Failed to send request: {}", err));
             resultstring = format!("Failed to send request: {}", err);
             return resultstring;
@@ -240,7 +246,7 @@ pub fn httppost(ipaddr: &str, port: u16, url: &str, postdata: &str) -> String{
         //     return resultstring;
         // }
         // if Nstring::instring(&response, "200 OK"){
-            let mut bytefragment = 1024;
+            let mut bytefragment = packetlen.clone();
             let mut addbytes:usize;
         let lastbyte = request.len() -1;
             loop {
@@ -691,26 +697,31 @@ pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
         let mut postdata = String::new();
 
         let strippostdata = split(&request, "\r\n\r\n");
-        if strippostdata.len() > 1 {
+                if strippostdata.len() > 1 {
             postdata = "".to_owned() + strippostdata[1]; // used for post buffer data
+
                                                          //println!("strippedpostdata:{}",&postdata);
         } else {
             //println!("somejacked up stuff");
             return; //some jacked up post request being done.
         }
+let recveivedcontentlenght = postdata.len();
 
         if let Some(extension) = Path::new(&file_path)
             .extension()
             .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
         {
             if ["nc"].contains(&extension.as_str()) {
+
                 //println!("Its a Post to Nc");
-                let bsize = nscript_f64(
+                let bsize = nscript_usize(
                     &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
                 );
 
                 //println!("receiving:{}",&bsize);
+
                 let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+
                 match stream.write(response.as_bytes()) {
                     Ok(bytes_written) => {
                         // Check if all bytes were successfully written.
@@ -722,21 +733,7 @@ pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
                         //return;
                     }
                 }
-                // match stream.set_read_timeout(Some(Duration::new(0, 10000000))){
-                //
-                //     Ok(_) => {},
-                //     Err(_) => println!("[nctcphttp] Error setting the stream read timeout"),
-                // }
-                //
-                // // let err = result.unwrap_err();
-                // // assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
-                // match stream.set_write_timeout(Some(Duration::new(0, 10000000))){
-                //
-                //     Ok(_) => {},
-                //     Err(_) => println!("[nctcphttp] Error setting the stream write timeout"),
-                // }
-
-                if bsize > nscript_f64(&nscript_checkvar("server.POSTbytesmax", vmap)) {
+                if bsize > nscript_usize(&nscript_checkvar("server.POSTbytesmax", vmap)) {
                     let response = "SERVERERROR:PostSizeExceedsLimit";
                     match stream.write(response.as_bytes()) {
                         Ok(_) => {
@@ -748,7 +745,7 @@ pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
                     }
                 }
                 //println!("bytesize:{}",&bsize);
-                if bsize > 198.0 {
+                if bsize > recveivedcontentlenght {
                     // this will make sure this loop will break if something weird happends it
                     // hangs here so this timer (should) solve the issue
                     //let mut  dctimer = Ntimer::init();
@@ -790,6 +787,11 @@ pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
                     }
                 }
                 let strippostdata = split(&postdata, "\r\n\r\n");
+                vmap.setvar(
+                    "POSTPACKET".to_owned(),
+                    &Nstring::replace(&postdata, "\0", ""),
+                );
+
                 if strippostdata.len() > 1 {
                     postdata = "".to_owned() + &Nstring::replace(&strippostdata[1], "\0", "");
                     // used for post buffer data
@@ -824,6 +826,7 @@ pub fn handle_connection(mut stream: TcpStream, vmap: &mut Varmap) {
                         // Check if all bytes were successfully written.
                         //println!("writingback bytes : {}",bytes_written);
                         if bytes_written < response.len() {
+                            print!("post stream broken bytes written {} of {}",bytes_written,response.len());
                             // Handle the situation where not all data was written if needed.
                         }
                     }

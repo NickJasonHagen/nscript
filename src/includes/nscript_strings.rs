@@ -264,7 +264,7 @@ impl Njh {
         let lines = split(&filedata,"||==>");
         for xline in lines{
             let propdata = split(&xline,"|=>");
-            if propdata.len() > 0 {
+            if propdata.len() > 1 {
                 vmap.setprop(&objectname, &propdata[0], &propdata[1]);
             }
         }

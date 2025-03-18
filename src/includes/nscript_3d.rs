@@ -197,6 +197,9 @@ impl Nscript3d {
         getgroup.retain(|x| x != objectname);
         self.colliongroups.insert(group.to_string(), getgroup);
     }
+    pub fn collisionbox_removegroup(&mut self,group:&str){
+        self.colliongroups.insert(group.to_string(), Vec::new());
+    }
     pub fn collisionbox_getgroup(&mut self,group:&str) -> Vec<String>{
         match self.colliongroups.get_key_value(group) {
             None => {

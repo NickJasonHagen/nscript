@@ -791,6 +791,10 @@ pub fn nscript_callfn(
              vmap.nscript3d.collisionbox_removefromgroup(&param1,&param2);
             return "".to_string();
         }
+        "collisionbox_removegroup" => {
+             vmap.nscript3d.collisionbox_removegroup(&param1);
+            return "".to_string();
+        }
         "collisionbox_getgroup" => {
             return vmap.nscript3d.collisionbox_getgroup(&param1).join(NC_ARRAY_DELIM);
         }
